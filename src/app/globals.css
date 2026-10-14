@@ -1144,6 +1144,7 @@ html:not(.dark) .public-site .public-page div.absolute.inset-0[class*="bg-gradie
   display: none !important;
 }
 
+
 /* Keep the bulk-link workspace aligned with the active dashboard theme. */
 html:not(.dark) .bulk-link-page {
   background-color: var(--page-bg) !important;
@@ -1600,6 +1601,72 @@ html:not(.dark) .campaign-builder-input:focus {
   color: #a7f3d0 !important;
 }
 
+.auth-logo-wrap {
+  position: relative;
+  isolation: isolate;
+  animation: auth-logo-enter 700ms cubic-bezier(0.2, 0.75, 0.25, 1) both;
+}
+
+.auth-logo-wrap::before {
+  position: absolute;
+  z-index: -1;
+  inset: -12px -20px;
+  border-radius: 9999px;
+  background: radial-gradient(ellipse, rgba(110, 231, 183, 0.2), transparent 68%);
+  content: "";
+  animation: auth-logo-glow 4s ease-in-out 700ms infinite;
+}
+
+.auth-logo-image {
+  transition: transform 260ms cubic-bezier(0.2, 0.75, 0.25, 1), filter 260ms ease;
+}
+
+.auth-logo-wrap:hover .auth-logo-image {
+  transform: translateY(-2px) scale(1.025);
+  filter: drop-shadow(0 0 12px rgba(110, 231, 183, 0.28));
+}
+
+@keyframes auth-logo-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes auth-logo-glow {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(0.96);
+  }
+
+  50% {
+    opacity: 0.85;
+    transform: scale(1.04);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-logo-wrap,
+  .auth-logo-wrap::before {
+    animation: none;
+  }
+
+  .auth-logo-image {
+    transition: none;
+  }
+
+  .auth-logo-wrap:hover .auth-logo-image {
+    transform: none;
+    filter: none;
+  }
+}
+
 html:not(.dark) .auth-site canvas {
   display: none !important;
 }
@@ -1849,4 +1916,3 @@ html:not(.dark) .public-site .public-page [class*="bg-clip-text"] {
 html:not(.dark) .public-site .public-page div.absolute.inset-0[class*="bg-gradient"] {
   display: none !important;
 }
-

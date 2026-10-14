@@ -367,20 +367,16 @@ export default function LoginClient() {
         >
           <div className="space-y-6">
             <div className="flex flex-col items-center">
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                transition={{ type: "spring", stiffness: 300 }}
-                className="flex items-center justify-center"
-              >
+              <div className="auth-logo-wrap flex items-center justify-center">
                 <Image
                   src="/afficixo-logo.png"
                   alt="Afficixo logo"
                   width={150}
                   height={44}
-                  className="object-contain"
+                  className="auth-logo-image object-contain"
                   priority
                 />
-              </motion.div>
+              </div>
               <p className="mt-1 text-sm text-slate-400">Use your credentials or continue with Google.</p>
             </div>
 
