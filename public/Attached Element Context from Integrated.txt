@@ -1,0 +1,44 @@
+Attached Element Context from Integrated Browser
+
+Element: img
+
+URL: http://127.0.0.1:3002/
+
+HTML Path: div.offer-container-v2 > div.giftbox-container-v2 > div.giveaway-box > div.giveaway-content > div.giveaway-img > img
+
+Outer HTML:
+```html
+<img src="https://b.noodledit.com/promotions/generic1000_green.svg" alt="$1000 gift card" width="120">
+```
+
+Dimensions:
+- top: 97px
+- left: 678px
+- width: 128px
+- height: 80px
+
+CSS:
+```css
+*, *::before, *::after { box-sizing: border-box; }
+img { vertical-align: middle; max-width: 100%; }
+.giveaway-img img { max-height: 80px; width: auto; padding: 4px 10px 4px 0; }
+
+/* Inherited */
+.giveaway-content { text-align: center }
+body, html { font-family: "Inter", system-ui, -apple-system, sans-serif }
+
+/* Resolved values */
+padding: 4px 10px 4px 0px;
+box-sizing: border-box;
+display: inline;
+font-family: Inter, system-ui, -apple-system, sans-serif;
+height: 79.9844px;
+max-height: 80px;
+max-width: 100%;
+overflow-clip-margin: content-box /*UA*/;
+overflow-x: clip /*UA*/;
+overflow-y: clip /*UA*/;
+text-align: center;
+vertical-align: middle;
+width: 127.516px;
+```

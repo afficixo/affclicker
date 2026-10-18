@@ -377,7 +377,6 @@ export default function LoginClient() {
                   priority
                 />
               </div>
-              <p className="mt-1 text-sm text-slate-400">Use your credentials or continue with Google.</p>
             </div>
 
             {error && (
