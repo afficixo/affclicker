@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  ArrowLeft,
   ArrowRight,
   AlertCircle,
   CheckCircle2,
@@ -200,26 +199,6 @@ export default function CreateLinkTurboPage() {
   return (
     <div className="bulk-link-page min-h-full w-full px-2 py-3 sm:px-3 sm:py-5">
       <div className="mx-auto w-full max-w-[1440px]">
-        <header className="mb-6 flex flex-col gap-4 border-b border-[var(--surface-border)] pb-5 sm:flex-row sm:items-end sm:justify-between">
-          <div className="flex items-start gap-3">
-            <span className="bulk-link-icon mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl">
-              <Rocket className="h-5 w-5" />
-            </span>
-            <div>
-              <p className="bulk-link-accent mb-1 text-xs font-semibold uppercase tracking-[0.16em]">Link management</p>
-              <h1 className="bulk-link-title text-2xl font-bold tracking-tight sm:text-3xl">Bulk create links</h1>
-              <p className="bulk-link-muted mt-1 max-w-2xl text-sm">Create a numbered series of link accounts from one shared configuration.</p>
-            </div>
-          </div>
-          <Link
-            href={`${dashboardBasePath}/links`}
-            className="bulk-link-secondary inline-flex min-h-10 items-center justify-center gap-2 self-start rounded-lg border px-3.5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/60 sm:self-auto"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            All link accounts
-          </Link>
-        </header>
-
         {/* Main Grid */}
         <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.8fr)] xl:gap-6">
           {/* Form Card */}

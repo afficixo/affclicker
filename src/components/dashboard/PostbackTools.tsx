@@ -188,15 +188,6 @@ export default function PostbackTools() {
 
   return (
     <div className="postback-tools w-full space-y-6 pb-8 md:space-y-8">
-      <header className="postback-header">
-        <div className="postback-heading-icon"><Webhook className="h-5 w-5" /></div>
-        <div>
-          <p className="postback-kicker">Integrations</p>
-          <h1 className="postback-title">S2S postbacks</h1>
-          <p className="postback-muted mt-1">Manage conversion endpoints, notifications, and payout activity.</p>
-        </div>
-      </header>
-
       {(message || error) && (
         <div className={`postback-alert ${error ? "is-error" : "is-success"}`}>
           {error ? <XCircle className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}

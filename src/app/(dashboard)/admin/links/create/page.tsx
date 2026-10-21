@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
   ArrowRight,
-  ArrowLeft,
   CheckCircle2,
   Copy,
   Check,
@@ -279,28 +278,6 @@ export default function CreateLinkPage() {
   return (
     <div className="campaign-builder-page min-h-full w-full px-2 py-3 sm:px-3 sm:py-5">
       <div className="mx-auto w-full max-w-[1440px]">
-        <header className="mb-6 flex flex-col gap-4 border-b border-[var(--surface-border)] pb-5 sm:flex-row sm:items-end sm:justify-between">
-          <div className="flex items-start gap-3">
-            <span className="campaign-builder-icon mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl">
-              <Rocket className="h-5 w-5" />
-            </span>
-            <div>
-              <p className="campaign-builder-kicker mb-1 text-xs font-semibold uppercase tracking-[0.16em]">Link management</p>
-              <h1 className="campaign-builder-title text-2xl font-bold tracking-tight sm:text-3xl">Create link account</h1>
-              <p className="campaign-builder-muted mt-1 max-w-2xl text-sm">
-                Set up a campaign identity, choose where it routes, and get a shareable tracking link.
-              </p>
-            </div>
-          </div>
-          <a
-            href={`${dashboardBasePath}/links`}
-            className="campaign-builder-back inline-flex min-h-10 items-center justify-center gap-2 self-start rounded-lg border px-3.5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/60 sm:self-auto"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            All link accounts
-          </a>
-        </header>
-
         <div className="grid w-full min-w-0 grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1.45fr)_minmax(300px,0.75fr)] xl:gap-6">
           {/* Form Card */}
           <div className="campaign-builder-card w-full min-w-0 rounded-2xl p-5 sm:p-7">
