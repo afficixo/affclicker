@@ -25,13 +25,16 @@ export async function GET(request: Request) {
   }
 
   if (isOwner(user)) {
-    const conversations = await prisma.supportConversation.findMany({ orderBy: { updatedAt: 'desc' }, include: messageInclude })
-    const users = await prisma.user.findMany({
-      where: { role: 'MANAGER' },
-      orderBy: { username: 'asc' },
-      select: { id: true, username: true, fullName: true, email: true, status: true },
-    })
-    return NextResponse.json({ conversations, users })
+    const [conversations, users, contactInquiries] = await Promise.all([
+      prisma.supportConversation.findMany({ orderBy: { updatedAt: 'desc' }, include: messageInclude }),
+      prisma.user.findMany({
+        where: { role: 'MANAGER' },
+        orderBy: { username: 'asc' },
+        select: { id: true, username: true, fullName: true, email: true, status: true },
+      }),
+      prisma.contactInquiry.findMany({ orderBy: { createdAt: 'desc' } }),
+    ])
+    return NextResponse.json({ conversations, users, contactInquiries })
   }
 
   return NextResponse.json({ error: 'Support access required' }, { status: 403 })
@@ -95,6 +98,13 @@ export async function PATCH(request: Request) {
     await prisma.supportConversation.updateMany({ data: { status: 'RESOLVED' } })
     return NextResponse.json({ action: 'RESOLVE_ALL' })
   }
+  if (typeof payload?.contactInquiryId === 'string') {
+    const inquiry = await prisma.contactInquiry.update({
+      where: { id: payload.contactInquiryId },
+      data: { status: payload.status === 'RESOLVED' ? 'RESOLVED' : 'OPEN' },
+    })
+    return NextResponse.json({ contactInquiry: inquiry })
+  }
   if (typeof payload?.conversationId !== 'string') return NextResponse.json({ error: 'Conversation is required.' }, { status: 400 })
   const conversation = await prisma.supportConversation.update({ where: { id: payload.conversationId }, data: { status: payload.status === 'RESOLVED' ? 'RESOLVED' : 'OPEN' }, include: messageInclude })
   return NextResponse.json({ conversation })
@@ -108,6 +118,10 @@ export async function DELETE(request: Request) {
   if (payload?.action === 'DELETE_ALL') {
     const result = await prisma.supportConversation.deleteMany()
     return NextResponse.json({ action: 'DELETE_ALL', deletedCount: result.count })
+  }
+  if (typeof payload?.contactInquiryId === 'string') {
+    await prisma.contactInquiry.delete({ where: { id: payload.contactInquiryId } })
+    return NextResponse.json({ deletedContactInquiryId: payload.contactInquiryId })
   }
   if (typeof payload?.conversationId !== 'string') return NextResponse.json({ error: 'Conversation is required.' }, { status: 400 })
 

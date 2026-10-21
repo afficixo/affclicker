@@ -36,6 +36,7 @@ export default function HomePage() {
   const [form, setForm] = useState({ firstName: "", lastName: "", email: "", message: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [status, setStatus] = useState<"idle" | "sending" | "success">("idle");
+  const [submitError, setSubmitError] = useState("");
 
   const validate = () => {
     const next: Record<string, string> = {};
@@ -47,18 +48,28 @@ export default function HomePage() {
     return next;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const next = validate();
     setErrors(next);
     if (Object.keys(next).length) return;
     setStatus("sending");
-    // Wire to /api/contact when ready
-    window.setTimeout(() => {
+    setSubmitError("");
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Unable to send your message. Please try again.");
       setStatus("success");
       setForm({ firstName: "", lastName: "", email: "", message: "" });
       window.setTimeout(() => setStatus("idle"), 4000);
-    }, 700);
+    } catch (error) {
+      setStatus("idle");
+      setSubmitError(error instanceof Error ? error.message : "Unable to send your message. Please try again.");
+    }
   };
 
   const update = (key: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -371,6 +382,11 @@ export default function HomePage() {
                   <div className="mb-5 flex items-start gap-3 rounded-md border border-[#5ff442]/40 bg-[#5ff442]/10 p-4 text-sm text-[#0e7a4d]">
                     <Check className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
                     <span>Thank you! Your message has been received and our team will reply shortly.</span>
+                  </div>
+                )}
+                {submitError && (
+                  <div role="alert" className="mb-5 rounded-md border border-red-300 bg-red-50 p-4 text-sm text-red-700">
+                    {submitError}
                   </div>
                 )}
 

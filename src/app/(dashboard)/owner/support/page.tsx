@@ -1,18 +1,21 @@
 'use client'
 
 import { FormEvent, useEffect, useRef, useState } from 'react'
-import { Check, Loader2, Megaphone, MessageCircle, Search, Send, Trash2, X } from 'lucide-react'
+import { Check, Loader2, Mail, Megaphone, MessageCircle, Search, Send, Trash2, X } from 'lucide-react'
 import MessageBody from '@/components/support/MessageBody'
 
 type Message = { id: string; body: string; sender: { username: string; role: string } }
 type User = { id: string; username: string; fullName: string | null; email: string; status: string }
 type Conversation = { id: string; status: 'OPEN' | 'RESOLVED'; manager: { id: string; username: string; fullName: string | null; email: string }; messages: Message[] }
+type ContactInquiry = { id: string; firstName: string; lastName: string; email: string; message: string; status: 'OPEN' | 'RESOLVED'; createdAt: string }
 type SupportFilter = 'ALL' | 'NEW' | 'OPEN' | 'RESOLVED'
 
 export default function OwnerSupportPage() {
   const [conversations, setConversations] = useState<Conversation[]>([])
+  const [contactInquiries, setContactInquiries] = useState<ContactInquiry[]>([])
   const [users, setUsers] = useState<User[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [selectedInquiryId, setSelectedInquiryId] = useState<string | null>(null)
   const [showBroadcast, setShowBroadcast] = useState(false)
   const [bulkAction, setBulkAction] = useState<'resolve' | 'delete' | null>(null)
   const [body, setBody] = useState('')
@@ -23,6 +26,7 @@ export default function OwnerSupportPage() {
   const [error, setError] = useState('')
   const transcriptRef = useRef<HTMLDivElement>(null)
   const selectedConversation = conversations.find((item) => item.manager.id === selectedId)
+  const selectedInquiry = contactInquiries.find((item) => item.id === selectedInquiryId)
   const selectedUser = users.find((item) => item.id === selectedId)
   const normalizedSearchQuery = searchQuery.trim().toLowerCase()
   const filteredUsers = users.filter((user) => {
@@ -31,6 +35,12 @@ export default function OwnerSupportPage() {
     const status = conversation?.status || 'NEW'
     const matchesFilter = supportFilter === 'ALL' || status === supportFilter
     const matchesSearch = [user.fullName, user.username, user.email].filter(Boolean).some((value) => value!.toLowerCase().includes(normalizedSearchQuery))
+    return matchesFilter && matchesSearch
+  })
+  const filteredInquiries = contactInquiries.filter((inquiry) => {
+    const matchesFilter = supportFilter === 'ALL' || supportFilter === inquiry.status
+    const matchesSearch = [inquiry.firstName, inquiry.lastName, inquiry.email, inquiry.message]
+      .some((value) => value.toLowerCase().includes(normalizedSearchQuery))
     return matchesFilter && matchesSearch
   })
 
@@ -45,6 +55,7 @@ export default function OwnerSupportPage() {
         if (!active) return
         setConversations(data.conversations)
         setUsers(data.users || [])
+        setContactInquiries(data.contactInquiries || [])
         setError('')
       } catch (loadError) {
         if (active) setError(loadError instanceof Error ? loadError.message : 'Unable to load support.')
@@ -134,10 +145,48 @@ export default function OwnerSupportPage() {
     setSelectedId(null)
   }
 
+  const updateInquiryStatus = async () => {
+    if (!selectedInquiry) return
+    setError('')
+    const response = await fetch('/api/support', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contactInquiryId: selectedInquiry.id,
+        status: selectedInquiry.status === 'OPEN' ? 'RESOLVED' : 'OPEN',
+      }),
+      credentials: 'include',
+    })
+    const data = await response.json()
+    if (!response.ok) {
+      setError(data.error || 'Unable to update contact message.')
+      return
+    }
+    setContactInquiries((items) => items.map((item) => item.id === data.contactInquiry.id ? data.contactInquiry : item))
+  }
+
+  const deleteInquiry = async () => {
+    if (!selectedInquiry || !window.confirm('Delete this website contact message?')) return
+    setError('')
+    const response = await fetch('/api/support', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contactInquiryId: selectedInquiry.id }),
+      credentials: 'include',
+    })
+    const data = await response.json()
+    if (!response.ok) {
+      setError(data.error || 'Unable to delete contact message.')
+      return
+    }
+    setContactInquiries((items) => items.filter((item) => item.id !== data.deletedContactInquiryId))
+    setSelectedInquiryId(null)
+  }
+
   return (
     <section className="flex h-[calc(100dvh-1.5rem)] min-h-0 flex-col space-y-3 lg:h-[calc(100dvh-3rem)] lg:space-y-5">
       <div className="grid min-h-0 flex-1 grid-rows-1 gap-3 lg:grid-cols-[18rem_1fr] lg:gap-4 lg:grid-rows-1">
-        <div className={`h-full min-h-0 overflow-y-auto rounded-2xl border border-slate-200/80 bg-white/70 p-2 shadow-sm dark:border-white/10 dark:bg-slate-900/50 dark:shadow-none ${selectedUser || showBroadcast ? 'hidden lg:block' : ''}`}>
+        <div className={`h-full min-h-0 overflow-y-auto rounded-2xl border border-slate-200/80 bg-white/70 p-2 shadow-sm dark:border-white/10 dark:bg-slate-900/50 dark:shadow-none ${selectedUser || selectedInquiry || showBroadcast ? 'hidden lg:block' : ''}`}>
           {loading && <div className="p-4 text-sm text-slate-500"><Loader2 className="mr-2 inline h-4 w-4 animate-spin" />Loading...</div>}
           {!loading && users.length === 0 && <p className="p-4 text-sm text-slate-500">No users yet.</p>}
           {!loading && users.length > 0 && <>
@@ -162,10 +211,68 @@ export default function OwnerSupportPage() {
             </div>}
           </>}
           {!loading && users.length > 0 && filteredUsers.length === 0 && <p className="px-3 py-4 text-center text-sm text-slate-500">No publishers match your search or filter.</p>}
+          <div className="mb-2 mt-3 border-t border-slate-200/70 pt-3 dark:border-white/10">
+            <div className="mb-2 flex items-center justify-between px-1">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Website messages</p>
+              {contactInquiries.some((inquiry) => inquiry.status === 'OPEN') && <span className="rounded-full bg-cyan-400/10 px-2 py-0.5 text-[10px] font-medium text-cyan-600 dark:text-cyan-300">{contactInquiries.filter((inquiry) => inquiry.status === 'OPEN').length} new</span>}
+            </div>
+            {filteredInquiries.map((inquiry) => (
+              <button
+                key={inquiry.id}
+                type="button"
+                onClick={() => { setSelectedId(null); setShowBroadcast(false); setSelectedInquiryId(inquiry.id) }}
+                className={`mb-1 w-full rounded-xl border p-3 text-left transition-colors ${selectedInquiryId === inquiry.id ? 'border-cyan-400/20 bg-cyan-400/10 shadow-sm dark:border-cyan-300/15' : 'border-transparent hover:bg-slate-100/70 dark:hover:bg-white/5'}`}
+              >
+                <div className="flex items-center justify-between gap-2 text-sm font-medium text-slate-800 dark:text-slate-100">
+                  <span className="truncate">{inquiry.firstName} {inquiry.lastName}</span>
+                  <span className={`shrink-0 text-[10px] uppercase ${inquiry.status === 'OPEN' ? 'text-amber-500' : 'text-emerald-500'}`}>{inquiry.status === 'OPEN' ? 'NEW' : 'RESOLVED'}</span>
+                </div>
+                <p className="mt-0.5 truncate text-xs text-slate-500">{inquiry.email}</p>
+                <p className="mt-1 truncate text-xs text-slate-400">{inquiry.message}</p>
+              </button>
+            ))}
+            {!loading && filteredInquiries.length === 0 && contactInquiries.length > 0 && <p className="px-2 py-2 text-center text-xs text-slate-500">No website messages match your search or filter.</p>}
+          </div>
           <button type="button" onClick={() => setShowBroadcast(true)} className="mb-2 flex w-full items-center gap-3 rounded-xl border border-cyan-400/20 bg-cyan-400/10 p-3 text-left transition-colors hover:bg-cyan-400/15"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-cyan-400/15 text-cyan-400"><Megaphone className="h-4 w-4" /></span><span className="min-w-0"><span className="block text-sm font-semibold text-slate-800 dark:text-slate-100">Broadcast</span><span className="block truncate text-xs text-slate-500">Message all active publishers</span></span></button>
           <div className="space-y-1">{filteredUsers.map((user) => { const conversation = conversations.find((item) => item.manager.id === user.id); return <button key={user.id} type="button" onClick={() => { setShowBroadcast(false); setSelectedId(user.id) }} className={`w-full rounded-xl border p-3 text-left transition-colors ${selectedUser?.id === user.id ? 'border-cyan-400/20 bg-cyan-400/10 shadow-sm dark:border-cyan-300/15' : 'border-transparent hover:bg-slate-100/70 dark:hover:bg-white/5'}`}><div className="flex items-center justify-between gap-2 text-sm font-medium text-slate-800 dark:text-slate-100"><span className="truncate">{user.fullName || 'Name not provided'}</span><span className={`shrink-0 text-[10px] uppercase ${conversation?.status === 'OPEN' ? 'text-amber-500' : conversation ? 'text-emerald-500' : 'text-slate-400'}`}>{conversation?.status || 'NEW'}</span></div><p className="mt-0.5 truncate text-xs text-slate-500">@{user.username}</p><p className="mt-1 truncate text-xs text-slate-400">{conversation?.messages.at(-1)?.body || 'Start a conversation'}</p></button> })}</div>
         </div>
-        {selectedUser && !showBroadcast ? <div className="flex min-h-0 flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white/70 shadow-sm dark:border-white/10 dark:bg-slate-900/50 dark:shadow-none">
+        {selectedInquiry && !showBroadcast ? <div className="flex min-h-0 flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white/70 shadow-sm dark:border-white/10 dark:bg-slate-900/50 dark:shadow-none">
+          <div className="flex items-center justify-between gap-3 border-b border-slate-200/70 px-3 py-3 sm:px-4 dark:border-white/10">
+            <div className="min-w-0">
+              <div className="flex min-w-0 items-center gap-2 text-sm font-medium text-slate-800 dark:text-white">
+                <Mail className="h-4 w-4 shrink-0 text-cyan-400" />
+                <span className="truncate">{selectedInquiry.firstName} {selectedInquiry.lastName}</span>
+              </div>
+              <a href={`mailto:${selectedInquiry.email}`} className="truncate text-xs text-cyan-700 hover:underline dark:text-cyan-300">{selectedInquiry.email}</a>
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <button type="button" onClick={updateInquiryStatus} className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/20 px-2.5 py-1.5 text-xs text-emerald-500 hover:bg-emerald-500/10 sm:px-3">
+                <Check className="h-3.5 w-3.5" /><span className="hidden sm:inline">{selectedInquiry.status === 'OPEN' ? 'Resolve' : 'Reopen'}</span>
+              </button>
+              <button type="button" onClick={deleteInquiry} aria-label="Delete website message" title="Delete website message" className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200/80 text-slate-400 transition-colors hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600 dark:border-white/10 dark:text-slate-500 dark:hover:border-rose-400/30 dark:hover:bg-rose-400/10 dark:hover:text-rose-300">
+                <Trash2 className="h-4 w-4" />
+              </button>
+              <button type="button" onClick={() => setSelectedInquiryId(null)} aria-label="Close website message" title="Close website message" className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200/80 text-slate-400 hover:bg-slate-50 hover:text-slate-700 dark:border-white/10 dark:text-slate-500 dark:hover:bg-white/5 dark:hover:text-slate-200">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto bg-slate-50/70 p-4 dark:bg-slate-950/20">
+            <p className="mb-3 text-xs text-slate-500">
+              Website contact · {new Date(selectedInquiry.createdAt).toLocaleString()}
+            </p>
+            <div className="whitespace-pre-wrap break-words rounded-xl rounded-bl-sm border border-slate-200/70 bg-white px-4 py-3 text-sm leading-6 text-slate-700 shadow-sm dark:border-white/5 dark:bg-slate-800 dark:text-slate-200">
+              <MessageBody body={selectedInquiry.message} />
+            </div>
+          </div>
+          <div className="flex items-center justify-between gap-3 border-t border-slate-200/70 bg-white/60 p-3 dark:border-white/10 dark:bg-slate-900/30">
+            <p className="text-xs text-slate-500">Reply directly to the sender by email.</p>
+            <a href={`mailto:${selectedInquiry.email}?subject=${encodeURIComponent('Re: Your message to Afficixo')}`} className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-cyan-500 px-3 py-2 text-xs font-semibold text-slate-950 transition hover:bg-cyan-400">
+              <Mail className="h-3.5 w-3.5" />Reply by email
+            </a>
+          </div>
+          {error && <p className="px-4 pb-4 text-sm text-red-500">{error}</p>}
+        </div> : selectedUser && !showBroadcast ? <div className="flex min-h-0 flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white/70 shadow-sm dark:border-white/10 dark:bg-slate-900/50 dark:shadow-none">
               <div className="flex items-center justify-between gap-3 border-b border-slate-200/70 px-3 py-3 sm:px-4 dark:border-white/10"><div className="min-w-0"><div className="flex min-w-0 items-center gap-2 text-sm font-medium text-slate-800 dark:text-white"><MessageCircle className="h-4 w-4 shrink-0 text-cyan-400" /><span className="truncate">{selectedUser.fullName || 'Name not provided'}</span></div><p className="truncate text-xs text-slate-500">@{selectedUser.username} · {selectedUser.email}</p></div><div className="flex shrink-0 items-center gap-2">{selectedConversation?.status === 'OPEN' && <button type="button" onClick={resolve} className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/20 px-2.5 py-1.5 text-xs text-emerald-500 hover:bg-emerald-500/10 sm:px-3"><Check className="h-3.5 w-3.5" /><span className="hidden sm:inline">Resolve</span></button>}{selectedConversation && <button type="button" onClick={deleteConversation} aria-label="Delete conversation" title="Delete conversation" className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200/80 text-slate-400 transition-colors hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-500/20 dark:border-white/10 dark:text-slate-500 dark:hover:border-rose-400/30 dark:hover:bg-rose-400/10 dark:hover:text-rose-300"><Trash2 className="h-4 w-4" /></button>}<button type="button" onClick={() => setSelectedId(null)} aria-label="Close conversation" title="Close conversation" className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200/80 text-slate-400 transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 dark:border-white/10 dark:text-slate-500 dark:hover:bg-white/5 dark:hover:text-slate-200"><X className="h-4 w-4" /></button></div></div>
             <div ref={transcriptRef} className="min-h-0 flex-1 space-y-3 overflow-y-auto bg-slate-50/70 p-4 dark:bg-slate-950/20">{selectedConversation?.messages.map((message) => <div key={message.id} className={`w-fit max-w-[85%] whitespace-pre-wrap break-words rounded-xl px-3 py-2 text-sm leading-5 shadow-sm ${message.sender.role === 'OWNER' ? 'ml-auto rounded-br-sm bg-cyan-500 text-slate-950' : 'rounded-bl-sm border border-slate-200/70 bg-white text-slate-700 dark:border-white/5 dark:bg-slate-800 dark:text-slate-200'}`}><MessageBody body={message.body} /></div>)}</div>
             <form onSubmit={sendMessage} className="flex gap-2 border-t border-slate-200/70 bg-white/60 p-3 sm:p-4 dark:border-white/10 dark:bg-slate-900/30"><input value={body} onChange={(event) => setBody(event.target.value)} placeholder="Reply to publisher..." className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/10 dark:border-white/10 dark:bg-slate-950/50 dark:text-white" /><button type="submit" disabled={sending || !body.trim()} aria-label="Send reply" className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-cyan-500 text-slate-950 transition hover:bg-cyan-400 focus:outline-none focus:ring-4 focus:ring-cyan-400/20 disabled:cursor-not-allowed disabled:opacity-50"><Send className="h-4 w-4" /></button></form>
