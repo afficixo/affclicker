@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { Menu, X } from "lucide-react";
+import { ChevronRight, Menu, X } from "lucide-react";
 
 const navLinks = [
   { href: "#home", label: "Home" },
@@ -26,6 +26,22 @@ export default function PublicLayout({
   const [open, setOpen] = useState(false);
   const isHomePage = pathname === "/";
   const [active, setActive] = useState<string | null>(isHomePage ? "#home" : null);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const previousOverflow = document.body.style.overflow;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [open]);
 
   useEffect(() => {
     if (!isHomePage) {
@@ -66,8 +82,8 @@ export default function PublicLayout({
   return (
     <div className={`public-site relative min-h-screen w-full overflow-x-hidden ${className}`}>
       <div className="relative z-10 flex min-h-screen flex-col">
-        <header className="fixed inset-x-0 top-0 z-40 border-b border-white/[0.06] bg-[#272b2d] shadow-[0_2px_8px_rgba(0,0,0,0.18)]">
-          <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 md:h-20">
+        <header className={`fixed inset-x-0 top-0 z-40 border-b transition-colors ${open ? "border-white/10 bg-[#202b2f] shadow-lg shadow-black/20" : "border-white/[0.06] bg-[#272b2d] shadow-[0_2px_8px_rgba(0,0,0,0.18)]"}`}>
+          <nav className="relative z-10 mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 md:h-20">
             <a
               href={isHomePage ? "#home" : "/#home"}
               onClick={isHomePage ? (e) => go(e, "#home") : undefined}
@@ -119,9 +135,10 @@ export default function PublicLayout({
               <button
                 type="button"
                 onClick={() => setOpen((v) => !v)}
-                className="grid h-9 w-9 place-items-center rounded-md text-white md:hidden"
-                aria-label="Toggle menu"
+                className="grid h-10 w-10 place-items-center rounded-lg border border-white/15 bg-white/[0.04] text-white transition-colors hover:border-[#5ff442]/50 hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5ff442] md:hidden"
+                aria-label={open ? "Close menu" : "Open menu"}
                 aria-expanded={open}
+                aria-controls="public-mobile-menu"
               >
                 {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </button>
@@ -131,32 +148,75 @@ export default function PublicLayout({
           <AnimatePresence>
             {open && (
               <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.22 }}
-                className="overflow-hidden border-t border-white/[0.08] bg-[#263238] md:hidden"
+                key="mobile-menu-backdrop"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.18 }}
               >
-                <div className="space-y-1 px-4 py-4">
-                  {navLinks.map((link) => (
-                    <a
-                      key={link.href}
-                      href={isHomePage ? link.href : `/${link.href}`}
-                      onClick={isHomePage ? (e) => go(e, link.href) : undefined}
-                      aria-current={isHomePage && active === link.href ? "location" : undefined}
-                      className={`block rounded-md px-3 py-2 text-sm transition-colors hover:bg-white/5 hover:text-white ${
-                        isHomePage && active === link.href ? "text-[#5ff442]" : "text-white/80"
-                      }`}
+                <button
+                  type="button"
+                  aria-label="Close navigation menu"
+                  onClick={() => setOpen(false)}
+                  className="fixed inset-x-0 bottom-0 top-16 z-0 cursor-default bg-slate-950/55 backdrop-blur-[2px] md:hidden"
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <AnimatePresence>
+            {open && (
+              <motion.div
+                id="public-mobile-menu"
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.18, ease: "easeOut" }}
+                className="absolute inset-x-0 top-full z-10 max-h-[calc(100dvh-4rem)] overflow-y-auto border-t border-white/10 bg-[#202b2f] shadow-2xl shadow-black/30 md:hidden"
+              >
+                <div className="mx-auto max-w-7xl px-4 pb-5 pt-4 sm:px-6">
+                  <p className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/40">
+                    Explore
+                  </p>
+                  <div className="space-y-1">
+                    {navLinks.map((link) => (
+                      <a
+                        key={link.href}
+                        href={isHomePage ? link.href : `/${link.href}`}
+                        onClick={(event) => {
+                          if (isHomePage) go(event, link.href);
+                          else setOpen(false);
+                        }}
+                        aria-current={isHomePage && active === link.href ? "location" : undefined}
+                        className={`flex min-h-12 items-center justify-between rounded-lg px-3 text-[15px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5ff442] ${
+                          isHomePage && active === link.href
+                            ? "bg-[#5ff442]/10 text-[#8aff70]"
+                            : "text-white/80 hover:bg-white/[0.06] hover:text-white"
+                        }`}
+                      >
+                        {link.label}
+                        <ChevronRight className="h-4 w-4 text-white/35" aria-hidden="true" />
+                      </a>
+                    ))}
+                  </div>
+                  <div className="mt-4 flex gap-3 border-t border-white/10 pt-4">
+                    <Link
+                      href="/signup"
+                      prefetch={false}
+                      onClick={() => setOpen(false)}
+                      className="flex min-h-11 flex-1 items-center justify-center rounded-lg bg-[#5ff442] px-4 text-sm font-bold text-[#263238] transition-colors hover:bg-[#4dd935] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8aff70] focus-visible:ring-offset-2 focus-visible:ring-offset-[#202b2f]"
                     >
-                      {link.label}
-                    </a>
-                  ))}
-                  <Link href="/signup" prefetch={false} onClick={() => setOpen(false)} className="mt-2 flex items-center justify-center rounded-md bg-[#5ff442] px-4 py-2.5 text-sm font-bold text-[#263238]">
-                    Sign up
-                  </Link>
-                  <Link href="/login" prefetch={false} onClick={() => setOpen(false)} aria-current={pathname === "/login" ? "page" : undefined} className="flex items-center justify-center rounded-md bg-white px-4 py-2.5 text-sm font-semibold text-[#263238]">
-                    Login
-                  </Link>
+                      Sign up
+                    </Link>
+                    <Link
+                      href="/login"
+                      prefetch={false}
+                      onClick={() => setOpen(false)}
+                      aria-current={pathname === "/login" ? "page" : undefined}
+                      className="flex min-h-11 flex-1 items-center justify-center rounded-lg border border-white/15 bg-white/[0.04] px-4 text-sm font-semibold text-white transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+                    >
+                      Login
+                    </Link>
+                  </div>
                 </div>
               </motion.div>
             )}

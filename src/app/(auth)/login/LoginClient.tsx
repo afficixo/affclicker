@@ -134,7 +134,7 @@ export default function LoginClient() {
       <main className="min-h-[250px] flex-1 bg-white px-4 pb-7 pt-24 md:pt-28">
         <div className="mx-auto w-full max-w-[610px]">
           <h1 className="mb-2 text-center text-[2.25rem] font-medium leading-tight text-[#455964]">
-            Publisher Login
+            Affiliate Login
           </h1>
 
             {error && (
@@ -225,7 +225,7 @@ export default function LoginClient() {
               <button
                 type="submit"
                 disabled={loading || !!supportTelegram}
-                className="flex min-h-10 w-full items-center justify-center rounded-[3px] bg-[#1ba1b4] px-4 py-2.5 text-lg font-medium text-white transition-colors hover:bg-[#168b9c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1ba1b4] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+                className="flex min-h-12 w-full items-center justify-center rounded-lg bg-[#5ff442] px-5 py-3 text-base font-semibold text-[#263238] shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#4dd935] hover:shadow-md focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#5ff442]/30 focus-visible:ring-offset-2 active:translate-y-0 active:shadow-sm disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60 disabled:shadow-none"
               >
                 {loading ? "Signing in..." : "Login"}
               </button>

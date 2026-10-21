@@ -78,6 +78,14 @@ export default function HomePage() {
         {/* HERO */}
         <section id="home" className="relative bg-[#263238] pt-32 pb-24 md:pt-44 md:pb-32 overflow-hidden">
           <div
+            className="home-hero-background pointer-events-none absolute inset-0 bg-cover"
+            style={{
+              backgroundImage:
+                "linear-gradient(180deg, rgba(27, 38, 43, 0.38) 0%, rgba(27, 38, 43, 0.48) 58%, rgba(27, 38, 43, 0.7) 100%), url('/home-hero-background.jpg')",
+            }}
+            aria-hidden="true"
+          />
+          <div
             className="absolute inset-0 pointer-events-none opacity-40"
             style={{
               background:
@@ -139,7 +147,7 @@ export default function HomePage() {
         {/* FEATURES */}
         <section id="about" className="bg-[#e6ebed] py-16 md:py-20">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:gap-8 lg:grid-cols-4">
               {[
                 { icon: Star, title: "Exclusive campaigns", body: "Our approach is to provide you only high quality and exclusive campaigns, here you will find a lot." },
                 { icon: Gauge, title: "In-house platform", body: "Adaptable to anything and being able to provide the most user-friendly experience through it." },
@@ -344,8 +352,8 @@ export default function HomePage() {
                     </div>
                     <div>
                       <p className="text-xs font-semibold uppercase tracking-wider text-[#6b7c87] mb-0.5">Email</p>
-                      <a href="mailto:contact@afficixo.com" className="text-sm text-[#0e7a4d] hover:underline">
-                        contact@afficixo.com
+                      <a href="mailto:contact@afficix.com" className="text-sm text-[#0e7a4d] hover:underline">
+                        contact@afficix.com
                       </a>
                     </div>
                   </div>
@@ -449,13 +457,13 @@ function FormField({
 
 function PublisherIllustration() {
   return (
-    <div className="relative flex aspect-[4/3] items-center justify-center overflow-hidden rounded-lg border border-[#e6ebed] bg-[#e6ebed] shadow-lg">
+    <div className="relative mx-auto aspect-video w-full max-w-[460px] overflow-hidden rounded-lg border border-[#e6ebed] bg-[#e6ebed] shadow-lg">
       <Image
-        src="/rocket.svg"
-        alt="Rocket launching"
-        width={317}
-        height={442}
-        className="h-full w-auto max-w-full object-contain"
+        src="/publishers-image.jpg"
+        alt="Affiliate publisher reviewing campaign performance"
+        fill
+        sizes="(min-width: 1024px) 50vw, 100vw"
+        className="object-cover"
       />
     </div>
   );
@@ -465,7 +473,7 @@ function AdvertiserIllustration() {
   return (
     <div className="relative aspect-video overflow-hidden rounded-lg border border-[#e6ebed] bg-[#263238] shadow-lg">
       <Image
-        src="/new-splash.webp"
+        src="/advertisers-image.jpg"
         alt="Advertiser reviewing a campaign on a laptop"
         fill
         sizes="(min-width: 1024px) 50vw, 100vw"

@@ -399,7 +399,7 @@ export default function Sidebar({ collapsed, mobileOpen, onMobileOpenChange }: S
         <aside
           id="dashboard-mobile-sidebar"
           className={`panel-bleed fixed inset-x-0 top-14 z-[50] flex h-[calc(100dvh-3.5rem)] max-h-[calc(100dvh-3.5rem)] w-full flex-col overflow-hidden border-0 border-b border-[#263238]/10 bg-[#f3f6f5] shadow-2xl transition-[transform,opacity,box-shadow] duration-300 ease-out dark:border-white/10 dark:bg-[#192326] lg:hidden ${
-            mobileOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-90'
+            mobileOpen ? 'translate-y-0 opacity-100' : 'mobile-sidebar-closed'
           }`}
         >
           {sidebarContent}

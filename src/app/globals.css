@@ -96,6 +96,16 @@ html:not(.dark) {
   font-family: 'Montserrat', var(--font-inter), 'Segoe UI', sans-serif;
 }
 
+.home-hero-background {
+  background-position: center 44%;
+}
+
+@media (max-width: 639px) {
+  .home-hero-background {
+    background-position: 54% center;
+  }
+}
+
 .dark .dashboard-shell {
   --page-bg: #1d282b;
   --surface-bg: #1d282b;
@@ -465,6 +475,11 @@ body {
 
 .panel-bleed nav { scrollbar-width: none; -ms-overflow-style: none; }
 .panel-bleed nav::-webkit-scrollbar { display: none; }
+.mobile-sidebar-closed {
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(calc(-100% - 3.5rem));
+}
 
 /* ═══════════════════════════════════════════════════════════════
    FOCUS VISIBILITY

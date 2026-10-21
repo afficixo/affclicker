@@ -437,13 +437,13 @@ export default function PaymentsPage() {
             aria-label={card.label === "Paid out" && userRole === "OWNER" ? "View paid out transactions" : undefined}
           >
             <div className="flex items-center justify-between gap-2">
-              <span className={`min-w-0 truncate text-xs font-bold uppercase tracking-[0.12em] ${card.tone}`}>{card.label}</span>
+              <span className={`min-w-0 text-[10px] font-bold uppercase leading-tight tracking-[0.08em] sm:text-xs sm:tracking-[0.12em] ${card.tone}`}>{card.label}</span>
               {card.label === "Commission" && userRole === "MANAGER" && (
                 <span className="shrink-0 rounded-full border border-violet-500/40 bg-violet-100 px-2 py-1 text-xs font-semibold tabular-nums text-violet-900 dark:border-violet-300/40 dark:bg-violet-300/15 dark:text-violet-100">
                   {displayedCommissionRates.map((rate) => `${rate.toFixed(2)}%`).join(", ")}
                 </span>
               )}
-              <span className={`flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-slate-900/5 dark:border-white/10 dark:bg-black/10 ${card.tone}`}>
+              <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-slate-900/5 dark:border-white/10 dark:bg-black/10 sm:h-8 sm:w-8 ${card.tone}`}>
                 <card.icon className="h-4 w-4" />
               </span>
             </div>
