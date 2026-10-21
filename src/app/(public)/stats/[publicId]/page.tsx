@@ -684,16 +684,18 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                     Wallet
                   </span>
                 </div>
-                <span className={`shrink-0 whitespace-nowrap text-xs font-bold tracking-tight tabular-nums sm:text-sm ${isDark ? 'text-emerald-100' : 'text-emerald-900'}`}>
-                  {earningCurrency === 'USD'
-                    ? formatCurrency(unpaidEarning)
-                    : (
-                      <>
-                        <span className="align-baseline text-[0.78em] font-extrabold">৳</span>{' '}
-                        {formatTaka(unpaidEarning * 118)}
-                      </>
-                    )}
-                </span>
+                {unpaidEarning > 0 && (
+                  <span className={`shrink-0 whitespace-nowrap text-xs font-bold tracking-tight tabular-nums sm:text-sm ${isDark ? 'text-emerald-100' : 'text-emerald-900'}`}>
+                    {earningCurrency === 'USD'
+                      ? formatCurrency(unpaidEarning)
+                      : (
+                        <>
+                          <span className="align-baseline text-[0.78em] font-extrabold">৳</span>{' '}
+                          {formatTaka(unpaidEarning * 118)}
+                        </>
+                      )}
+                  </span>
+                )}
               </a>
               <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-1.5">
                 <button
