@@ -243,8 +243,12 @@ export async function GET(
     };
 
     // Build geo summary
+    const geoWhere = {
+      ...buildWhereClause(dashboard.linkAccountId, '', '', '', '', range),
+      isBot: false,
+    };
     const geoRows = await prisma.click.findMany({
-      where: visibleWhere,
+      where: geoWhere,
       select: { country: true, isUnique: true },
     });
     const geoSummary = aggregateGeoData(geoRows);

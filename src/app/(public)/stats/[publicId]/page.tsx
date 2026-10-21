@@ -2,21 +2,21 @@
 
 import { use, useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { formatNumber } from '@/lib/utils/helpers'
-import { getCountryFlag, getCountryLabel } from '@/lib/utils/country'
+import { getCountryLabel } from '@/lib/utils/country'
 import { isDesktopDeviceType } from '@/lib/utils/visitor-profile'
 import { Chart } from '@/components/ui/Chart'
+import { CountryFlag } from '@/components/ui/CountryFlag'
+import { BrowserLogo } from '@/components/ui/BrowserLogo'
 import Image from 'next/image'
 import {
   Eye,
   MousePointerClick,
   Users,
   Globe2,
-  Bot,
   DollarSign,
   CreditCard,
-  User,
   CheckCircle,
-  XCircle,
+  Check,
   ExternalLink,
   Search,
   Monitor,
@@ -113,56 +113,52 @@ const MetricCard = ({
   percentage,
   percentageColor = '#34D399',
   isDark = true,
-  valueAction,
   showIcon = true,
   children,
 }: any) => (
-  <div className={`group relative overflow-hidden rounded-2xl border p-3 shadow-sm transition-all duration-200 hover:-translate-y-0.5 sm:p-5 ${
+  <div className={`group relative overflow-hidden rounded-xl border p-3 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg sm:p-4 ${
     isDark
-    ? 'bg-white/[0.045] backdrop-blur-sm border-white/10 hover:border-emerald-400/30 hover:bg-white/[0.07]'
-    : 'bg-white/90 backdrop-blur-sm border-slate-200 hover:border-emerald-300 hover:bg-white'
+    ? 'bg-gradient-to-br from-white/[0.07] to-white/[0.025] backdrop-blur-sm border-white/10 hover:border-emerald-400/30 hover:from-white/[0.09] hover:to-white/[0.04]'
+    : 'bg-gradient-to-br from-white to-slate-50/80 border-slate-200 hover:border-emerald-300 hover:from-white hover:to-emerald-50/40'
   }`}>
-    <div className="flex min-h-5 items-center justify-between gap-2">
-      <p className={`text-[11px] font-medium uppercase tracking-wider ${
+    <div className="flex items-center justify-between gap-2">
+      <p className={`text-[11px] font-semibold uppercase tracking-[0.12em] ${
         isDark ? 'text-white/50' : 'text-slate-500'
       }`}>{label}</p>
-      {valueAction && <div className="shrink-0">{valueAction}</div>}
-    </div>
-
-    <div className="mt-3 flex items-start justify-between gap-3">
-      <div className="min-w-0 flex-1 space-y-1.5">
-        <p className={`text-xl font-bold leading-tight tracking-tight tabular-nums sm:text-2xl ${
-          isDark ? 'text-white' : 'text-slate-900'
-        }`}>{value}</p>
-        {subtitle && <p className={`text-xs ${isDark ? 'text-white/45' : 'text-slate-500'}`}>{subtitle}</p>}
-        {percentage !== undefined && (
-          <div className="flex items-center gap-1.5 pt-0.5">
-            <div className={`h-1 w-16 overflow-hidden rounded-full ${
-              isDark ? 'bg-white/10' : 'bg-gray-200'
-            }`}>
-              <div
-                className="h-full rounded-full transition-all duration-500"
-                style={{
-                  width: `${Math.min(percentage, 100)}%`,
-                  backgroundColor: percentageColor
-                }}
-              />
-            </div>
-            <span className="text-[10px] font-medium tabular-nums" style={{ color: percentageColor }}>
-              {percentage.toFixed(1)}%
-            </span>
-          </div>
-        )}
-      </div>
       {showIcon && (
-        <div className="shrink-0 rounded-lg p-2" style={{ backgroundColor: `${color}20` }}>
-          <Icon className="h-4 w-4" style={{ color }} strokeWidth={1.5} />
+        <div className="shrink-0 rounded-lg p-1.5 ring-1 ring-inset" style={{
+          backgroundColor: `${color}18`,
+          color,
+          boxShadow: `inset 0 0 0 1px ${color}20`,
+        }}>
+          <Icon className="h-5 w-5" strokeWidth={1.75} />
         </div>
       )}
     </div>
 
+    <div className="mt-1.5 flex min-w-0 items-end justify-between gap-2">
+      <div className="min-w-0 flex-1">
+        <p className={`text-[28px] font-bold leading-none tracking-tight tabular-nums sm:text-[32px] ${
+          isDark ? 'text-white' : 'text-slate-900'
+        }`}>{value}</p>
+        {(subtitle || percentage !== undefined) && (
+          <div className="mt-1.5 flex min-w-0 items-center gap-1.5">
+            {subtitle && <p className={`truncate text-xs leading-tight sm:text-[13px] ${isDark ? 'text-white/55' : 'text-slate-500'}`}>{subtitle}</p>}
+            {percentage !== undefined && (
+              <span className="shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-semibold leading-none tabular-nums" style={{
+                color: percentageColor,
+                backgroundColor: `${percentageColor}18`,
+              }}>
+                {percentage.toFixed(1)}%
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+
     {children && (
-      <div className={`mt-3 border-t pt-3 ${isDark ? 'border-white/10' : 'border-slate-200'}`}>
+      <div className={`mt-2 border-t pt-2 ${isDark ? 'border-white/10' : 'border-slate-200'}`}>
         {children}
       </div>
     )}
@@ -173,14 +169,12 @@ const MetricCard = ({
 const CountryBar = ({ country, clicks, totalClicks, max, isDark = true }: any) => {
   const percentage = max > 0 ? (clicks / max) * 100 : 0
   const share = totalClicks > 0 ? ((clicks / totalClicks) * 100).toFixed(1) : '0.0'
-  const flag = getCountryFlag(country) || '🌍'
-
   return (
     <div className="flex items-center gap-3 group">
-      <span className="text-lg w-8 flex-shrink-0 text-center">{flag}</span>
+      <CountryFlag country={country} className="h-4 w-6" />
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-1">
-          <span className={`text-sm truncate ${isDark ? 'text-white/70' : 'text-gray-700'}`}>
+          <span className={`text-sm truncate ${isDark ? 'text-white/75' : 'text-gray-700'}`}>
             {getCountryLabel(country)}
           </span>
           <span className={`text-xs font-medium tabular-nums flex items-center gap-2 ${
@@ -213,18 +207,25 @@ const CountryBar = ({ country, clicks, totalClicks, max, isDark = true }: any) =
   )
 }
 
-// Status Badge
-const StatusBadge = ({ type, label, icon: Icon, isDark = true }: any) => (
-  <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium border ${
-    type === 'success' ? (isDark ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20' : 'bg-emerald-50 text-emerald-700 border-emerald-200') :
-    type === 'warning' ? (isDark ? 'bg-amber-500/10 text-amber-300 border-amber-500/20' : 'bg-amber-50 text-amber-700 border-amber-200') :
-    type === 'danger' ? (isDark ? 'bg-rose-500/10 text-rose-300 border-rose-500/20' : 'bg-rose-50 text-rose-700 border-rose-200') :
-    (isDark ? 'bg-slate-500/10 text-slate-300 border-slate-500/20' : 'bg-slate-100 text-slate-700 border-slate-200')
-  }`}>
-    {Icon && <Icon className="h-2.5 w-2.5" strokeWidth={2} />}
-    {label}
-  </span>
-)
+const ClickStatusIcon = ({ isUnique, isDark = true }: { isUnique: boolean; isDark?: boolean }) => {
+  const Icon = isUnique ? Check : X
+  const label = isUnique ? 'Unique click' : 'Repeat click'
+
+  return (
+    <span
+      className={`inline-flex h-6 w-6 items-center justify-center rounded-full ${
+        isUnique
+          ? (isDark ? 'text-emerald-300' : 'text-emerald-700')
+          : (isDark ? 'text-amber-300' : 'text-amber-700')
+      }`}
+      role="img"
+      aria-label={label}
+      title={label}
+    >
+      <Icon className="h-4 w-4" strokeWidth={2.5} />
+    </span>
+  )
+}
 
 // Skeleton Loader
 const SkeletonLoader = ({ isDark = true }: { isDark?: boolean }) => (
@@ -311,9 +312,11 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
+  const [appliedSearch, setAppliedSearch] = useState('')
   const [filterCountry, setFilterCountry] = useState('')
+  const [appliedFilterCountry, setAppliedFilterCountry] = useState('')
   const [filterUnique, setFilterUnique] = useState<'all' | 'unique' | 'repeat'>('all')
-  const [filterReferrer, setFilterReferrer] = useState<'all' | 'direct' | 'referrer'>('all')
+  const [appliedFilterUnique, setAppliedFilterUnique] = useState<'all' | 'unique' | 'repeat'>('all')
   const [earningCurrency, setEarningCurrency] = useState<'USD' | 'BDT'>('BDT')
   const [refreshKey, setRefreshKey] = useState(0)
   const [isRefreshing, setIsRefreshing] = useState(false)
@@ -321,14 +324,6 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
   const [showPaymentMethodPrompt, setShowPaymentMethodPrompt] = useState(false)
   const paymentPromptShown = useRef(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
-
-  // Keep the public dashboard focused on US unique traffic by default while still counting
-  // direct and desktop/Windows clicks as valid, unless the user intentionally changes the filter.
-  useEffect(() => {
-    setFilterCountry('US')
-    setFilterUnique('unique')
-    setFilterReferrer('all')
-  }, [])
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -348,7 +343,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
       try {
         setIsRefreshing(true)
         const response = await fetch(
-          `/api/analytics/public/${publicId}?search=${encodeURIComponent(search)}&country=${encodeURIComponent(filterCountry)}&unique=${encodeURIComponent(filterUnique)}&referrer=${encodeURIComponent(filterReferrer)}&range=30d&limit=10000`,
+          `/api/analytics/public/${publicId}?search=${encodeURIComponent(appliedSearch)}&country=${encodeURIComponent(appliedFilterCountry)}&unique=${encodeURIComponent(appliedFilterUnique)}&referrer=all&range=30d&limit=10000`,
           {
             signal: abortController.signal,
             cache: 'no-store',
@@ -380,7 +375,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
 
     fetchStats()
     return () => abortController.abort()
-  }, [publicId, search, filterCountry, filterUnique, filterReferrer, refreshKey])
+  }, [publicId, appliedSearch, appliedFilterCountry, appliedFilterUnique, refreshKey])
 
   const getDeviceIcon = useCallback((deviceType: string | null, deviceBrand: string | null) => {
     if (!deviceType) return Monitor
@@ -554,7 +549,9 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
     return { totalClicks, uniqueClicks, botClicks, geoSummary, clickTrend }
   }, [filteredClicks, isDark])
 
-  const countries = computedStats.geoSummary.map(e => e.country).filter(Boolean)
+  const geoSummary = stats?.geoSummary ?? computedStats.geoSummary
+  const countries = geoSummary.map(e => e.country).filter(Boolean)
+  const geoTotalUniqueClicks = geoSummary.reduce((total, country) => total + country.uniqueClicks, 0)
 
   const allCountries = useMemo(() => {
     return Array.from(new Set(countries))
@@ -569,8 +566,8 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
   const unpaidEarning = Number(stats?.unpaidEarning ?? 0) || 0
   const uniqueRate = totalClicks ? ((uniqueClicks / totalClicks) * 100) : 0
   const botRate = totalClicks ? ((botClicks / totalClicks) * 100) : 0
-  const maxCountryClicks = computedStats.geoSummary.length
-    ? Math.max(...computedStats.geoSummary.map(c => c.totalClicks))
+  const maxCountryUniqueClicks = geoSummary.length
+    ? Math.max(...geoSummary.map(c => c.uniqueClicks))
     : 0
 
   const chartData = useMemo(() => ({
@@ -603,7 +600,9 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
   }
 
   const selectedCountryLabel = filterCountry ? getCountryLabel(filterCountry) : ''
-  const selectedCountryFlag = filterCountry ? (getCountryFlag(filterCountry) || '🌍') : ''
+  const hasUnappliedFilters = search !== appliedSearch
+    || filterCountry !== appliedFilterCountry
+    || filterUnique !== appliedFilterUnique
 
   return (
     <>
@@ -636,10 +635,10 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
       <div className={`min-h-screen transition-colors duration-300 ${
         isDark ? 'bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950' : 'bg-gradient-to-br from-gray-50 via-white to-gray-50'
       }`}>
-        <div className="mx-auto max-w-7xl px-4 py-6 sm:py-8">
+        <div className="mx-auto w-full max-w-[1920px] px-3 py-4 sm:px-5 sm:py-6 xl:px-7">
 
           {/* Header */}
-          <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+          <div className="mb-4 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
             <div className="flex min-w-0 items-center gap-3 sm:gap-4">
               <div className="relative h-10 w-28 shrink-0 overflow-hidden rounded-2xl border border-transparent bg-transparent sm:h-12 sm:w-32">
                 <Image
@@ -674,26 +673,26 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
               </div>
             </div>
 
-            <div className="flex w-full flex-wrap items-center justify-between gap-2 sm:w-auto sm:flex-nowrap sm:justify-end">
+            <div className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-2 sm:flex sm:w-auto sm:flex-nowrap sm:justify-end">
               {unpaidEarning > 0 && (
-                <div className={`flex min-h-11 w-full min-w-0 items-center justify-between gap-3 rounded-xl border px-3 py-2 shadow-sm sm:w-auto ${
+              <div className={`flex min-h-10 min-w-0 items-center justify-between gap-2 rounded-lg border px-2.5 py-1.5 shadow-sm sm:min-h-11 sm:gap-3 sm:rounded-xl sm:px-3 sm:py-2 ${
                   isDark
                     ? 'border-emerald-400/20 bg-gradient-to-r from-emerald-400/[0.1] via-emerald-400/[0.06] to-emerald-400/[0.03] shadow-emerald-950/20'
                     : 'border-emerald-200 bg-gradient-to-r from-emerald-50 via-white to-emerald-50/70 shadow-emerald-900/5'
                 }`}>
                   <div className="flex min-w-0 items-center gap-2.5">
-                    <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border ${
+                    <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md border sm:h-8 sm:w-8 sm:rounded-lg ${
                       isDark
                         ? 'border-emerald-300/15 bg-emerald-300/10 text-emerald-300'
                         : 'border-emerald-200 bg-white/80 text-emerald-700'
                     }`}>
                       <DollarSign aria-hidden="true" className="h-4 w-4" strokeWidth={2.25} />
                     </span>
-                    <span className={`whitespace-nowrap text-xs font-semibold ${isDark ? 'text-emerald-100/80' : 'text-emerald-800'}`}>
+                    <span className={`truncate text-[11px] font-semibold sm:text-xs ${isDark ? 'text-emerald-100/80' : 'text-emerald-800'}`}>
                       Pending balance
                     </span>
                   </div>
-                  <span className={`shrink-0 whitespace-nowrap text-sm font-bold tracking-tight tabular-nums ${isDark ? 'text-emerald-100' : 'text-emerald-900'}`}>
+                  <span className={`shrink-0 whitespace-nowrap text-xs font-bold tracking-tight tabular-nums sm:text-sm ${isDark ? 'text-emerald-100' : 'text-emerald-900'}`}>
                     {earningCurrency === 'USD'
                       ? formatCurrency(unpaidEarning)
                       : (
@@ -705,13 +704,13 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                   </span>
                 </div>
               )}
-              <div className="ml-auto flex shrink-0 items-center gap-1.5">
+              <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-1.5">
                 <button
                   onClick={() => {
                     setRefreshKey((current) => current + 1)
                     setIsRefreshing(true)
                   }}
-                  className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400/60 ${
+                  className={`inline-flex h-8 w-8 items-center justify-center rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400/60 sm:h-9 sm:w-9 ${
                     isDark ? 'bg-white/5 border-white/10 text-white/40 hover:text-white/70' : 'bg-white border-gray-200 text-slate-700 hover:text-slate-900'
                   }`}
                   aria-label="Refresh analytics"
@@ -721,7 +720,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                 </button>
                 <button
                   onClick={downloadCsv}
-                  className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400/60 ${
+                  className={`inline-flex h-8 w-8 items-center justify-center rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400/60 sm:h-9 sm:w-9 ${
                     isDark ? 'bg-white/5 border-white/10 text-white/40 hover:text-white/70' : 'bg-white border-gray-200 text-slate-700 hover:text-slate-900'
                   }`}
                   aria-label="Download click data"
@@ -731,19 +730,39 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                 </button>
                 <button
                   onClick={toggleTheme}
-                  className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400/60 ${
+                  className={`inline-flex h-8 w-8 items-center justify-center rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400/60 sm:h-9 sm:w-9 ${
                     isDark ? 'bg-white/5 border-white/10 text-white/40 hover:text-white/70' : 'bg-white border-gray-200 text-slate-700 hover:text-slate-900'
                   }`}
                   aria-label="Toggle theme"
                 >
                   {isDark ? <Sun className="h-3.5 w-3.5" strokeWidth={1.5} /> : <Moon className="h-3.5 w-3.5" strokeWidth={1.5} />}
                 </button>
+                <div className={`flex shrink-0 rounded-lg border p-0.5 text-[10px] font-semibold ${
+                  isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-100'
+                }`}>
+                  {(['BDT', 'USD'] as const).map((currency) => (
+                    <button
+                      key={currency}
+                      type="button"
+                      onClick={() => setEarningCurrency(currency)}
+                      aria-pressed={earningCurrency === currency}
+                      className={`rounded-md px-2 py-1 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400/60 ${
+                        earningCurrency === currency
+                          ? 'bg-emerald-500 text-slate-950'
+                          : (isDark ? 'text-white/45 hover:text-white/75' : 'text-gray-500 hover:text-gray-800')
+                      }`}
+                      aria-label={`Show earning in ${currency}`}
+                    >
+                      {currency}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
 
           {/* Quick Stats */}
-          <div className="mb-6 grid grid-cols-1 gap-3 min-[380px]:grid-cols-2 xl:grid-cols-4">
+          <div className="mb-4 grid grid-cols-1 gap-2 min-[380px]:grid-cols-2 xl:grid-cols-4 sm:gap-3">
             <MetricCard
               icon={MousePointerClick}
               label="Total Clicks"
@@ -780,55 +799,37 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                 </>
               )}
               color="#34D399"
-              showIcon={false}
-              valueAction={(
-                <div className={`flex rounded-lg border p-0.5 text-[10px] font-semibold ${
-                  isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-100'
-                }`}>
-                  {(['BDT', 'USD'] as const).map((currency) => (
-                    <button
-                      key={currency}
-                      type="button"
-                      onClick={() => setEarningCurrency(currency)}
-                      aria-pressed={earningCurrency === currency}
-                      className={`rounded-md px-2 py-1 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400/60 ${
-                        earningCurrency === currency
-                          ? 'bg-emerald-500 text-slate-950'
-                          : (isDark ? 'text-white/45 hover:text-white/75' : 'text-gray-500 hover:text-gray-800')
-                      }`}
-                      aria-label={`Show earning in ${currency}`}
-                    >
-                      {currency}
-                    </button>
-                  ))}
-                </div>
+              subtitle={(
+                <span className="inline-flex items-center gap-1.5">
+                  <CountryFlag country="US" className="h-3 w-[18px]" />
+                  {formatNumber(usaUniqueClicks)} clicks
+                </span>
               )}
-              subtitle={`🇺🇸 ${formatNumber(usaUniqueClicks)} clicks`}
               isDark={isDark}
             />
           </div>
 
           {/* Chart & Geography */}
-          <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
-            <div className={`rounded-2xl border p-4 shadow-sm sm:p-5 lg:col-span-2 ${
+          <div className="mb-4 grid grid-cols-1 gap-3 sm:gap-4 lg:grid-cols-3">
+            <div className={`min-w-0 overflow-hidden rounded-xl border p-3 shadow-sm sm:rounded-2xl sm:p-5 lg:col-span-2 ${
               isDark ? 'bg-white/[0.045] backdrop-blur-sm border-white/10' : 'bg-white/90 backdrop-blur-sm border-slate-200'
             }`}>
-              <div className="flex items-center justify-between mb-3">
+              <div className="mb-3 flex items-center justify-between sm:mb-4">
                 <div className="flex items-center gap-2">
-                  <Activity className="h-4 w-4 text-emerald-400" strokeWidth={1.5} />
-                  <span className={`text-sm font-medium ${isDark ? 'text-white/70' : 'text-gray-700'}`}>Click Activity</span>
+                  <Activity className="h-5 w-5 text-emerald-400" strokeWidth={1.5} />
+                  <span className={`text-base font-semibold ${isDark ? 'text-white/80' : 'text-gray-700'}`}>Click Activity</span>
                 </div>
-                <div className={`flex items-center gap-2 text-[10px] ${isDark ? 'text-white/30' : 'text-gray-400'}`}>
+                <div className={`flex items-center gap-2 text-xs ${isDark ? 'text-white/40' : 'text-gray-400'}`}>
                   <span className="flex items-center gap-1">
                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
                     Clicks
                   </span>
                 </div>
               </div>
-              <div className="h-[200px] w-full sm:h-[220px]">
+              <div className="h-[240px] w-full min-w-0 overflow-hidden">
                 <Chart
                   data={chartData}
-                  height={220}
+                  height={240}
                   options={{
                     responsive: true,
                     maintainAspectRatio: false,
@@ -837,13 +838,13 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                       y: {
                         beginAtZero: true,
                         grid: { color: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.05)', drawBorder: false },
-                        ticks: { color: isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.3)', font: { size: 9 }, maxTicksLimit: 5 },
+                        ticks: { color: isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.45)', font: { size: 11 }, maxTicksLimit: 5 },
                       },
                       x: {
                         grid: { display: false },
                         ticks: {
-                          color: isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.3)',
-                          font: { size: 9 },
+                          color: isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.45)',
+                          font: { size: 11 },
                           autoSkip: true,
                           maxTicksLimit: 6,
                           maxRotation: 0,
@@ -857,27 +858,27 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
               </div>
             </div>
 
-            <div className={`rounded-2xl border p-4 shadow-sm sm:p-5 ${
+            <div className={`rounded-xl border p-3 shadow-sm sm:rounded-2xl sm:p-5 ${
               isDark ? 'bg-white/[0.045] backdrop-blur-sm border-white/10' : 'bg-white/90 backdrop-blur-sm border-slate-200'
             }`}>
               <div className="mb-3 flex items-center">
                 <div className="flex items-center gap-2">
-                  <Globe2 className="h-4 w-4 text-emerald-400" strokeWidth={1.5} />
+                  <Globe2 className="h-5 w-5 text-emerald-400" strokeWidth={1.5} />
                   <span className={`text-sm font-medium ${isDark ? 'text-white/70' : 'text-gray-700'}`}>Top Countries</span>
                 </div>
               </div>
               <div className="space-y-2.5 max-h-[200px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent">
-                {computedStats.geoSummary.slice(0, 5).map((country) => (
+                {geoSummary.slice(0, 5).map((country) => (
                   <CountryBar
                     key={country.country}
                     country={country.country}
-                    clicks={country.totalClicks}
-                    totalClicks={totalClicks}
-                    max={maxCountryClicks}
+                    clicks={country.uniqueClicks}
+                    totalClicks={geoTotalUniqueClicks}
+                    max={maxCountryUniqueClicks}
                     isDark={isDark}
                   />
                 ))}
-                {computedStats.geoSummary.length === 0 && (
+                {geoSummary.length === 0 && (
                   <div className="text-center py-6">
                     <Globe2 className={`h-7 w-7 mx-auto mb-2 ${isDark ? 'text-white/10' : 'text-gray-300'}`} strokeWidth={1.5} />
                     <p className={`text-xs ${isDark ? 'text-white/30' : 'text-gray-400'}`}>No geographic data yet</p>
@@ -888,10 +889,10 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
           </div>
 
           {/* Filters */}
-          <div className={`mb-3 flex flex-wrap items-center gap-2 rounded-2xl border p-2.5 sm:p-3 ${
+          <div className={`mb-3 flex flex-wrap items-center gap-2 rounded-xl border p-2 sm:rounded-2xl sm:p-3 ${
             isDark ? 'bg-white/[0.035] border-white/10' : 'bg-white/80 border-slate-200'
           }`}>
-            <div className={`flex min-w-[200px] flex-1 items-center gap-2 rounded-xl border px-3 py-2 ${
+            <div className={`flex basis-full items-center gap-2 rounded-lg border px-3 py-2 sm:min-w-[200px] sm:flex-1 sm:basis-auto sm:rounded-xl ${
               isDark ? 'bg-white/5 border-white/10' : 'bg-white/80 border-gray-200'
             }`}>
               <Search className={`h-3.5 w-3.5 ${isDark ? 'text-white/20' : 'text-gray-400'}`} strokeWidth={1.5} />
@@ -907,7 +908,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
               />
             </div>
 
-            <div className="flex items-center gap-1 flex-wrap">
+            <div className="flex min-w-0 flex-wrap items-center gap-1">
               <button
                 onClick={() => { setFilterCountry(''); setFilterUnique('all'); }}
                 className={`px-2.5 py-1 text-xs font-medium rounded transition-colors ${
@@ -944,7 +945,6 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
 
               {/* Always show USA as the first country button */}
               {(() => {
-                const flag = getCountryFlag('US') || '🇺🇸'
                 const isSelected = filterCountry === 'US'
                 return (
                   <button
@@ -956,7 +956,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                         : (isDark ? 'text-white/40 hover:text-white/70' : 'text-gray-600 hover:text-gray-900')
                     }`}
                   >
-                    <span className="text-base">{flag}</span>
+                    <CountryFlag country="US" className="h-3 w-[18px]" />
                     <span>{usaUniqueClicks}</span>
                   </button>
                 )
@@ -964,7 +964,6 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
 
               {/* Show next 1 country from data (excluding USA if it appears) */}
               {countries.filter(c => c !== 'US').slice(0, 1).map((country) => {
-                const flag = getCountryFlag(country) || '🌍'
                 return (
                   <button
                     key={country}
@@ -975,7 +974,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                         : (isDark ? 'text-white/40 hover:text-white/70' : 'text-gray-600 hover:text-gray-900')
                     }`}
                   >
-                    <span className="text-base">{flag}</span>
+                    <CountryFlag country={country} className="h-3 w-[18px]" />
                   </button>
                 )
               })}
@@ -993,7 +992,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                   >
                     {filterCountry && !['US', ...countries.filter(c => c !== 'US').slice(0, 1)].includes(filterCountry) ? (
                       <>
-                        <span className="text-base">{selectedCountryFlag}</span>
+                        <CountryFlag country={filterCountry} className="h-3 w-[18px]" />
                         <span className="truncate max-w-[60px]">{selectedCountryLabel}</span>
                       </>
                     ) : (
@@ -1016,8 +1015,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                       </div>
                       {/* Show all countries in dropdown (including USA) */}
                       {allCountries.map((country) => {
-                        const flag = getCountryFlag(country) || '🌍'
-                        const label = getCountryLabel(country)
+                       const label = getCountryLabel(country)
                         const isSelected = filterCountry === country
                         const hasData = countries.includes(country)
                         return (
@@ -1030,7 +1028,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                                 : (isDark ? 'text-white/70 hover:bg-white/5 hover:text-white' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900')
                             }`}
                           >
-                            <span className="text-base">{flag}</span>
+                            <CountryFlag country={country} className="h-3 w-[18px]" />
                             <span className="truncate">{label}</span>
                             {!hasData && (
                               <span className={`text-[9px] ml-auto ${isDark ? 'text-white/20' : 'text-gray-400'}`}>
@@ -1060,6 +1058,23 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
               )}
             </div>
 
+            <button
+              type="button"
+              onClick={() => {
+                setAppliedSearch(search)
+                setAppliedFilterCountry(filterCountry)
+                setAppliedFilterUnique(filterUnique)
+              }}
+              disabled={!hasUnappliedFilters || isRefreshing}
+              className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+                isDark
+                  ? 'bg-emerald-500 text-slate-950 hover:bg-emerald-400'
+                  : 'bg-emerald-600 text-white hover:bg-emerald-700'
+              }`}
+            >
+              {isRefreshing && hasUnappliedFilters ? 'Applying...' : 'Apply filters'}
+            </button>
+
             <div className="flex items-center gap-1 ml-auto">
               <span className={`text-[10px] px-2 py-1 rounded border ${
                 isDark ? 'text-white/30 bg-white/5 border-white/5' : 'text-gray-600 bg-gray-50 border-gray-200'
@@ -1070,30 +1085,111 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
           </div>
 
           {/* Data Table */}
-          <div className={`overflow-hidden rounded-2xl border shadow-sm ${
-            isDark ? 'bg-white/[0.035] border-white/10' : 'bg-white/90 border-slate-200'
+          <div className={`mb-2 space-y-2 md:hidden`}>
+            {filteredClicks.length > 0 ? (
+              filteredClicks.map((click) => {
+                const DeviceIcon = getDeviceIcon(click.deviceType, click.deviceBrand)
+                const deviceLabel = getDeviceLabel(click)
+                return (
+                  <article
+                    key={click.id}
+                    className={`rounded-xl border p-3 ${
+                      isDark ? 'border-white/10 bg-white/[0.045]' : 'border-slate-200 bg-white'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <time className={`min-w-0 text-sm font-medium ${isDark ? 'text-white/75' : 'text-slate-700'}`}>
+                        {formatDate(click.createdAt || click.timestamp)}
+                      </time>
+                      <div className="flex shrink-0 items-center">
+                        <ClickStatusIcon isUnique={click.isUnique} isDark={isDark} />
+                      </div>
+                    </div>
+
+                    <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3">
+                      <div className="min-w-0">
+                        <p className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-white/45' : 'text-slate-500'}`}>Location</p>
+                        <p className={`mt-1 truncate text-sm ${isDark ? 'text-white/85' : 'text-slate-700'}`} title={click.city ? `${getCountryLabel(click.country)}, ${decodeURIComponent(click.city)}` : getCountryLabel(click.country)}>
+                          <CountryFlag country={click.country} className="mr-1.5 inline-block h-3 w-[18px] align-middle" />{getCountryLabel(click.country)}
+                          {click.city && <span className={isDark ? 'text-white/40' : 'text-slate-500'}>, {decodeURIComponent(click.city)}</span>}
+                        </p>
+                      </div>
+                      <div className="min-w-0">
+                        <p className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-white/45' : 'text-slate-500'}`}>IP address</p>
+                        <p className={`mt-1 truncate font-mono text-sm ${isDark ? 'text-cyan-300/90' : 'text-cyan-700'}`}>{click.ipAddress || 'N/A'}</p>
+                      </div>
+                      <div className="min-w-0">
+                        <p className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-white/45' : 'text-slate-500'}`}>Device</p>
+                        <p className={`mt-1 flex min-w-0 items-center gap-1.5 text-sm ${isDark ? 'text-white/75' : 'text-slate-700'}`}>
+                          <DeviceIcon className={`h-4 w-4 shrink-0 ${isDark ? 'text-white/50' : 'text-slate-400'}`} strokeWidth={1.5} />
+                          <span className="truncate" title={deviceLabel}>{deviceLabel}</span>
+                        </p>
+                      </div>
+                      <div className="min-w-0">
+                        <p className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-white/45' : 'text-slate-500'}`}>Browser</p>
+                        <div className={`mt-1 flex min-w-0 items-center gap-1.5 text-sm ${isDark ? 'text-white/75' : 'text-slate-700'}`} title={`${click.browser || 'Unknown'}${click.browserVersion ? ` v${click.browserVersion}` : ''}`}>
+                          <BrowserLogo name={click.browser || 'Unknown'} />
+                          <p className="truncate">
+                            {click.browser || 'Unknown'}{click.browserVersion && <span className={isDark ? 'text-white/35' : 'text-slate-500'}> v{click.browserVersion}</span>}
+                          </p>
+                        </div>
+                      </div>
+                      <div className={`col-span-2 min-w-0 border-t pt-2 ${isDark ? 'border-white/10' : 'border-slate-200'}`}>
+                        <p className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-white/45' : 'text-slate-500'}`}>Referrer</p>
+                        {click.referrer ? (
+                          <a
+                            href={click.referrer}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={`mt-1 block truncate text-sm transition-colors ${isDark ? 'text-emerald-300/90 hover:text-emerald-200' : 'text-emerald-700 hover:text-emerald-900'}`}
+                            title={click.referrer}
+                          >
+                            {click.referrer}
+                          </a>
+                        ) : (
+                          <span className={`mt-1 block text-sm ${isDark ? 'text-white/50' : 'text-slate-500'}`}>Direct</span>
+                        )}
+                      </div>
+                    </div>
+                  </article>
+                )
+              })
+            ) : (
+              <div className={`rounded-xl border px-4 py-8 text-center ${
+                isDark ? 'border-white/10 bg-white/[0.045]' : 'border-slate-200 bg-white'
+              }`}>
+                <Eye className={`mx-auto h-6 w-6 ${isDark ? 'text-white/20' : 'text-gray-300'}`} strokeWidth={1.5} />
+                <p className={`mt-2 text-sm ${isDark ? 'text-white/65' : 'text-slate-700'}`}>No clicks match your filters</p>
+                <p className={`mt-1 text-xs ${isDark ? 'text-white/40' : 'text-slate-500'}`}>Try adjusting your search or filter criteria</p>
+              </div>
+            )}
+          </div>
+
+          {/* Desktop click log table */}
+          <div className={`hidden overflow-hidden rounded-2xl border shadow-sm md:block ${
+            isDark ? 'bg-slate-900 border-white/10' : 'bg-white/90 border-slate-200'
           }`}>
             <div className="max-h-[70vh] overflow-auto">
               <table className="w-full text-sm">
-                <thead className={`border-b ${isDark ? 'bg-white/[0.03] border-white/5' : 'bg-gray-50 border-gray-200'} sticky top-0 z-10`}>
+                <thead className={`border-b ${isDark ? 'bg-slate-800 border-white/10' : 'bg-gray-50 border-gray-200'} sticky top-0 z-10`}>
                   <tr>
-                    <th className={`px-3 py-2.5 text-left text-[10px] font-medium uppercase tracking-wider whitespace-nowrap ${isDark ? 'text-white/30' : 'text-gray-500'}`}>
+                    <th className={`px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap ${isDark ? 'text-white/45' : 'text-gray-500'}`}>
                       <div className="flex items-center gap-1"><Clock className="h-3 w-3" strokeWidth={1.5} /> Time</div>
                     </th>
-                    <th className={`px-3 py-2.5 text-left text-[10px] font-medium uppercase tracking-wider whitespace-nowrap ${isDark ? 'text-white/30' : 'text-gray-500'}`}>
+                    <th className={`px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap ${isDark ? 'text-white/45' : 'text-gray-500'}`}>
                       <div className="flex items-center gap-1"><Hash className="h-3 w-3" strokeWidth={1.5} /> IP</div>
                     </th>
-                    <th className={`px-3 py-2.5 text-left text-[10px] font-medium uppercase tracking-wider whitespace-nowrap ${isDark ? 'text-white/30' : 'text-gray-500'}`}>
+                    <th className={`px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap ${isDark ? 'text-white/45' : 'text-gray-500'}`}>
                       <div className="flex items-center gap-1"><MapPin className="h-3 w-3" strokeWidth={1.5} /> Location</div>
                     </th>
-                    <th className={`px-3 py-2.5 text-left text-[10px] font-medium uppercase tracking-wider whitespace-nowrap ${isDark ? 'text-white/30' : 'text-gray-500'}`}>
+                    <th className={`px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap ${isDark ? 'text-white/45' : 'text-gray-500'}`}>
                       <div className="flex items-center gap-1"><Smartphone className="h-3 w-3" strokeWidth={1.5} /> Device</div>
                     </th>
-                    <th className={`px-3 py-2.5 text-left text-[10px] font-medium uppercase tracking-wider whitespace-nowrap ${isDark ? 'text-white/30' : 'text-gray-500'}`}>Browser</th>
-                    <th className={`px-3 py-2.5 text-left text-[10px] font-medium uppercase tracking-wider min-w-[200px] whitespace-nowrap ${isDark ? 'text-white/30' : 'text-gray-500'}`}>
+                    <th className={`px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap ${isDark ? 'text-white/45' : 'text-gray-500'}`}>Browser</th>
+                    <th className={`px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider min-w-[200px] whitespace-nowrap ${isDark ? 'text-white/45' : 'text-gray-500'}`}>
                       <div className="flex items-center gap-1"><Link2 className="h-3 w-3" strokeWidth={1.5} /> Referrer</div>
                     </th>
-                    <th className={`px-3 py-2.5 text-center text-[10px] font-medium uppercase tracking-wider whitespace-nowrap ${isDark ? 'text-white/30' : 'text-gray-500'}`}>Status</th>
+                    <th className={`px-4 py-3.5 text-center text-xs font-semibold uppercase tracking-wider whitespace-nowrap ${isDark ? 'text-white/45' : 'text-gray-500'}`}>Status</th>
                   </tr>
                 </thead>
                 <tbody className={`divide-y ${isDark ? 'divide-white/5' : 'divide-gray-100'}`}>
@@ -1101,42 +1197,46 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                     filteredClicks.map((click) => {
                       const DeviceIcon = getDeviceIcon(click.deviceType, click.deviceBrand)
                       const deviceLabel = getDeviceLabel(click)
-                      const flag = getCountryFlag(click.country) || '🌍'
                       return (
-                        <tr key={click.id} className={`transition-colors ${isDark ? 'hover:bg-white/[0.02]' : 'hover:bg-gray-50'}`}>
-                          <td className={`px-3 py-2.5 text-xs whitespace-nowrap ${isDark ? 'text-white/40' : 'text-gray-500'}`}>
+                        <tr key={click.id} className={`transition-colors ${isDark ? 'bg-slate-900 hover:bg-slate-800' : 'hover:bg-gray-50'}`}>
+                          <td className={`px-3 py-3 text-sm whitespace-nowrap ${isDark ? 'text-white/55' : 'text-gray-600'}`}>
                             {formatDate(click.createdAt || click.timestamp)}
                           </td>
-                          <td className="px-3 py-2.5">
-                            <span className={`text-xs font-mono whitespace-nowrap ${isDark ? 'text-cyan-300/80' : 'text-cyan-700'}`}>
+                          <td className="px-3 py-3">
+                            <span className={`text-sm font-mono whitespace-nowrap ${isDark ? 'text-cyan-300/85' : 'text-cyan-700'}`}>
                               {click.ipAddress || 'N/A'}
                             </span>
                           </td>
-                          <td className="px-3 py-2.5">
+                          <td className="px-3 py-3">
                             <div className="flex items-center gap-1.5">
-                              <span className="text-lg flex-shrink-0 w-6 text-center">{flag}</span>
-                              <span className={`text-xs truncate max-w-[80px] ${isDark ? 'text-white/60' : 'text-gray-600'}`}>
+                              <CountryFlag country={click.country} className="h-3 w-[18px] flex-shrink-0" />
+                              <span className={`text-base truncate max-w-[160px] ${isDark ? 'text-white/75' : 'text-gray-700'}`}>
                                 {getCountryLabel(click.country)}
                               </span>
                               {click.city && <span className={`text-[10px] hidden md:inline ${isDark ? 'text-white/30' : 'text-gray-400'}`}>• {decodeURIComponent(click.city)}</span>}
                             </div>
                           </td>
-                          <td className="px-3 py-2.5">
-                            <div className={`flex items-center gap-1.5 text-xs ${isDark ? 'text-white/60' : 'text-gray-600'}`}>
-                              <DeviceIcon className={`h-3.5 w-3.5 ${isDark ? 'text-white/40' : 'text-gray-400'}`} strokeWidth={1.5} />
-                              <span className="truncate max-w-[120px]" title={deviceLabel}>{deviceLabel}</span>
+                          <td className="px-3 py-3">
+                            <div className={`flex items-center gap-2 text-base ${isDark ? 'text-white/75' : 'text-gray-700'}`}>
+                              <DeviceIcon className={`h-4 w-4 ${isDark ? 'text-white/50' : 'text-gray-400'}`} strokeWidth={1.5} />
+                              <span className="truncate max-w-[180px]" title={deviceLabel}>{deviceLabel}</span>
                             </div>
                           </td>
-                          <td className={`px-3 py-2.5 text-xs truncate max-w-[80px] ${isDark ? 'text-white/50' : 'text-gray-500'}`}>
-                            {click.browser || 'Unknown'}
-                            {click.browserVersion && <span className={`text-[10px] ml-1 ${isDark ? 'text-white/30' : 'text-gray-400'}`}>v{click.browserVersion}</span>}
+                          <td className={`px-3 py-3 text-sm max-w-[160px] ${isDark ? 'text-white/60' : 'text-gray-600'}`}>
+                            <div className="flex min-w-0 items-center gap-2" title={`${click.browser || 'Unknown'}${click.browserVersion ? ` v${click.browserVersion}` : ''}`}>
+                              <BrowserLogo name={click.browser || 'Unknown'} />
+                              <span className="truncate">
+                                {click.browser || 'Unknown'}
+                                {click.browserVersion && <span className={`ml-1 text-[10px] ${isDark ? 'text-white/35' : 'text-gray-400'}`}>v{click.browserVersion}</span>}
+                              </span>
+                            </div>
                           </td>
-                          <td className="px-3 py-2.5 text-xs">
+                          <td className="px-3 py-3 text-sm">
                             {click.referrer ? (
                               <div className="flex items-center gap-1.5 group/referrer">
                                 <ExternalLink className={`h-3 w-3 flex-shrink-0 transition-colors ${isDark ? 'text-white/20 group-hover/referrer:text-emerald-400' : 'text-gray-400 group-hover/referrer:text-emerald-700'}`} strokeWidth={1.5} />
                                 <a href={click.referrer} target="_blank" rel="noopener noreferrer"
-                                                  className={`break-all text-[11px] transition-colors ${isDark ? 'text-emerald-300/80 hover:text-emerald-200' : 'text-emerald-700 hover:text-emerald-900'}`}
+                                                  className={`break-all text-sm transition-colors ${isDark ? 'text-emerald-300/90 hover:text-emerald-200' : 'text-emerald-700 hover:text-emerald-900'}`}
                                   title={click.referrer}>
                                   {click.referrer}
                                 </a>
@@ -1148,10 +1248,9 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                               </span>
                             )}
                           </td>
-                          <td className="px-3 py-2.5">
-                            <div className="flex items-center justify-center gap-1">
-                              <StatusBadge type={click.isBot ? 'danger' : 'success'} label={click.isBot ? 'Bot' : 'Human'} icon={click.isBot ? Bot : User} isDark={isDark} />
-                              <StatusBadge type={click.isUnique ? 'success' : 'warning'} label={click.isUnique ? 'Unique' : 'Repeat'} icon={click.isUnique ? CheckCircle : XCircle} isDark={isDark} />
+                          <td className="px-3 py-3">
+                            <div className="flex items-center justify-center">
+                              <ClickStatusIcon isUnique={click.isUnique} isDark={isDark} />
                             </div>
                           </td>
                         </tr>
