@@ -660,50 +660,41 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
                   Analytics
                 </span>
-                <a
-                  href={`/payment/${publicId}`}
-                  className={`group inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400/60 focus:ring-offset-2 ${
-                    isDark ? 'border-white/10 bg-white/5 text-emerald-300 hover:border-emerald-400/40 hover:bg-emerald-400/10 focus:ring-offset-slate-950' : 'border-slate-200 bg-white text-emerald-700 hover:border-emerald-300 hover:bg-emerald-50 focus:ring-offset-white'
-                  }`}
-                  title="Payment settings"
-                  aria-label="Payment settings"
-                >
-                  <CreditCard className="h-4 w-4" />
-                </a>
               </div>
             </div>
 
             <div className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-2 sm:flex sm:w-auto sm:flex-nowrap sm:justify-end">
-              {unpaidEarning > 0 && (
-              <div className={`flex min-h-10 min-w-0 items-center justify-between gap-2 rounded-lg border px-2.5 py-1.5 shadow-sm sm:min-h-11 sm:gap-3 sm:rounded-xl sm:px-3 sm:py-2 ${
+              <a
+                href={`/payment/${publicId}`}
+                aria-label="Wallet and payment settings"
+                title="Wallet and payment settings"
+                className={`group flex min-h-10 min-w-0 items-center justify-between gap-2 rounded-lg border px-2.5 py-1.5 shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400/60 focus:ring-offset-2 sm:min-h-11 sm:gap-3 sm:rounded-xl sm:px-3 sm:py-2 ${
                   isDark
-                    ? 'border-emerald-400/20 bg-gradient-to-r from-emerald-400/[0.1] via-emerald-400/[0.06] to-emerald-400/[0.03] shadow-emerald-950/20'
-                    : 'border-emerald-200 bg-gradient-to-r from-emerald-50 via-white to-emerald-50/70 shadow-emerald-900/5'
-                }`}>
-                  <div className="flex min-w-0 items-center gap-2.5">
-                    <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md border sm:h-8 sm:w-8 sm:rounded-lg ${
-                      isDark
-                        ? 'border-emerald-300/15 bg-emerald-300/10 text-emerald-300'
-                        : 'border-emerald-200 bg-white/80 text-emerald-700'
-                    }`}>
-                      <DollarSign aria-hidden="true" className="h-4 w-4" strokeWidth={2.25} />
-                    </span>
-                    <span className={`truncate text-[11px] font-semibold sm:text-xs ${isDark ? 'text-emerald-100/80' : 'text-emerald-800'}`}>
-                      Pending balance
-                    </span>
-                  </div>
-                  <span className={`shrink-0 whitespace-nowrap text-xs font-bold tracking-tight tabular-nums sm:text-sm ${isDark ? 'text-emerald-100' : 'text-emerald-900'}`}>
-                    {earningCurrency === 'USD'
-                      ? formatCurrency(unpaidEarning)
-                      : (
-                        <>
-                          <span className="align-baseline text-[0.78em] font-extrabold">৳</span>{' '}
-                          {formatTaka(unpaidEarning * 118)}
-                        </>
-                      )}
+                    ? 'border-emerald-400/20 bg-gradient-to-r from-emerald-400/[0.1] via-emerald-400/[0.06] to-emerald-400/[0.03] shadow-emerald-950/20 hover:border-emerald-400/40 hover:brightness-110 focus:ring-offset-slate-950'
+                    : 'border-emerald-200 bg-gradient-to-r from-emerald-50 via-white to-emerald-50/70 shadow-emerald-900/5 hover:border-emerald-300 hover:brightness-[0.98] focus:ring-offset-white'
+                }`}
+              >
+                <div className="flex min-w-0 items-center gap-2.5">
+                  <span className={`inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border sm:h-8 sm:w-8 sm:rounded-lg ${
+                    isDark ? 'border-emerald-300/15 bg-emerald-300/10 text-emerald-300' : 'border-emerald-200 bg-white/80 text-emerald-700'
+                  }`}>
+                    <CreditCard className="h-4 w-4" />
+                  </span>
+                  <span className={`truncate text-[11px] font-semibold sm:text-xs ${isDark ? 'text-emerald-100/80' : 'text-emerald-800'}`}>
+                    Wallet
                   </span>
                 </div>
-              )}
+                <span className={`shrink-0 whitespace-nowrap text-xs font-bold tracking-tight tabular-nums sm:text-sm ${isDark ? 'text-emerald-100' : 'text-emerald-900'}`}>
+                  {earningCurrency === 'USD'
+                    ? formatCurrency(unpaidEarning)
+                    : (
+                      <>
+                        <span className="align-baseline text-[0.78em] font-extrabold">৳</span>{' '}
+                        {formatTaka(unpaidEarning * 118)}
+                      </>
+                    )}
+                </span>
+              </a>
               <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-1.5">
                 <button
                   onClick={() => {
@@ -762,10 +753,10 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
           </div>
 
           {/* Quick Stats */}
-          <div className="mb-4 grid grid-cols-1 gap-2 min-[380px]:grid-cols-2 xl:grid-cols-4 sm:gap-3">
+          <div className="mb-4 grid grid-cols-2 gap-2 sm:gap-3 xl:grid-cols-4">
             <MetricCard
               icon={MousePointerClick}
-              label="Total Clicks"
+              label="TCL"
               value={formatNumber(totalClicks)}
               color="#34D399"
               subtitle="All traffic"
@@ -773,17 +764,16 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
             />
             <MetricCard
               icon={Users}
-              label="Unique Visitors"
+              label="UCL"
               value={formatNumber(uniqueClicks)}
               color="#38BDF8"
               percentage={uniqueRate}
               percentageColor="#34D399"
-              subtitle="of total clicks"
               isDark={isDark}
             />
             <MetricCard
               icon={Globe2}
-              label="Countries"
+              label="GEO"
               value={countries.length || 0}
               color="#F472B6"
               subtitle="Tracked"
