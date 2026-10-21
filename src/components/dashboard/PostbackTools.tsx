@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, ChevronDown, Copy, Database, MessageCircle, RefreshCw, Search, Webhook, XCircle } from "lucide-react";
 
@@ -47,7 +47,7 @@ export default function PostbackTools() {
   const [showTelegramSettings, setShowTelegramSettings] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       const response = await fetch("/api/postbacks", { credentials: "include" });
       if (response.status === 403) {
@@ -66,7 +66,7 @@ export default function PostbackTools() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [router]);
 
   const saveTelegram = async () => {
     setTelegramSubmitting(true);
@@ -104,7 +104,7 @@ export default function PostbackTools() {
 
   useEffect(() => {
     void loadData();
-  }, []);
+  }, [loadData]);
 
   const createPostback = async (provider: "AFFMINE" | "ADBLUMEDIA") => {
     setSubmitting(provider);
@@ -187,36 +187,203 @@ export default function PostbackTools() {
   });
 
   return (
-    <div className="mx-auto max-w-5xl space-y-8">
+    <div className="postback-tools w-full space-y-6 pb-8 md:space-y-8">
+      <header className="postback-header">
+        <div className="postback-heading-icon"><Webhook className="h-5 w-5" /></div>
+        <div>
+          <p className="postback-kicker">Integrations</p>
+          <h1 className="postback-title">S2S postbacks</h1>
+          <p className="postback-muted mt-1">Manage conversion endpoints, notifications, and payout activity.</p>
+        </div>
+      </header>
+
       {(message || error) && (
-        <div className={`flex items-center gap-2 rounded-lg border px-4 py-3 text-sm ${error ? "border-red-500/20 bg-red-500/10 text-red-200" : "border-emerald-500/20 bg-emerald-500/10 text-emerald-200"}`}>
+        <div className={`postback-alert ${error ? "is-error" : "is-success"}`}>
           {error ? <XCircle className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}
           {error || message}
         </div>
       )}
-      <section className="border-b border-slate-800 pb-6">
-        <div className="mb-4 flex items-center gap-2"><Webhook className="h-5 w-5 text-cyan-300" /><h1 className="text-lg font-semibold text-white">Postback endpoints</h1></div>
-        <div className="divide-y divide-slate-800">
+
+      <section className="postback-section">
+        <div className="postback-section-heading">
+          <div>
+            <h2 className="postback-section-title">Postback endpoints</h2>
+            <p className="postback-muted mt-1 text-sm">Connect your affiliate networks to receive conversion events.</p>
+          </div>
+          <span className="postback-count">{configs.length} configured</span>
+        </div>
+        <div className="postback-endpoint-grid">
           {(["AFFMINE", "ADBLUMEDIA"] as const).map((provider) => {
             const config = configs.find((item) => item.provider === provider);
-            return <div key={provider} className="py-4 first:pt-0 last:pb-0">
-              <div className="flex items-center justify-between gap-4"><p className="font-medium text-white">{provider === "AFFMINE" ? "Affmine" : "AdBluMedia"}</p>{config ? <button type="button" title="Copy receiver URL" onClick={() => copyPostbackUrl(config.token)} className="inline-flex shrink-0 items-center gap-1.5 border border-cyan-500/20 px-2.5 py-1.5 text-xs text-cyan-200 hover:bg-cyan-500/10"><Copy className="h-3.5 w-3.5" /> Copy URL</button> : <button type="button" onClick={() => createPostback(provider)} disabled={submitting === provider} className="shrink-0 bg-cyan-600 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-cyan-500 disabled:opacity-60">{submitting === provider ? "Creating..." : "Create URL"}</button>}</div>
-              {config && <p title={typeof window !== "undefined" ? getPostbackTemplate(window.location.origin, config) : `/api/postback/${config.token}`} className="mt-2 truncate border-l-2 border-cyan-500/40 bg-slate-950/40 px-2.5 py-1.5 font-mono text-[11px] text-slate-500">{typeof window !== "undefined" ? getPostbackTemplate(window.location.origin, config) : `/api/postback/${config.token}`}</p>}
-            </div>;
+            const providerName = provider === "AFFMINE" ? "Affmine" : "AdBluMedia";
+            const previewUrl = config && typeof window !== "undefined"
+              ? getPostbackTemplate(window.location.origin, config).replace(config.token, "••••••••")
+              : null;
+            return (
+              <article key={provider} className="postback-endpoint-card">
+                <div className="postback-endpoint-top">
+                  <div>
+                    <p className="postback-muted text-xs font-medium uppercase tracking-wider">Network</p>
+                    <h3 className="postback-endpoint-name">{providerName}</h3>
+                  </div>
+                  <span className={`postback-status ${config ? "is-ready" : "is-pending"}`}>
+                    {config ? "Connected" : "Not configured"}
+                  </span>
+                </div>
+                {config && previewUrl ? (
+                  <div className="postback-url-row">
+                    <p className="postback-url" aria-label={`${providerName} receiver URL. Secret is hidden.`}>{previewUrl}</p>
+                    <button
+                      type="button"
+                      title="Copy receiver URL"
+                      onClick={() => copyPostbackUrl(config.token)}
+                      className="postback-secondary-button"
+                    >
+                      <Copy className="h-3.5 w-3.5" />
+                      Copy URL
+                    </button>
+                  </div>
+                ) : (
+                  <div className="postback-endpoint-empty">
+                    <p className="postback-muted text-sm">Create a receiver URL to start tracking conversions.</p>
+                    <button
+                      type="button"
+                      onClick={() => createPostback(provider)}
+                      disabled={submitting === provider}
+                      className="postback-primary-button"
+                    >
+                      <Webhook className="h-4 w-4" />
+                      {submitting === provider ? "Creating..." : "Create URL"}
+                    </button>
+                  </div>
+                )}
+              </article>
+            );
           })}
         </div>
       </section>
-      <section className="border-b border-slate-800 pb-6">
-        <button type="button" onClick={() => setShowTelegramSettings((current) => !current)} className="flex w-full items-center justify-between gap-3 text-left"><span className="flex items-center gap-2"><MessageCircle className="h-5 w-5 text-cyan-300" /><span className="text-sm font-semibold text-slate-300">Telegram notifications</span></span><ChevronDown className={`h-4 w-4 text-slate-500 transition-transform ${showTelegramSettings ? "rotate-180" : ""}`} /></button>
-        {showTelegramSettings && <div className="mt-4">
-        <div className="grid gap-4 md:grid-cols-[1fr_1.4fr]">
-          <label className="text-xs text-slate-400">Channel ID<input value={telegramChannelId} onChange={(event) => setTelegramChannelId(event.target.value)} className="mt-1.5 w-full border border-slate-700 bg-slate-950/50 px-3 py-2 text-sm text-white outline-none focus:border-cyan-400" /></label>
-          <label className="text-xs text-slate-400">Bot API token<input type="password" value={telegramBotToken} onChange={(event) => setTelegramBotToken(event.target.value)} className="mt-1.5 w-full border border-slate-700 bg-slate-950/50 px-3 py-2 text-sm text-white outline-none focus:border-cyan-400" /></label>
-        </div>
-        <div className="mt-4 flex flex-wrap gap-2"><button type="button" onClick={saveTelegram} disabled={telegramSubmitting || !telegramChannelId || !telegramBotToken} className="inline-flex items-center gap-1.5 bg-cyan-600 px-3 py-2 text-xs font-medium text-white hover:bg-cyan-500 disabled:opacity-60">Save Telegram</button>{telegramConfigured && <button type="button" onClick={testTelegram} disabled={telegramSubmitting} className="inline-flex items-center gap-1.5 border border-slate-700 px-3 py-2 text-xs text-slate-300 hover:bg-slate-800 disabled:opacity-60">Send test message</button>}</div>
-        </div>}
+
+      <section className="postback-section postback-telegram">
+        <button
+          type="button"
+          aria-expanded={showTelegramSettings}
+          onClick={() => setShowTelegramSettings((current) => !current)}
+          className="postback-accordion-trigger"
+        >
+          <span className="flex min-w-0 items-center gap-3">
+            <span className="postback-heading-icon is-small"><MessageCircle className="h-4 w-4" /></span>
+            <span className="min-w-0 text-left">
+              <span className="postback-section-title block">Telegram notifications</span>
+              <span className="postback-muted mt-0.5 block text-sm">Configure alerts for incoming conversions.</span>
+            </span>
+          </span>
+          <ChevronDown className={`postback-chevron h-4 w-4 transition-transform ${showTelegramSettings ? "rotate-180" : ""}`} />
+        </button>
+        {showTelegramSettings && (
+          <div className="postback-telegram-body">
+            <div className="grid gap-4 md:grid-cols-[1fr_1.4fr]">
+              <label className="postback-label">
+                Channel ID
+                <input value={telegramChannelId} onChange={(event) => setTelegramChannelId(event.target.value)} className="postback-input mt-1.5 w-full" />
+              </label>
+              <label className="postback-label">
+                Bot API token
+                <input type="password" value={telegramBotToken} onChange={(event) => setTelegramBotToken(event.target.value)} className="postback-input mt-1.5 w-full" />
+              </label>
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button type="button" onClick={saveTelegram} disabled={telegramSubmitting || !telegramChannelId || !telegramBotToken} className="postback-primary-button">
+                Save Telegram
+              </button>
+              {telegramConfigured && (
+                <button type="button" onClick={testTelegram} disabled={telegramSubmitting} className="postback-secondary-button">
+                  Send test message
+                </button>
+              )}
+            </div>
+          </div>
+        )}
       </section>
-      <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5"><div className="mb-4 flex flex-wrap items-center justify-between gap-3"><div className="flex items-center gap-2"><Database className="h-5 w-5 text-emerald-300" /><h2 className="text-sm font-semibold uppercase tracking-wide text-slate-300">Conversion report</h2></div><div className="flex items-center gap-2">{showResetConfirm && <div className="flex items-center gap-2 rounded-lg border border-red-500/20 bg-red-500/10 px-2.5 py-1.5 text-xs text-red-200"><span>Delete all report data?</span><button type="button" onClick={() => setShowResetConfirm(false)} className="text-slate-300 hover:text-white">Cancel</button><button type="button" onClick={resetLeadData} className="font-semibold text-red-300 hover:text-red-200">Reset</button></div>}<button type="button" title="Reset conversion data" onClick={() => setShowResetConfirm(true)} className="inline-flex items-center gap-1.5 rounded-md border border-red-500/20 bg-red-500/10 px-2.5 py-1.5 text-xs text-red-300 hover:bg-red-500/20"><RefreshCw className="h-3.5 w-3.5" /> Reset data</button></div></div><div className="mb-4 grid gap-3 sm:grid-cols-[1fr_auto]"><label className="relative block"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" /><input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} aria-label="Search conversions" placeholder="Search network, payout, or SubID" className="w-full border border-slate-700 bg-slate-950/50 py-2 pl-9 pr-3 text-sm text-white outline-none focus:border-cyan-400" /></label><div className="border border-slate-800 px-4 py-2 sm:min-w-36"><p className="text-[10px] uppercase tracking-wide text-slate-500">Total payout</p><p className="mt-0.5 text-lg font-semibold text-white">${totalPayout.toFixed(2)}</p></div></div>{loading ? <p className="text-sm text-slate-500">Loading payout and SubID data...</p> : leads.length === 0 ? <p className="text-sm text-slate-500">No conversions received yet.</p> : filteredLeads.length === 0 ? <p className="text-sm text-slate-500">No matching conversions.</p> : <div className="overflow-auto rounded-lg border border-slate-800"><table className="w-full min-w-[560px] text-left text-xs"><thead className="bg-slate-800 text-slate-400"><tr><th className="px-3 py-2">Network</th><th className="px-3 py-2">Payout</th><th className="px-3 py-2">SubID 1</th><th className="px-3 py-2">SubID 2</th><th className="px-3 py-2">SubID 3</th><th className="px-3 py-2">SubID 4</th><th className="px-3 py-2">Received</th><th className="px-3 py-2 text-right">Action</th></tr></thead><tbody className="divide-y divide-slate-800">{filteredLeads.map((lead) => <tr key={lead.id} className="text-slate-300"><td className="px-3 py-2">{lead.postback.provider === "AFFMINE" ? "Affmine" : "AdBluMedia"}</td><td className="px-3 py-2 text-emerald-300">{`$${(lead.payout || 0).toFixed(2)}`}</td><td className="px-3 py-2">{lead.sub1 || "-"}</td><td className="px-3 py-2">{lead.sub2 || "-"}</td><td className="px-3 py-2">{lead.sub3 || "-"}</td><td className="px-3 py-2">{lead.sub4 || "-"}</td><td className="whitespace-nowrap px-3 py-2 text-slate-500">{new Date(lead.createdAt).toLocaleDateString()}</td><td className="px-3 py-2 text-right"><button type="button" onClick={() => deleteLead(lead.id)} className="inline-flex items-center justify-center rounded border border-red-500/20 bg-red-500/10 px-2 py-1 text-[10px] font-medium text-red-300 hover:bg-red-500/20">Delete</button></td></tr>)}</tbody></table></div>}</div>
+
+      <section className="postback-report">
+        <div className="postback-report-heading">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="postback-heading-icon is-small is-success"><Database className="h-4 w-4" /></span>
+            <div>
+              <h2 className="postback-section-title">Conversion report</h2>
+              <p className="postback-muted mt-0.5 text-sm" aria-live="polite">
+                {searchQuery.trim()
+                  ? `Showing ${filteredLeads.length} of ${leads.length} conversions`
+                  : `${leads.length} ${leads.length === 1 ? "conversion" : "conversions"} received`}
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {showResetConfirm && (
+              <div className="postback-reset-confirm">
+                <span>Delete all report data?</span>
+                <button type="button" onClick={() => setShowResetConfirm(false)} className="postback-text-button">Cancel</button>
+                <button type="button" onClick={resetLeadData} className="postback-reset-confirm-action">Reset</button>
+              </div>
+            )}
+            <button type="button" title="Reset conversion data" onClick={() => setShowResetConfirm(true)} className="postback-danger-button">
+              <RefreshCw className="h-3.5 w-3.5" />
+              Reset data
+            </button>
+          </div>
+        </div>
+        <div className="postback-report-toolbar">
+          <label className="postback-search">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
+            <input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} aria-label="Search conversions" placeholder="Search network, payout, or SubID" className="postback-input w-full pl-9" />
+          </label>
+          <div className="postback-payout">
+            <p className="postback-muted text-xs">Total payout</p>
+            <p className="postback-payout-value">${totalPayout.toFixed(2)}</p>
+          </div>
+        </div>
+        {loading ? (
+          <p className="postback-empty">Loading payout and SubID data...</p>
+        ) : leads.length === 0 ? (
+          <p className="postback-empty">No conversions received yet.</p>
+        ) : filteredLeads.length === 0 ? (
+          <p className="postback-empty">No matching conversions.</p>
+        ) : (
+          <div className="postback-table-wrap">
+            <table className="postback-table">
+              <caption className="sr-only">Conversion payouts and SubID values</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Network</th>
+                  <th scope="col" className="postback-number-column">Payout</th>
+                  <th scope="col">SubID 1</th>
+                  <th scope="col">SubID 2</th>
+                  <th scope="col">SubID 3</th>
+                  <th scope="col">SubID 4</th>
+                  <th scope="col">Received</th>
+                  <th scope="col" className="postback-action-column">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredLeads.map((lead) => (
+                  <tr key={lead.id}>
+                    <td><span className="postback-network">{lead.postback.provider === "AFFMINE" ? "Affmine" : "AdBluMedia"}</span></td>
+                    <td className="postback-payout-cell postback-number-column">{`$${(lead.payout || 0).toFixed(2)}`}</td>
+                    <td className={lead.sub1 ? "postback-subid" : "postback-subid is-empty"}>{lead.sub1 || "—"}</td>
+                    <td className={lead.sub2 ? "postback-subid" : "postback-subid is-empty"}>{lead.sub2 || "—"}</td>
+                    <td className={lead.sub3 ? "postback-subid" : "postback-subid is-empty"}>{lead.sub3 || "—"}</td>
+                    <td className={lead.sub4 ? "postback-subid" : "postback-subid is-empty"}>{lead.sub4 || "—"}</td>
+                    <td className="postback-date">{new Date(lead.createdAt).toLocaleDateString()}</td>
+                    <td className="postback-action-column">
+                      <button type="button" onClick={() => deleteLead(lead.id)} className="postback-row-delete">Delete</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
     </div>
   );
 }

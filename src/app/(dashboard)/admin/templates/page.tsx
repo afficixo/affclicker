@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { useState, useEffect, useCallback } from 'react'
 import { Plus, Trash2, Edit2, X, ArrowLeft, Image as ImageIcon, Check, Globe } from 'lucide-react'
-import AfficixoLoading from '@/components/ui/AfficixoLoading'
 import {
   DEFAULT_LANDING_PAGE_DOMAIN_SETTINGS,
   type LandingPageDomainSetting,
@@ -248,12 +247,12 @@ export default function TemplateManager() {
   }
 
   if (authLoading) {
-    return <AfficixoLoading compact />
+    return null
   }
 
   if (userRole !== 'OWNER') {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+      <div className="template-manager-access">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-white mb-2">Access Denied</h1>
           <p className="text-slate-400">Only owners can manage templates</p>
@@ -263,12 +262,12 @@ export default function TemplateManager() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 px-4 py-6 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl">
+    <div className="template-manager-page">
+      <div className="template-manager-content">
         {/* Back Button */}
         <button
           onClick={() => window.history.back()}
-          className="mb-6 inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
+          className="template-manager-back"
         >
           <ArrowLeft className="h-4 w-4" />
           Back
@@ -276,7 +275,7 @@ export default function TemplateManager() {
 
         {/* Alerts */}
         {error && (
-          <div className="mb-4 flex items-center justify-between rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+          <div role="alert" className="template-manager-alert is-error">
             <span>{error}</span>
             <button onClick={() => setError('')} className="text-red-400 hover:text-red-300">
               <X className="h-4 w-4" />
@@ -284,7 +283,7 @@ export default function TemplateManager() {
           </div>
         )}
         {success && (
-          <div className="mb-4 flex items-center justify-between rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+          <div role="status" className="template-manager-alert is-success">
             <span>{success}</span>
             <button onClick={() => setSuccess('')} className="text-emerald-400 hover:text-emerald-300">
               <X className="h-4 w-4" />
@@ -293,17 +292,21 @@ export default function TemplateManager() {
         )}
 
         {/* Header */}
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-white">Templates</h1>
-            <p className="mt-1 text-sm text-slate-400">Manage landing page templates</p>
+        <div className="template-manager-header">
+          <div className="template-manager-heading">
+            <span className="template-manager-heading-icon"><ImageIcon className="h-5 w-5" /></span>
+            <div>
+              <p className="template-manager-kicker">Landing pages</p>
+              <h1 className="template-manager-title">Templates</h1>
+              <p className="template-manager-subtitle">Manage and organize your landing page templates.</p>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="template-manager-header-actions">
             <Link
               href="/owner/media"
-              className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-600/70 bg-slate-800/80 px-2.5 py-1.5 text-xs font-medium text-slate-200 transition-all duration-200 hover:border-slate-500 hover:bg-slate-700/80"
+              className="template-manager-secondary"
             >
-              <span className="flex h-4 w-4 items-center justify-center rounded-md border border-slate-500/80 bg-slate-900 text-slate-200">
+              <span className="template-manager-media-icon">
                 <ImageIcon className="h-3 w-3" />
               </span>
               Media Source
@@ -311,7 +314,7 @@ export default function TemplateManager() {
             {!showForm && (
               <button
                 onClick={() => setShowForm(true)}
-                className="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 transition-colors"
+                className="template-manager-primary"
               >
                 <Plus className="h-4 w-4" />
                 New Template
@@ -320,15 +323,15 @@ export default function TemplateManager() {
           </div>
         </div>
 
-        <section className="mb-6 rounded-lg border border-slate-700/80 bg-slate-900/40 p-4">
-          <div className="mb-4 flex items-start gap-3">
-            <Globe className="mt-0.5 h-5 w-5 shrink-0 text-emerald-400" />
+        <section className="template-manager-domains">
+          <div className="template-manager-domain-heading">
+            <span className="template-manager-domain-icon"><Globe className="h-5 w-5" /></span>
             <div>
-              <h2 className="text-sm font-semibold text-white">Landing page root domains</h2>
-              <p className="mt-1 text-xs text-slate-400">Manage the domains shown on landing page links. Each domain must have DNS pointed to this app.</p>
+              <h2 className="template-manager-section-title">Landing page domains</h2>
+              <p className="template-manager-section-description">Choose which root domains appear in generated landing page links. Each domain must point to this app.</p>
             </div>
           </div>
-          <div className="flex flex-col gap-2 sm:flex-row">
+          <div className="template-manager-domain-add">
             <input
               type="text"
               value={newLandingPageDomain}
@@ -341,23 +344,23 @@ export default function TemplateManager() {
               }}
               placeholder="example.com"
               aria-label="New landing page root domain"
-              className="h-10 min-w-0 flex-1 rounded-md border border-slate-700 bg-slate-950 px-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15"
+              className="template-manager-domain-input"
             />
             <button
               type="button"
               onClick={addLandingPageDomain}
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-slate-600 px-3 text-sm font-medium text-slate-200 transition-colors hover:bg-slate-800"
+              className="template-manager-secondary template-manager-add-domain"
             >
               <Plus className="h-4 w-4" />
               Add domain
             </button>
           </div>
-          <ul className="mt-3 divide-y divide-slate-800 border-y border-slate-800">
+          <ul className="template-manager-domain-list">
             {landingPageDomains.map((domain) => (
-              <li key={domain.domain} className="flex min-h-10 items-center justify-between gap-3 py-1">
-                <span className="font-mono text-sm text-emerald-300">{domain.domain}</span>
-                <div className="flex shrink-0 items-center gap-3">
-                  <label className="flex cursor-pointer items-center gap-2 text-xs text-slate-400">
+              <li key={domain.domain} className="template-manager-domain-row">
+                <span className="template-manager-domain-name">{domain.domain}</span>
+                <div className="template-manager-domain-options">
+                  <label className="template-manager-protocol-option">
                     <input
                       type="checkbox"
                       checked={domain.includeProtocol}
@@ -365,7 +368,7 @@ export default function TemplateManager() {
                         ? { ...item, includeProtocol: event.target.checked }
                         : item))}
                       disabled={isSavingDomains}
-                      className="h-4 w-4 accent-emerald-500"
+                      className="h-4 w-4 accent-emerald-600"
                       aria-label={`Show https:// for ${domain.domain}`}
                     />
                     <span>Show https://</span>
@@ -374,7 +377,7 @@ export default function TemplateManager() {
                     type="button"
                     onClick={() => setLandingPageDomains((domains) => domains.filter((item) => item.domain !== domain.domain))}
                     disabled={landingPageDomains.length <= 1 || isSavingDomains}
-                    className="rounded p-1.5 text-slate-400 transition-colors hover:bg-red-500/10 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="template-manager-remove-domain"
                     aria-label={`Remove ${domain.domain}`}
                     title="Remove domain"
                   >
@@ -384,13 +387,13 @@ export default function TemplateManager() {
               </li>
             ))}
           </ul>
-          <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-xs text-slate-500">Changes update generated links and host routing after saving.</p>
+          <div className="template-manager-domain-footer">
+            <p className="template-manager-footnote">Changes apply to generated links and host routing after you save.</p>
             <button
               type="button"
               onClick={saveLandingPageDomains}
               disabled={isSavingDomains}
-              className="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-emerald-600 px-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-500 disabled:cursor-wait disabled:opacity-60"
+              className="template-manager-save"
             >
               <Check className="h-4 w-4" />
               {isSavingDomains ? 'Saving...' : 'Save domains'}
@@ -400,82 +403,87 @@ export default function TemplateManager() {
 
         {/* Form */}
         {showForm && (
-          <div className="mb-8 rounded-xl border border-slate-800 bg-slate-900/60 p-5 sm:p-6">
-            <h2 className="text-lg font-semibold text-white mb-5">
+          <div className="template-manager-form-panel">
+            <h2 className="template-manager-section-title">
               {editingId ? 'Edit Template' : 'New Template'}
             </h2>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="template-manager-form">
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-slate-300">
+                <label htmlFor="template-name" className="template-manager-form-label">
                   Template Name *
                 </label>
                 <input
+                  id="template-name"
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="template-manager-form-input"
                 />
               </div>
 
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-slate-300">Description</label>
+                <label htmlFor="template-description" className="template-manager-form-label">Description</label>
                 <textarea
+                  id="template-description"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   rows={3}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="template-manager-form-input"
                 />
               </div>
 
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-slate-300">Thumbnail URL</label>
+                <label htmlFor="template-thumbnail" className="template-manager-form-label">Thumbnail URL</label>
                 <input
+                  id="template-thumbnail"
                   type="url"
                   value={formData.thumbnail}
                   onChange={(e) => setFormData({ ...formData, thumbnail: e.target.value })}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="template-manager-form-input"
                 />
               </div>
 
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-slate-300">Copy Text</label>
+                <label htmlFor="template-copy-text" className="template-manager-form-label">Copy Text</label>
                 <textarea
+                  id="template-copy-text"
                   value={formData.customText}
                   onChange={(e) => setFormData({ ...formData, customText: e.target.value })}
                   rows={3}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="template-manager-form-input"
                 />
                 <p className="mt-1 text-xs text-slate-500">
                   Use <code className="rounded bg-slate-800 px-1.5 py-0.5">{`{link}`}</code> as a placeholder for the landing page URL.
                 </p>
               </div>
 
-              <div>
-                <label className="mb-1.5 block text-xs font-medium text-slate-300">HTML Content *</label>
+              <div className="template-manager-html-field">
+                <label htmlFor="template-html-content" className="template-manager-form-label">HTML Content *</label>
                 <textarea
+                  id="template-html-content"
                   value={formData.htmlContent}
                   onChange={(e) => setFormData({ ...formData, htmlContent: e.target.value })}
                   rows={10}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2.5 font-mono text-xs text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="template-manager-form-input is-code"
                 />
                 <p className="mt-2 text-xs text-slate-500">
                   Use <code className="rounded bg-slate-800 px-1.5 py-0.5">{'{link.url}'}</code> where the tracking URL should appear, e.g. in <code className="rounded bg-slate-800 px-1.5 py-0.5">&lt;a href=&quot;{'{link.url}'}&quot;&gt;</code>.
                 </p>
               </div>
 
-              <div className="flex flex-col-reverse gap-3 sm:flex-row">
+              <div className="template-manager-form-actions">
                 <button
                   type="button"
                   onClick={cancelEdit}
-                  className="rounded-lg border border-slate-700 bg-slate-800 px-5 py-2.5 text-sm font-medium text-slate-300 hover:bg-slate-700 transition-colors"
+                  className="template-manager-secondary"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-60 transition-colors"
+                  className="template-manager-primary"
                 >
                   {loading ? 'Saving…' : editingId ? 'Update' : 'Create'}
                 </button>
@@ -486,42 +494,48 @@ export default function TemplateManager() {
 
         {/* Templates Grid */}
         {templates.length === 0 ? (
-          <div className="rounded-xl border border-slate-800 bg-slate-900/40 py-12 text-center">
-            <p className="text-sm font-medium text-slate-400">No templates yet</p>
-            <p className="mt-1 text-xs text-slate-500">Create your first template to get started</p>
+          <div className="template-manager-empty">
+            <ImageIcon className="h-7 w-7" />
+            <p className="template-manager-empty-title">No templates yet</p>
+            <p>Create your first template to get started.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="template-manager-grid">
             {templates.map((template) => (
               <div
                 key={template.id}
-                className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 transition hover:border-slate-700"
+                className="template-manager-card"
               >
                 {template.thumbnail && (
-                  <div className="mb-3 flex max-h-96 w-full items-center justify-center overflow-hidden rounded-lg border border-slate-800 bg-slate-950/70 p-2">
+                  <div className="template-manager-thumbnail">
                     <img
                       src={template.thumbnail}
                       alt={template.name}
-                      className="h-auto max-h-96 w-full object-contain"
+                      className="template-manager-thumbnail-image"
                     />
                   </div>
                 )}
-                <h3 className="text-base font-semibold text-white">{template.name}</h3>
+                <div className="template-manager-card-heading">
+                  <h3 className="template-manager-card-title">{template.name}</h3>
+                  <span className={`template-manager-status ${template.isActive ? 'is-active' : 'is-inactive'}`}>
+                    {template.isActive ? 'Active' : 'Inactive'}
+                  </span>
+                </div>
                 {template.description && (
-                  <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-6 text-slate-400">{template.description}</p>
+                  <p className="template-manager-card-description">{template.description}</p>
                 )}
-                <p className="mt-2 text-xs text-slate-500">
-                  HTML: {template.htmlContent.length} chars
+                <p className="template-manager-card-meta">
+                  {template.htmlContent.length.toLocaleString()} HTML characters
                 </p>
                 {template.customText && (
-                  <p className="mt-1 truncate text-xs italic text-slate-400">
+                  <p className="template-manager-card-copy" title={template.customText}>
                     Copy text: {template.customText}
                   </p>
                 )}
-                <div className="mt-3 flex gap-2">
+                <div className="template-manager-card-actions">
                   <button
                     onClick={() => editTemplate(template)}
-                    className="flex flex-1 items-center justify-center gap-1.5 rounded-md bg-slate-800 px-3 py-2 text-xs font-medium text-slate-300 hover:bg-slate-700 transition-colors"
+                    className="template-manager-secondary"
                   >
                     <Edit2 className="h-3.5 w-3.5" />
                     Edit
@@ -529,7 +543,7 @@ export default function TemplateManager() {
                   <button
                     onClick={() => deleteTemplate(template.id)}
                     disabled={loading}
-                    className="flex flex-1 items-center justify-center gap-1.5 rounded-md bg-red-500/10 px-3 py-2 text-xs font-medium text-red-400 hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-60 transition-colors"
+                    className="template-manager-delete"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                     Delete

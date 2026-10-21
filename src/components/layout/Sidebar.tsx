@@ -13,9 +13,6 @@ import {
   Link2,
   Settings,
   LogOut,
-  Menu,
-  ChevronLeft,
-  ChevronRight,
   BarChart3,
   ShieldCheck,
   Layers,
@@ -35,12 +32,16 @@ import { getDashboardBasePath, getDashboardPath } from '@/lib/auth/dashboard-pat
 type SupportMessage = { id: string; body: string; sender: { role: string } }
 type SupportConversation = { id: string; messages: SupportMessage[] }
 
-export default function Sidebar() {
+interface SidebarProps {
+  collapsed: boolean
+  mobileOpen: boolean
+  onMobileOpenChange: (open: boolean) => void
+}
+
+export default function Sidebar({ collapsed, mobileOpen, onMobileOpenChange }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
-  const [collapsed, setCollapsed] = useState(false)
   const [isMobile, setIsMobile] = useState<boolean | null>(null)
-  const [mobileOpen, setMobileOpen] = useState(false)
   const [isDark, setIsDark] = useState(false)
   const [userRole, setUserRole] = useState<string | null>(null)
   const [supportOpen, setSupportOpen] = useState(false)
@@ -54,20 +55,20 @@ export default function Sidebar() {
   const latestOwnerMessageIdRef = useRef<string | null>(null)
   const supportInitializedRef = useRef(false)
   const supportTranscriptRef = useRef<HTMLDivElement>(null)
+  const isDarkRef = useRef(isDark)
 
   useEffect(() => {
     supportOpenRef.current = supportOpen
   }, [supportOpen])
 
   useEffect(() => {
+    isDarkRef.current = isDark
+  }, [isDark])
+
+  useEffect(() => {
     const checkMobile = () => {
       const mobile = window.innerWidth < 1024
       setIsMobile(mobile)
-      if (mobile) {
-        setCollapsed(true)
-      } else {
-        setCollapsed(false)
-      }
     }
     checkMobile()
     window.addEventListener('resize', checkMobile)
@@ -75,8 +76,8 @@ export default function Sidebar() {
   }, [])
 
   useEffect(() => {
-    setMobileOpen(false)
-  }, [pathname])
+    onMobileOpenChange(false)
+  }, [onMobileOpenChange, pathname])
 
   useEffect(() => {
     const readTheme = () => {
@@ -84,6 +85,7 @@ export default function Sidebar() {
       const shouldUseDark = storedTheme
         ? storedTheme === 'dark'
         : window.matchMedia('(prefers-color-scheme: dark)').matches
+      isDarkRef.current = shouldUseDark
       setIsDark(shouldUseDark)
       document.documentElement.classList.toggle('dark', shouldUseDark)
     }
@@ -235,11 +237,27 @@ export default function Sidebar() {
   }
 
   const toggleTheme = () => {
-    const nextIsDark = !isDark
+    const nextIsDark = !isDarkRef.current
+    isDarkRef.current = nextIsDark
+    const root = document.documentElement
     setIsDark(nextIsDark)
-    document.documentElement.classList.toggle('dark', nextIsDark)
-    window.localStorage.setItem('theme', nextIsDark ? 'dark' : 'light')
-    window.dispatchEvent(new Event('themechange'))
+
+    const applyTheme = () => {
+      root.classList.toggle('dark', nextIsDark)
+      window.localStorage.setItem('theme', nextIsDark ? 'dark' : 'light')
+      window.dispatchEvent(new Event('themechange'))
+    }
+
+    const transitionDocument = document as Document & {
+      startViewTransition?: (callback: () => void) => unknown
+    }
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+    if (!prefersReducedMotion && transitionDocument.startViewTransition) {
+      transitionDocument.startViewTransition(applyTheme)
+    } else {
+      applyTheme()
+    }
   }
 
   const sendSupportMessage = async (event: FormEvent) => {
@@ -261,79 +279,40 @@ export default function Sidebar() {
   }
 
   const sidebarContent = (
-    <div className="flex flex-col h-full">
-      <div className={`relative flex w-full flex-shrink-0 items-center gap-3 ${isMobile ? 'h-[4.5rem] border-b border-slate-200/80 dark:border-white/10 px-5' : 'h-10 justify-between px-2'}`}>
-          {(!collapsed || isMobile) && (
-            <div className="relative h-9 w-28 overflow-hidden">
-              <Image
-                src="/afficixo-logo.png"
-                alt="Afficixo logo"
-                fill
-                className="object-contain"
-                priority
-              />
-            </div>
-          )}
-          {!isMobile && (
-            <button
-              onClick={() => setCollapsed(!collapsed)}
-              className="relative z-10 flex h-7 w-8 shrink-0 items-center justify-center rounded-md border border-slate-300/70 bg-slate-900/[0.04] p-1 text-slate-500 transition-colors duration-200 hover:border-cyan-400/30 hover:bg-cyan-400/10 hover:text-cyan-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-400 dark:hover:text-cyan-200 lg:flex"
-              aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-              title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            >
-              {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-            </button>
-          )}
-      </div>
-
-      <nav className="relative z-10 min-h-0 flex-1 overflow-y-auto overscroll-contain space-y-2 px-2 py-2">
+    <div className="flex h-full flex-col bg-[#f3f6f5] text-[#263238] dark:bg-[#192326] dark:text-slate-100">
+      <nav className="relative z-10 min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-2.5 py-4">
         {menuGroups.map((group) => group.items.length > 0 && (
-          <div key={group.label} className="space-y-1">
+          <div key={group.label} className="space-y-1.5">
+            {(!collapsed || isMobile) && (
+              <h2 className="px-2.5 pb-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#2b7d20] dark:text-[#a2fa8e]/80">
+                {group.label}
+              </h2>
+            )}
             {group.items.map((item) => {
               const isActive = item.exact
                 ? pathname === item.href
                 : pathname === item.href || pathname?.startsWith(item.href + '/')
               const Icon = item.icon
-              const iconColor = {
-                'Manage Publishers': 'text-amber-600 dark:text-amber-300',
-                Dashboard: 'text-lime-600 dark:text-lime-300',
-                'Create Link Account': 'text-cyan-600 dark:text-cyan-300',
-                'Bulk Create': 'text-violet-600 dark:text-violet-300',
-                'All Link Account': 'text-sky-600 dark:text-sky-300',
-                'Offer Vault': 'text-orange-600 dark:text-orange-300',
-                'Custom Domains': 'text-emerald-600 dark:text-emerald-300',
-                Analytics: 'text-blue-600 dark:text-blue-300',
-                'S2S Postbacks': 'text-pink-600 dark:text-pink-300',
-                'Landing Builder': 'text-indigo-600 dark:text-indigo-300',
-                'URL Shortener': 'text-teal-600 dark:text-teal-300',
-                Templates: 'text-fuchsia-600 dark:text-fuchsia-300',
-                Payments: 'text-yellow-600 dark:text-yellow-300',
-                Settings: 'text-slate-600 dark:text-slate-300',
-                'Support Inbox': 'text-rose-600 dark:text-rose-300',
-              }[item.label] || 'text-slate-600 dark:text-slate-300'
               return (
                 <Link
                   key={item.href}
                   href={item.href}
+                  title={collapsed && !isMobile ? item.label : undefined}
                   prefetch={item.href.includes('/dashboard') || item.href.includes('/postbacks')}
                   onClick={() => {
-                    if (isMobile) setMobileOpen(false)
+                    if (isMobile) onMobileOpenChange(false)
                   }}
                   aria-current={isActive ? 'page' : undefined}
-                  className={`group flex min-h-9 w-full items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-2.5'} ${isMobile ? 'min-h-10 rounded-md px-2.5 py-1.5 border-0' : 'rounded-md px-2 py-1.5 border'} transition-colors duration-200 ${
+                  className={`group flex min-h-10 w-full items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-2.5'} rounded-lg border px-2.5 py-2 transition-all duration-200 ${
                     isActive
-                      ? isMobile
-                        ? 'border border-cyan-400/20 bg-slate-200/90 font-medium text-slate-900 shadow-sm dark:border-cyan-400/20 dark:bg-white/[0.08] dark:text-white'
-                        : 'border border-cyan-400/20 bg-slate-200/90 font-medium text-slate-900 shadow-sm dark:border-cyan-400/20 dark:bg-white/[0.08] dark:text-white'
-                      : isMobile
-                        ? 'border-0 text-slate-600 hover:bg-slate-200/80 hover:text-slate-950 dark:text-[#b7bec2] dark:hover:bg-white/[0.06] dark:hover:text-white'
-                        : 'border-transparent text-slate-600 hover:bg-slate-200/80 hover:text-slate-950 dark:text-[#b7bec2] dark:hover:bg-white/[0.06] dark:hover:text-white'
+                      ? 'border-[#4dd935]/40 bg-[#5ff442]/20 font-semibold text-[#263238] shadow-sm shadow-[#263238]/[0.04] dark:border-[#5ff442]/30 dark:bg-[#5ff442]/15 dark:text-white dark:shadow-black/20'
+                      : 'border-transparent text-[#455964] hover:border-[#4dd935]/25 hover:bg-white/90 hover:text-[#24651d] dark:text-slate-300 dark:hover:border-[#5ff442]/20 dark:hover:bg-[#5ff442]/[0.08] dark:hover:text-white'
                   }`}
                 >
-                  <Icon className={`h-5 w-5 shrink-0 transition-colors duration-200 ${isActive ? 'text-cyan-600 dark:text-cyan-300' : iconColor}`} />
-                  {(!collapsed || isMobile) && <span className={`tracking-[0.01em] ${isMobile ? 'text-sm font-medium' : 'text-xs'}`}>{item.label}</span>}
+                  <Icon className={`h-[18px] w-[18px] shrink-0 transition-colors duration-200 ${isActive ? 'text-[#24651d] dark:text-[#a2fa8e]' : 'text-slate-500 group-hover:text-[#359f25] dark:text-slate-400 dark:group-hover:text-[#a2fa8e]'}`} />
+                  {(!collapsed || isMobile) && <span className="truncate text-[13px] font-medium tracking-[0.005em]">{item.label}</span>}
                   {isActive && !collapsed && !isMobile && (
-                    <span className="ml-auto h-5 w-0.5 rounded-full bg-cyan-300" />
+                    <span className="ml-auto h-5 w-0.5 rounded-full bg-[#359f25] dark:bg-[#5ff442]" />
                   )}
                 </Link>
               )
@@ -342,25 +321,25 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      <div className={`relative z-10 flex-shrink-0 border-t ${isMobile ? 'border-slate-200/80 dark:border-white/10 space-y-1 px-2 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-2' : 'border-slate-200/80 dark:border-white/10 space-y-0.5 px-2 py-2'}`}>
+      <div className={`relative z-10 flex-shrink-0 border-t border-[#263238]/10 dark:border-white/10 ${isMobile ? 'space-y-1 px-2 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-2' : 'space-y-0.5 px-2 py-2'}`}>
         <button
           type="button"
           onClick={toggleTheme}
-          className={`group flex w-full items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-2.5'} rounded-md border border-transparent px-2 py-1.5 text-slate-600 transition-colors duration-200 hover:bg-slate-200/80 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-white/[0.06] dark:hover:text-white`}
+          className={`group flex min-h-10 w-full items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-2.5'} rounded-lg border border-transparent px-2.5 py-2 text-[#455964] transition-colors duration-200 hover:bg-white/90 hover:text-[#24651d] dark:text-slate-300 dark:hover:bg-[#5ff442]/[0.08] dark:hover:text-white`}
           aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
           title={collapsed && !isMobile ? (isDark ? 'Light theme' : 'Dark theme') : undefined}
         >
-          {isDark ? <Sun className="h-5 w-5 shrink-0 text-amber-500 dark:text-amber-300" /> : <Moon className="h-5 w-5 shrink-0 text-indigo-500 dark:text-indigo-300" />}
-          {(!collapsed || isMobile) && <span className="text-xs tracking-[0.01em]">{isDark ? 'Light theme' : 'Dark theme'}</span>}
+          {isDark ? <Sun className="h-5 w-5 shrink-0 text-[#5ff442]" /> : <Moon className="h-5 w-5 shrink-0 text-[#455964] dark:text-[#a2fa8e]" />}
+          {(!collapsed || isMobile) && <span className="text-[13px] font-medium tracking-[0.01em]">{isDark ? 'Light theme' : 'Dark theme'}</span>}
         </button>
         <button
           onClick={handleLogout}
-          className={`w-full group flex items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-2.5'} ${isMobile ? 'rounded-md px-2.5 py-1.5 min-h-10 border-0' : 'rounded-md px-2 py-1.5 border border-transparent'} transition-colors duration-200 ${isMobile ? 'text-rose-600 hover:text-rose-950 hover:bg-rose-100 font-medium dark:text-[#d6a2a2] dark:hover:text-white dark:hover:bg-white/[0.06]' : 'text-red-600/80 hover:text-red-700 hover:bg-red-500/10 hover:border-red-400/20 dark:text-red-300/80 dark:hover:text-red-200'}`}
+          className={`group flex min-h-10 w-full items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-2.5'} rounded-lg border border-transparent px-2.5 py-2 text-rose-700 transition-colors duration-200 hover:border-rose-700/15 hover:bg-rose-700/10 hover:text-rose-800 dark:text-rose-300 dark:hover:border-rose-300/20 dark:hover:bg-rose-300/10 dark:hover:text-rose-200`}
           aria-label="Logout"
           title="Logout"
         >
-          <LogOut className={`${collapsed && !isMobile ? 'w-5 h-5' : 'w-5 h-5'} transition-colors duration-200`} />
-          {(!collapsed || isMobile) && <span className={`tracking-[0.01em] ${isMobile ? 'text-sm' : 'text-xs'}`}>Logout</span>}
+          <LogOut className="h-5 w-5 transition-colors duration-200" />
+          {(!collapsed || isMobile) && <span className="text-[13px] font-medium tracking-[0.01em]">Logout</span>}
         </button>
       </div>
     </div>
@@ -382,7 +361,7 @@ export default function Sidebar() {
       aria-expanded={supportOpen}
       aria-controls="support-messenger-popup"
       title="Get Help"
-      className={`group fixed bottom-[calc(1.25rem+env(safe-area-inset-bottom))] right-4 z-[70] flex h-12 w-12 items-center justify-center rounded-full border shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl focus:outline-none focus-visible:ring-4 focus-visible:ring-cyan-400/25 sm:right-6 ${supportOpen ? 'border-cyan-300 bg-cyan-500 text-slate-950' : 'border-cyan-400/30 bg-slate-900 text-cyan-300 hover:border-cyan-300 hover:bg-slate-800'}`}
+      className={`group fixed bottom-[calc(1.25rem+env(safe-area-inset-bottom))] right-4 z-[70] flex h-12 w-12 items-center justify-center rounded-full border shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl focus:outline-none focus-visible:ring-4 focus-visible:ring-[#5ff442]/25 sm:right-6 ${supportOpen ? 'border-[#4dd935] bg-[#5ff442] text-[#263238]' : 'border-[#5ff442]/35 bg-[#263238] text-[#8aff70] hover:border-[#5ff442] hover:bg-[#1a2429]'}`}
     >
       {supportOpen ? <X className="h-5 w-5" /> : <MessageCircle className="h-5 w-5" />}
       {supportUnread && <span className="absolute right-0 top-0 h-3 w-3 rounded-full border-2 border-slate-900 bg-rose-400 dark:border-slate-950" aria-label="New unread message" />}
@@ -417,18 +396,9 @@ export default function Sidebar() {
       <>
         {supportPopup}
         {supportShortcut}
-        <button
-          onClick={() => setMobileOpen(!mobileOpen)}
-          type="button"
-          className="edge-toggle fixed right-0 top-0 z-[60] flex h-10 w-10 items-center justify-center rounded-none !border-0 bg-transparent p-0 text-slate-700 !shadow-none outline-none backdrop-blur-none dark:bg-transparent dark:text-slate-100 lg:hidden"
-          aria-label={mobileOpen ? 'Close sidebar' : 'Open sidebar'}
-          title={mobileOpen ? 'Close sidebar' : 'Open sidebar'}
-        >
-          {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
-
         <aside
-          className={`panel-bleed fixed inset-x-0 top-0 z-[50] flex h-[100dvh] max-h-[100dvh] w-full flex-col overflow-hidden rounded-b-2xl border-0 border-b border-white/10 bg-[var(--surface-bg)] shadow-2xl transition-[transform,opacity,box-shadow] duration-300 ease-out lg:hidden ${
+          id="dashboard-mobile-sidebar"
+          className={`panel-bleed fixed inset-x-0 top-14 z-[50] flex h-[calc(100dvh-3.5rem)] max-h-[calc(100dvh-3.5rem)] w-full flex-col overflow-hidden border-0 border-b border-[#263238]/10 bg-[#f3f6f5] shadow-2xl transition-[transform,opacity,box-shadow] duration-300 ease-out dark:border-white/10 dark:bg-[#192326] lg:hidden ${
             mobileOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-90'
           }`}
         >
@@ -443,7 +413,7 @@ export default function Sidebar() {
       {supportPopup}
       {supportShortcut}
       <aside
-        className={`panel-bleed sticky top-0 z-[50] hidden h-[100dvh] shrink-0 flex-col ${collapsed ? 'w-16' : 'w-52'} overflow-hidden rounded-none border-0 bg-[var(--surface-bg)] ring-0 transition-[width,box-shadow] duration-300 ease-out lg:flex`}
+        className={`panel-bleed sticky top-14 z-[50] hidden h-[calc(100dvh-3.5rem)] shrink-0 flex-col ${collapsed ? 'w-16' : 'w-52'} overflow-hidden rounded-none border-0 border-r border-[#263238]/10 bg-[#f3f6f5] shadow-[8px_0_28px_rgba(38,50,56,0.05)] ring-0 transition-[width,box-shadow] duration-300 ease-out dark:border-white/10 dark:bg-[#192326] dark:shadow-[8px_0_28px_rgba(0,0,0,0.24)] lg:flex`}
       >
         {sidebarContent}
       </aside>

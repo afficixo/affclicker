@@ -1,151 +1,176 @@
-"use client"
+"use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { motion } from "framer-motion";
-import { useState } from "react";
-import { Menu, X, ArrowRight } from "lucide-react";
+import { Menu, X } from "lucide-react";
 
 const navLinks = [
-  { href: "/about", label: "About" },
-  { href: "/publishers", label: "Publishers" },
-  { href: "/faq", label: "FAQ" },
+  { href: "#home", label: "Home" },
+  { href: "#about", label: "About Us" },
+  { href: "#publishers", label: "Publishers" },
+  { href: "#advertisers", label: "Advertisers" },
+  { href: "#contact", label: "Contact" },
 ];
 
-export default function PublicLayout({ children }: { children: React.ReactNode }) {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+export default function PublicLayout({
+  children,
+  className = "",
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  const pathname = usePathname();
+  const [open, setOpen] = useState(false);
+  const isHomePage = pathname === "/";
+  const [active, setActive] = useState<string | null>(isHomePage ? "#home" : null);
+
+  useEffect(() => {
+    if (!isHomePage) {
+      setActive(null);
+      return;
+    }
+
+    setActive("#home");
+    const sections = navLinks
+      .map((l) => document.getElementById(l.href.slice(1)))
+      .filter((el): el is HTMLElement => !!el);
+    if (!sections.length) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const top = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (top) setActive(`#${top.target.id}`);
+      },
+      { rootMargin: "-45% 0px -45% 0px", threshold: [0, 0.25, 0.5, 1] }
+    );
+    sections.forEach((s) => observer.observe(s));
+    return () => observer.disconnect();
+  }, [isHomePage]);
+
+  const go = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (!href.startsWith("#")) return;
+    e.preventDefault();
+    const el = document.querySelector(href);
+    if (!el) return;
+    const y = (el as HTMLElement).getBoundingClientRect().top + window.scrollY - 72;
+    window.scrollTo({ top: y, behavior: "smooth" });
+    history.replaceState(null, "", href);
+    setOpen(false);
+  };
 
   return (
-    <div className="public-site relative min-h-screen w-full bg-[#071014] text-white overflow-x-hidden">
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(35,197,154,0.14),transparent_38%),linear-gradient(180deg,#0b1b20_0%,#071014_55%,#061015_100%)]" />
-        <div className="absolute inset-0 opacity-[0.09] [background-image:linear-gradient(rgba(166,243,213,1)_1px,transparent_1px),linear-gradient(90deg,rgba(166,243,213,1)_1px,transparent_1px)] [background-size:72px_72px] [mask-image:linear-gradient(to_bottom,black,transparent_72%)]" />
-      </div>
-
-      <div className="relative z-10">
-        <motion.header
-          initial={{ y: -100 }}
-          animate={{ y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="fixed top-0 left-0 right-0 z-40 border-b border-emerald-100/10 bg-[#071014]/90 backdrop-blur-md"
-        >
+    <div className={`public-site relative min-h-screen w-full overflow-x-hidden ${className}`}>
+      <div className="relative z-10 flex min-h-screen flex-col">
+        <header className="fixed inset-x-0 top-0 z-40 border-b border-white/[0.06] bg-[#272b2d] shadow-[0_2px_8px_rgba(0,0,0,0.18)]">
           <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 md:h-20">
-            <Link href="/" prefetch={false} className="flex items-center shrink-0" onClick={() => setMobileMenuOpen(false)}>
-              <div className="relative h-12 w-32 overflow-hidden rounded-lg md:h-14 md:w-40">
-                <Image
-                  src="/afficixo-logo.png"
-                  alt="Afficixo logo"
-                  fill
-                  sizes="(max-width: 768px) 48px, 56px"
-                  className="h-full w-full object-contain"
-                  priority
-                />
-              </div>
-            </Link>
+            <a
+              href={isHomePage ? "#home" : "/#home"}
+              onClick={isHomePage ? (e) => go(e, "#home") : undefined}
+              className="flex shrink-0 items-center"
+            >
+              <Image
+                src="/afficixo-logo.png"
+                alt="Afficixo"
+                width={2172}
+                height={724}
+                sizes="108px"
+                className="h-9 w-[108px] object-contain"
+                priority
+              />
+            </a>
 
-            <div className="public-header-nav hidden items-center gap-8 text-xs font-bold uppercase tracking-[0.18em] text-slate-400 md:flex">
+            <div className="hidden items-center gap-8 md:flex">
               {navLinks.map((link) => (
-                <Link key={link.href} href={link.href} prefetch={false} className="transition-colors hover:text-emerald-300">
+                <a
+                  key={link.href}
+                  href={isHomePage ? link.href : `/${link.href}`}
+                  onClick={isHomePage ? (e) => go(e, link.href) : undefined}
+                  aria-current={active === link.href ? "location" : undefined}
+                  className={`text-sm font-medium transition-colors ${
+                    isHomePage && active === link.href ? "text-[#5ff442]" : "text-white/80 hover:text-white"
+                  }`}
+                >
                   {link.label}
-                </Link>
+                </a>
               ))}
             </div>
 
-            <div className="flex items-center gap-2 sm:gap-4">
-              <Link href="/signup" prefetch={false} className="public-header-login hidden text-xs font-semibold uppercase tracking-[0.15em] text-slate-400 transition-colors hover:text-white sm:block">
-                Join Now
+            <div className="flex items-center gap-2">
+              <Link
+                href="/signup"
+                prefetch={false}
+                className="hidden sm:inline-flex items-center rounded-md bg-[#5ff442] px-4 py-2 text-sm font-bold text-[#263238] transition-colors hover:bg-[#4dd935]"
+              >
+                Sign up
               </Link>
               <Link
                 href="/login"
                 prefetch={false}
-                className="inline-flex items-center gap-2 rounded-md bg-emerald-300 px-3 py-2 text-xs font-bold uppercase tracking-[0.12em] text-[#071014] shadow-[0_0_24px_rgba(110,231,183,0.22)] transition-all duration-300 hover:bg-emerald-200 hover:-translate-y-0.5 md:px-4 md:text-sm"
+                aria-current={pathname === "/login" ? "page" : undefined}
+                className="hidden sm:inline-flex items-center rounded-md bg-white px-4 py-2 text-sm font-semibold text-[#263238] transition-colors hover:bg-[#f0f4f7]"
               >
                 Login
-                <ArrowRight className="h-4 w-4" />
               </Link>
               <button
                 type="button"
-                onClick={() => setMobileMenuOpen((prev) => !prev)}
-                className="public-header-menu rounded-md p-2 text-slate-300 transition-colors hover:text-white md:hidden"
+                onClick={() => setOpen((v) => !v)}
+                className="grid h-9 w-9 place-items-center rounded-md text-white md:hidden"
                 aria-label="Toggle menu"
+                aria-expanded={open}
               >
-                {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </button>
             </div>
           </nav>
 
-          {mobileMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.25 }}
-              className="border-t border-white/10 bg-[#071014]/95 md:hidden"
-            >
-              <div className="space-y-3 px-4 py-4">
-                {navLinks.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    prefetch={false}
-                    className="block py-1 text-sm text-slate-300 transition-colors hover:text-white"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    {link.label}
+          <AnimatePresence>
+            {open && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.22 }}
+                className="overflow-hidden border-t border-white/[0.08] bg-[#263238] md:hidden"
+              >
+                <div className="space-y-1 px-4 py-4">
+                  {navLinks.map((link) => (
+                    <a
+                      key={link.href}
+                      href={isHomePage ? link.href : `/${link.href}`}
+                      onClick={isHomePage ? (e) => go(e, link.href) : undefined}
+                      aria-current={isHomePage && active === link.href ? "location" : undefined}
+                      className={`block rounded-md px-3 py-2 text-sm transition-colors hover:bg-white/5 hover:text-white ${
+                        isHomePage && active === link.href ? "text-[#5ff442]" : "text-white/80"
+                      }`}
+                    >
+                      {link.label}
+                    </a>
+                  ))}
+                  <Link href="/signup" prefetch={false} onClick={() => setOpen(false)} className="mt-2 flex items-center justify-center rounded-md bg-[#5ff442] px-4 py-2.5 text-sm font-bold text-[#263238]">
+                    Sign up
                   </Link>
-                ))}
-                <Link
-                  href="/login"
-                  prefetch={false}
-                  className="block py-1 text-sm text-slate-300 transition-colors hover:text-white"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Login
-                </Link>
-                <Link
-                  href="/signup"
-                  prefetch={false}
-                  className="block py-1 text-sm text-slate-300 transition-colors hover:text-white"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Sign Up
-                </Link>
-              </div>
-            </motion.div>
-          )}
-        </motion.header>
+                  <Link href="/login" prefetch={false} onClick={() => setOpen(false)} aria-current={pathname === "/login" ? "page" : undefined} className="flex items-center justify-center rounded-md bg-white px-4 py-2.5 text-sm font-semibold text-[#263238]">
+                    Login
+                  </Link>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </header>
 
         {children}
 
-        <footer className="relative z-10 mt-8 border-t border-white/10 bg-white/[0.02] backdrop-blur py-8">
-          <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-5 px-4 sm:px-6 lg:flex-row lg:px-8">
-            <div className="flex items-center gap-3">
-              <div className="relative h-10 w-10 overflow-hidden rounded-lg">
-                <Image
-                  src="/afficixo-logo.png"
-                  alt="Afficixo logo"
-                  fill
-                  sizes="40px"
-                  className="h-full w-full object-contain"
-                  priority
-                />
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center justify-center gap-3 text-xs text-slate-400 md:gap-6 md:text-sm">
-              <Link href="/about" prefetch={false} className="transition-colors hover:text-white">About</Link>
-              <Link href="/publishers" prefetch={false} className="transition-colors hover:text-white">Publishers</Link>
-              <Link href="/faq" prefetch={false} className="transition-colors hover:text-white">FAQ</Link>
-              <Link href="/privacy-policy" prefetch={false} className="transition-colors hover:text-white">Privacy Policy</Link>
-              <Link href="/terms-of-service" prefetch={false} className="transition-colors hover:text-white">Terms of Service</Link>
-              <Link href="/contact" prefetch={false} className="transition-colors hover:text-white">Contact</Link>
-            </div>
-
-            <div className="flex items-center gap-3 text-slate-400 md:gap-4">
-              <a href="https://x.com" target="_blank" rel="noreferrer" aria-label="X" className="transition-all hover:-translate-y-0.5 hover:text-white">X</a>
-              <a href="https://www.linkedin.com" target="_blank" rel="noreferrer" aria-label="LinkedIn" className="transition-all hover:-translate-y-0.5 hover:text-white">in</a>
-              <a href="https://github.com" target="_blank" rel="noreferrer" aria-label="GitHub" className="transition-all hover:-translate-y-0.5 hover:text-white">GitHub</a>
-              <a href="https://t.me" target="_blank" rel="noreferrer" aria-label="Telegram" className="transition-all hover:-translate-y-0.5 hover:text-white">Telegram</a>
+        <footer className="mt-auto bg-[#e6ebed] py-6">
+          <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 sm:px-6 lg:flex-row lg:px-8">
+            <p className="text-sm text-[#455964]">© 2019 - 2026 Afficixo LLC - All rights reserved</p>
+            <div className="flex items-center gap-6 text-sm">
+              <Link href="/privacy-policy" prefetch={false} className="text-[#455964] hover:text-[#263238]">Privacy Policy</Link>
+              <Link href="/terms-of-service" prefetch={false} className="text-[#455964] hover:text-[#263238]">Terms &amp; Conditions</Link>
             </div>
           </div>
         </footer>

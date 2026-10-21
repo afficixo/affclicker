@@ -2,7 +2,6 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import AfficixoLoading from "@/components/ui/AfficixoLoading";
 import {
   User,
   Key,
@@ -273,7 +272,7 @@ export default function SettingsPage() {
   };
 
   if (loading) {
-    return <AfficixoLoading compact />;
+    return null;
   }
 
   return (

@@ -1,7 +1,7 @@
 'use client'
 
 import { FormEvent, useEffect, useState } from 'react'
-import { Check, Copy, Dices, Link2, Plus, Trash2 } from 'lucide-react'
+import { Check, Copy, Dices, ExternalLink, Link2, Plus, Search, Trash2 } from 'lucide-react'
 
 type ShortUrl = {
   id: string
@@ -121,6 +121,8 @@ export default function UrlShortenerPage() {
   })
   const userOptions = [...new Set(shortUrls.map((shortUrl) => shortUrl.userId).filter(Boolean))]
   const allVisibleSelected = filteredShortUrls.length > 0 && filteredShortUrls.every((shortUrl) => selectedIds.includes(shortUrl.id))
+  const totalClicks = shortUrls.reduce((total, shortUrl) => total + shortUrl.totalClicks, 0)
+  const shortUrlHost = new URL(shortUrlBase).host
 
   const toggleAllVisible = () => {
     setSelectedIds((current) => allVisibleSelected
@@ -139,46 +141,111 @@ export default function UrlShortenerPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[var(--page-bg)] px-4 py-6 text-[var(--text-primary)] sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-5xl">
-        <div className="mb-8 flex items-start gap-3">
-          <div className="rounded-lg bg-cyan-500/15 p-2 text-cyan-500"><Link2 className="h-5 w-5" /></div>
-          <div>
-            <h1 className="text-2xl font-bold">URL Shortener</h1>
-          </div>
-        </div>
-
-        {message && <div role="status" aria-live="polite" className="mb-4 flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-700"><Check className="h-4 w-4" />{message}</div>}
-        {error && <div role="alert" aria-live="assertive" className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-700">{error}</div>}
-
-        <form onSubmit={createShortUrl} className="mb-8 grid gap-4 rounded-xl border border-slate-200 bg-white/70 p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/50 md:grid-cols-[0.8fr_1.5fr_auto] md:items-end">
-          <label className="block text-sm font-medium">Short name
-            <div className="mt-2 flex items-center rounded-lg border border-slate-300 bg-white px-3 py-2 dark:border-slate-700 dark:bg-slate-950">
-              <input required value={subdomain} onChange={(event) => setSubdomain(event.target.value)} pattern="[a-zA-Z0-9]+([a-zA-Z0-9-]*[a-zA-Z0-9])?" minLength={3} maxLength={63} className="min-w-0 flex-1 bg-transparent text-sm outline-none" />
-              <button type="button" onClick={generateShortCode} title="Generate six-character code" aria-label="Generate six-character code" className="ml-2 rounded-md p-1 text-slate-500 transition-colors hover:bg-cyan-500/10 hover:text-cyan-600"><Dices className="h-4 w-4" /></button>
-              <span className="text-xs text-slate-500">.weebly.pro</span>
+    <main className="url-shortener-page w-full px-1 py-2 sm:px-2">
+      <div className="w-full space-y-6 pb-8 md:space-y-7">
+        <header className="url-shortener-header">
+          <div className="flex items-start gap-3">
+            <span className="url-shortener-icon"><Link2 className="h-5 w-5" /></span>
+            <div>
+              <p className="url-shortener-kicker">Link management</p>
+              <h1 className="url-shortener-title">URL Shortener</h1>
+              <p className="url-shortener-muted mt-1">Create branded short links and manage your destinations.</p>
             </div>
-          </label>
-          <label className="block text-sm font-medium">Destination URL
-            <input required type="url" value={trackingUrl} onChange={(event) => setTrackingUrl(event.target.value)} className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-cyan-500 dark:border-slate-700 dark:bg-slate-950" />
-          </label>
-          <button disabled={saving} className="inline-flex items-center justify-center gap-2 rounded-lg bg-cyan-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-cyan-500 disabled:opacity-50"><Plus className="h-4 w-4" />{saving ? 'Creating...' : 'Create short URL'}</button>
-        </form>
+          </div>
+        </header>
 
-        <section>
-          <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Short URLs</h2>
-            <div className="flex flex-wrap gap-2">
-              <input value={filterText} onChange={(event) => setFilterText(event.target.value)} placeholder="Filter short URLs" aria-label="Filter short URLs" className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-cyan-500 dark:border-slate-700 dark:bg-slate-950" />
-              {isOwnerRoute && <select value={userFilter} onChange={(event) => setUserFilter(event.target.value)} aria-label="Filter by user" className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-cyan-500 dark:border-slate-700 dark:bg-slate-950">
+        {message && <div role="status" aria-live="polite" className="url-shortener-alert is-success"><Check className="h-4 w-4 shrink-0" />{message}</div>}
+        {error && <div role="alert" aria-live="assertive" className="url-shortener-alert is-error">{error}</div>}
+
+        <section className="url-shortener-create">
+          <div className="url-shortener-section-heading">
+            <div>
+              <h2 className="url-shortener-section-title">Create a short URL</h2>
+              <p className="url-shortener-muted mt-1 text-sm">Choose a memorable name and the destination it should open.</p>
+            </div>
+          </div>
+          <form onSubmit={createShortUrl} className="url-shortener-form">
+            <label className="url-shortener-label">
+              Short name
+              <span className="url-shortener-field">
+                <input required value={subdomain} onChange={(event) => setSubdomain(event.target.value)} pattern="[a-zA-Z0-9]+([a-zA-Z0-9-]*[a-zA-Z0-9])?" minLength={3} maxLength={63} aria-describedby="short-url-host" className="min-w-0 flex-1 bg-transparent text-sm outline-none" />
+                <button type="button" onClick={generateShortCode} title="Generate six-character code" aria-label="Generate six-character code" className="url-shortener-generate"><Dices className="h-4 w-4" /></button>
+                <span id="short-url-host" className="url-shortener-host">.{shortUrlHost}</span>
+              </span>
+              <span className="url-shortener-hint">3–63 characters; letters, numbers, and hyphens.</span>
+            </label>
+            <label className="url-shortener-label">
+              Destination URL
+              <input required type="url" value={trackingUrl} onChange={(event) => setTrackingUrl(event.target.value)} placeholder="https://example.com/page" className="url-shortener-input" />
+              <span className="url-shortener-hint">Visitors will be redirected to this address.</span>
+            </label>
+            <button type="submit" disabled={saving} className="url-shortener-primary"><Plus className="h-4 w-4" />{saving ? 'Creating...' : 'Create short URL'}</button>
+          </form>
+          {subdomain && (
+            <p className="url-shortener-preview">
+              <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+              Preview: <span>{getShortUrl(subdomain)}</span>
+            </p>
+          )}
+        </section>
+
+        <section className="url-shortener-list">
+          <div className="url-shortener-list-heading">
+            <div>
+              <h2 className="url-shortener-section-title">Your short URLs</h2>
+              <p className="url-shortener-muted mt-1 text-sm">{shortUrls.length} links · {totalClicks.toLocaleString()} total clicks</p>
+            </div>
+            <div className="url-shortener-controls">
+              <label className="url-shortener-search">
+                <Search className="h-4 w-4 shrink-0" />
+                <input value={filterText} onChange={(event) => setFilterText(event.target.value)} placeholder="Filter short URLs" aria-label="Filter short URLs" />
+              </label>
+              {isOwnerRoute && <select value={userFilter} onChange={(event) => setUserFilter(event.target.value)} aria-label="Filter by user" className="url-shortener-select">
                 <option value="all">All users</option>
                 {userOptions.map((userId) => <option key={userId} value={userId}>{userId}</option>)}
               </select>}
-              <button type="button" onClick={toggleAllVisible} disabled={filteredShortUrls.length === 0} className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-medium disabled:opacity-50 dark:border-slate-700">{allVisibleSelected ? 'Clear visible' : 'Select visible'}</button>
-              {selectedIds.length > 0 && <button type="button" onClick={copySelected} className="inline-flex items-center gap-1 rounded-lg border border-cyan-500/30 px-3 py-2 text-xs font-medium text-cyan-700 dark:text-cyan-300"><Copy className="h-3.5 w-3.5" />Copy selected ({selectedIds.length})</button>}
+              <button type="button" onClick={toggleAllVisible} disabled={filteredShortUrls.length === 0} className="url-shortener-secondary">{allVisibleSelected ? 'Clear visible' : 'Select visible'}</button>
+              {selectedIds.length > 0 && <button type="button" onClick={copySelected} className="url-shortener-secondary is-copy"><Copy className="h-3.5 w-3.5" />Copy selected ({selectedIds.length})</button>}
             </div>
           </div>
-          {loading ? <p className="text-sm text-slate-500">Loading...</p> : shortUrls.length === 0 ? <div className="rounded-xl border border-dashed border-slate-300 py-12 text-center text-sm text-slate-500 dark:border-slate-700">No short URLs yet.</div> : filteredShortUrls.length === 0 ? <div className="rounded-xl border border-dashed border-slate-300 py-12 text-center text-sm text-slate-500 dark:border-slate-700">No short URLs match this filter.</div> : <div className="space-y-3">{filteredShortUrls.map((shortUrl) => <article key={shortUrl.id} className="grid gap-3 rounded-xl border border-slate-200 bg-white/70 p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900/50 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"><div className="flex min-w-0 items-start gap-3"><input type="checkbox" checked={selectedIds.includes(shortUrl.id)} onChange={() => setSelectedIds((current) => current.includes(shortUrl.id) ? current.filter((id) => id !== shortUrl.id) : [...current, shortUrl.id])} aria-label={`Select ${shortUrl.subdomain}`} className="mt-1 h-4 w-4 accent-cyan-600" /><div className="min-w-0"><a href={getShortUrl(shortUrl.subdomain)} target="_blank" rel="noreferrer" className="font-mono text-sm font-semibold text-cyan-700 hover:underline dark:text-cyan-300">{getShortUrl(shortUrl.subdomain).replace(/^https?:\/\//, '')}</a><p className="mt-1 truncate text-xs text-slate-500">{shortUrl.trackingUrl}</p><p className="mt-1 text-xs text-slate-400">{shortUrl.totalClicks} clicks</p></div></div><div className="flex gap-2"><button onClick={() => copyUrl(shortUrl)} className="inline-flex items-center gap-1 rounded-md border border-slate-300 px-3 py-2 text-xs font-medium dark:border-slate-700"><Copy className="h-3.5 w-3.5" />Copy</button><button onClick={() => setConfirmDeleteId(shortUrl.id)} className="rounded-md border border-red-300 p-2 text-red-600 dark:border-red-900/50"><Trash2 className="h-3.5 w-3.5" /></button></div>{confirmDeleteId === shortUrl.id && <div className="flex w-full flex-wrap items-center justify-between gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 sm:col-span-2 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-300"><span>Delete this short URL? This cannot be undone.</span><div className="flex gap-2"><button type="button" onClick={() => setConfirmDeleteId(null)} className="rounded-md border border-slate-300 px-2 py-1 text-slate-600 dark:border-slate-700 dark:text-slate-300">Cancel</button><button type="button" onClick={() => deleteUrl(shortUrl.id)} className="rounded-md bg-red-600 px-2 py-1 font-medium text-white hover:bg-red-500">Delete</button></div></div>}</article>)}</div>}
+          {loading ? (
+            <div className="url-shortener-empty">Loading short URLs…</div>
+          ) : shortUrls.length === 0 ? (
+            <div className="url-shortener-empty"><Link2 className="mx-auto mb-3 h-7 w-7" /><strong>No short URLs yet</strong><span>Create your first short URL above to get started.</span></div>
+          ) : filteredShortUrls.length === 0 ? (
+            <div className="url-shortener-empty"><Search className="mx-auto mb-3 h-7 w-7" /><strong>No matching links</strong><span>Try a different search or user filter.</span></div>
+          ) : (
+            <div className="url-shortener-cards">
+              {filteredShortUrls.map((shortUrl) => (
+                <article key={shortUrl.id} className={`url-shortener-card ${selectedIds.includes(shortUrl.id) ? 'is-selected' : ''}`}>
+                  <div className="flex min-w-0 items-start gap-3">
+                    <input type="checkbox" checked={selectedIds.includes(shortUrl.id)} onChange={() => setSelectedIds((current) => current.includes(shortUrl.id) ? current.filter((id) => id !== shortUrl.id) : [...current, shortUrl.id])} aria-label={`Select ${shortUrl.subdomain}`} className="url-shortener-checkbox" />
+                    <div className="min-w-0 flex-1">
+                      <a href={getShortUrl(shortUrl.subdomain)} target="_blank" rel="noreferrer" className="url-shortener-link">{getShortUrl(shortUrl.subdomain).replace(/^https?:\/\//, '')}<ExternalLink className="h-3.5 w-3.5 shrink-0" /></a>
+                      <p className="url-shortener-destination" title={shortUrl.trackingUrl}>{shortUrl.trackingUrl}</p>
+                      <div className="url-shortener-meta">
+                        <span>{shortUrl.totalClicks.toLocaleString()} {shortUrl.totalClicks === 1 ? 'click' : 'clicks'}</span>
+                        <span>Created {new Date(shortUrl.createdAt).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="url-shortener-actions">
+                    <button type="button" onClick={() => copyUrl(shortUrl)} className="url-shortener-secondary"><Copy className="h-3.5 w-3.5" />Copy</button>
+                    <button type="button" onClick={() => setConfirmDeleteId(shortUrl.id)} aria-label={`Delete ${shortUrl.subdomain}`} className="url-shortener-delete"><Trash2 className="h-4 w-4" /></button>
+                  </div>
+                  {confirmDeleteId === shortUrl.id && (
+                    <div className="url-shortener-confirm">
+                      <span>Delete this short URL? This cannot be undone.</span>
+                      <div className="flex gap-2">
+                        <button type="button" onClick={() => setConfirmDeleteId(null)} className="url-shortener-secondary">Cancel</button>
+                        <button type="button" onClick={() => deleteUrl(shortUrl.id)} className="url-shortener-delete-confirm">Delete</button>
+                      </div>
+                    </div>
+                  )}
+                </article>
+              ))}
+            </div>
+          )}
         </section>
       </div>
     </main>

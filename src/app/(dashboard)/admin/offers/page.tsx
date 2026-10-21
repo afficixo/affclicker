@@ -203,7 +203,6 @@ export default function OffersPage() {
   const [botFallbackStatus, setBotFallbackStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [botFallbackMessage, setBotFallbackMessage] = useState('');
   const [showBotFallbackSettings, setShowBotFallbackSettings] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
@@ -261,16 +260,11 @@ export default function OffersPage() {
       setOffers(coerceArray<Offer>(data));
     } catch (error) {
       console.error("Failed to fetch offers:", error);
-    } finally {
-      setLoading(false);
     }
   }, [router]);
 
   useEffect(() => {
-    void (async () => {
-      await Promise.all([fetchUser(), fetchOffers()])
-      setLoading(false)
-    })()
+    void Promise.all([fetchUser(), fetchOffers()])
   }, [fetchUser, fetchOffers]);
 
   useEffect(() => {
@@ -649,64 +643,6 @@ export default function OffersPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex h-64 items-center justify-center text-center">
-        <div className="flex flex-col items-center justify-center gap-8">
-          <motion.div
-            animate={{ scale: [1, 1.05, 1] }}
-            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-            className="relative"
-          >
-            <Image
-              src="/afficixo-logo.png"
-              alt="Afficixo logo"
-              width={200}
-              height={200}
-              sizes="(max-width: 768px) 200px, 240px"
-              className="mx-auto object-cover"
-              priority
-            />
-            <motion.div
-              className="absolute inset-0 rounded-lg bg-gradient-to-r from-indigo-500/30 via-violet-500/20 to-transparent blur-xl"
-              animate={{ opacity: [0.3, 0.6, 0.3] }}
-              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-            />
-          </motion.div>
-          
-          <div className="flex flex-col items-center gap-3">
-            <div className="relative h-1.5 w-32 overflow-hidden rounded-full bg-white/5 border border-white/10">
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-transparent via-indigo-400 to-transparent opacity-0"
-                animate={{ x: ["-100%", "100%"], opacity: [0, 1, 0] }}
-                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-              />
-              <motion.div
-                className="h-full w-1/3 rounded-full bg-gradient-to-r from-indigo-500 via-violet-500 to-cyan-500"
-                animate={{ 
-                  x: ["-100%", "300%"],
-                  width: ["25%", "50%", "25%"]
-                }}
-                transition={{ 
-                  duration: 2.5, 
-                  repeat: Infinity, 
-                  ease: [0.43, 0.13, 0.23, 0.96]
-                }}
-              />
-            </div>
-            <motion.p
-              className="text-xs text-slate-400"
-              animate={{ opacity: [0.5, 1, 0.5] }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            >
-              Loading...
-            </motion.p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   if (userRole === 'MANAGER') {
     return (
       <div className="min-h-[320px] rounded-3xl border border-white/10 bg-white/5 p-8 text-center">
@@ -727,7 +663,7 @@ export default function OffersPage() {
   }
 
   return (
-    <div className="space-y-6 pb-8 md:space-y-8">
+    <div className="offer-vault-page space-y-6 pb-8 md:space-y-8">
       {/* ===== CONFIRMATION MODAL ===== */}
       <AnimatePresence>
         {confirmDialog && (
@@ -1164,38 +1100,50 @@ export default function OffersPage() {
         animate="visible"
         className="space-y-5"
       >
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col gap-5 rounded-2xl border border-[var(--surface-border)] bg-[var(--surface-card)] p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-6">
+          <div className="flex items-start gap-3">
+            <span className="offer-vault-icon flex h-11 w-11 shrink-0 items-center justify-center rounded-xl">
+              <Layers className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="offer-vault-accent mb-1 text-xs font-semibold uppercase tracking-[0.16em]">Campaign operations</p>
+              <h1 className="offer-vault-title text-2xl font-bold tracking-tight sm:text-3xl">Offer vault</h1>
+              <p className="offer-vault-muted mt-1 text-sm">Manage routing pools, geo-targeted offers, and fallback behavior.</p>
+            </div>
+          </div>
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => {
                 setIsQuickGroupOpen((prev) => !prev);
                 setQuickGroupName("");
               }}
-              className="inline-flex min-h-8 items-center gap-1 rounded-md border border-indigo-400/30 bg-indigo-500/10 px-2.5 py-1 text-xs font-medium text-indigo-300 transition hover:bg-indigo-500/20"
+              className="offer-vault-secondary-button inline-flex min-h-10 items-center gap-2 rounded-lg border px-3.5 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50"
             >
-              <Plus className="h-3.5 w-3.5" />
+              <Plus className="h-4 w-4" />
               Add Group
             </button>
             <button
               onClick={() => openOfferForm()}
-              className="inline-flex min-h-8 items-center gap-1 rounded-md bg-indigo-500 px-2.5 py-1 text-xs font-medium text-white transition hover:bg-indigo-600"
+              className="offer-vault-primary-button inline-flex min-h-10 items-center gap-2 rounded-lg px-3.5 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 focus-visible:ring-offset-2"
             >
-              <Plus className="h-3.5 w-3.5" />
+              <Plus className="h-4 w-4" />
               Add Offer
             </button>
             <button
               type="button"
               onClick={() => setShowBotFallbackSettings((prev) => !prev)}
-              className="inline-flex min-h-8 items-center gap-1 rounded-md border border-indigo-400/30 bg-indigo-500/10 px-2.5 py-1 text-xs font-medium text-indigo-300 transition hover:bg-indigo-500/20"
+              aria-expanded={showBotFallbackSettings}
+              className="offer-vault-secondary-button inline-flex min-h-10 items-center gap-2 rounded-lg border px-3.5 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50"
             >
-              <span>Blocked Url</span>
-              <span className={['text-[10px] transition-transform duration-200', showBotFallbackSettings && 'rotate-180'].join(' ')}>▾</span>
+              <ShieldCheck className="h-4 w-4" />
+              <span>Fallback URL</span>
+              <ChevronDown className={["h-4 w-4 transition-transform duration-200", showBotFallbackSettings && "rotate-180"].filter(Boolean).join(" ")} />
             </button>
           </div>
         </div>
 
         {showBotFallbackSettings && (
-          <div className="rounded-lg border border-white/10 bg-slate-950/30 p-3">
+          <div className="offer-vault-panel rounded-xl border p-4 sm:p-5">
             <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center">
               <input
                 type="url"
@@ -1208,26 +1156,26 @@ export default function OffersPage() {
                   }
                 }}
                 placeholder="https://example.com/fallback"
-                className="h-11 w-full rounded-lg border border-white/10 bg-slate-950/60 px-3 text-sm text-white placeholder:text-slate-500 transition-colors duration-200 focus:border-indigo-400/70 focus:outline-none focus:ring-3 focus:ring-indigo-500/10"
+                className="offer-vault-input h-11 w-full rounded-lg border px-3 text-sm transition-colors duration-200 focus:border-cyan-500/70 focus:outline-none focus:ring-2 focus:ring-cyan-500/10"
               />
               <button
                 type="button"
                 onClick={() => void handleBotFallbackSave()}
                 disabled={botFallbackStatus === 'saving'}
-                className="inline-flex min-h-8 shrink-0 items-center justify-center rounded-md bg-indigo-500 px-2.5 py-1 text-xs font-medium text-white transition hover:bg-indigo-600 disabled:cursor-not-allowed disabled:opacity-70"
+                className="offer-vault-primary-button inline-flex min-h-10 shrink-0 items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {botFallbackStatus === 'saving' ? 'Saving...' : 'Save URL'}
               </button>
             </div>
 
-            <p className="mt-2 text-xs leading-5 text-slate-400">
+            <p className="offer-vault-muted mt-2 text-sm leading-6">
               This URL is used when bot or suspicious traffic is detected. Instead of sending visitors to a broken or blocked page, they are redirected here.
             </p>
 
             {botFallbackMessage && (
               <p
                 className={[
-                  'mt-2 text-xs',
+                  'mt-2 text-sm',
                   botFallbackStatus === 'saved' && 'text-emerald-300',
                   botFallbackStatus === 'error' && 'text-rose-300',
                   botFallbackStatus === 'saving' && 'text-amber-300',
@@ -1249,19 +1197,19 @@ export default function OffersPage() {
               transition={{ duration: 0.25 }}
               className="overflow-hidden"
             >
-              <div className="rounded-lg border border-indigo-500/20 bg-indigo-500/5 p-3 backdrop-blur-sm">
+              <div className="offer-vault-panel rounded-xl border p-4">
                 <div className="flex flex-col sm:flex-row gap-3">
                   <input
                     type="text"
                     value={quickGroupName}
                     onChange={(e) => setQuickGroupName(e.target.value)}
                     placeholder="Enter a new group name"
-                    className="flex-1 rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white caret-indigo-600 placeholder-slate-500 focus:border-indigo-400/50 focus:outline-none focus:ring-1 focus:ring-indigo-400/30 transition min-h-[44px] dark:caret-indigo-300"
+                    className="offer-vault-input min-h-[44px] flex-1 rounded-lg border px-4 py-3 text-sm transition focus:border-cyan-500/50 focus:outline-none focus:ring-2 focus:ring-cyan-500/10"
                   />
                   <div className="flex gap-2">
                     <button
                       onClick={createQuickGroup}
-                      className="px-4 py-2 rounded-lg bg-indigo-500 text-sm font-medium text-white hover:bg-indigo-600 transition min-h-[44px]"
+                      className="offer-vault-primary-button min-h-[44px] rounded-lg px-4 py-2 text-sm font-semibold transition"
                     >
                       Save Group
                     </button>
@@ -1270,7 +1218,7 @@ export default function OffersPage() {
                         setIsQuickGroupOpen(false);
                         setQuickGroupName("");
                       }}
-                      className="px-4 py-2 rounded-lg border border-white/10 text-sm font-medium text-slate-300 hover:bg-white/5 transition min-h-[44px]"
+                      className="offer-vault-secondary-button min-h-[44px] rounded-lg border px-4 py-2 text-sm font-semibold transition"
                     >
                       Cancel
                     </button>
@@ -1282,70 +1230,67 @@ export default function OffersPage() {
         </AnimatePresence>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
           {[
             { 
               label: "Active", 
               value: activeOffers, 
               icon: Zap, 
-              color: "border-white/10 bg-white/5"
+              color: "offer-vault-stat"
             },
             { 
               label: "Pools", 
               value: geoPoolCount, 
               icon: Layers, 
-              color: "border-white/10 bg-white/5"
+              color: "offer-vault-stat"
             },
             { 
               label: "Global", 
               value: globalOffers, 
               icon: Globe, 
-              color: "border-white/10 bg-white/5"
+              color: "offer-vault-stat"
             },
             { 
               label: "Score", 
               value: `${vaultScore}%`, 
               icon: TrendingUp, 
-              color: "border-white/10 bg-white/5"
+              color: "offer-vault-stat"
             },
           ].map((stat) => (
             <div
               key={stat.label}
-              className={`rounded-lg border ${stat.color} p-3 md:p-4 backdrop-blur-sm`}
+              className={`rounded-xl border ${stat.color} p-4 shadow-sm`}
             >
               <div className="flex items-center justify-between">
-                <p className="text-[10px] md:text-xs font-medium text-slate-400">{stat.label}</p>
-                <stat.icon className="w-4 h-4 text-white/50" />
+                <p className="offer-vault-muted text-xs font-medium">{stat.label}</p>
+                <stat.icon className="offer-vault-accent h-4 w-4" />
               </div>
-              <p className="text-lg md:text-xl font-bold text-white mt-1">{stat.value}</p>
+              <p className="offer-vault-title mt-1 text-xl font-bold tabular-nums md:text-2xl">{stat.value}</p>
             </div>
           ))}
         </div>
       </motion.div>
 
       {/* ===== SEARCH & FILTER BAR ===== */}
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div className="offer-vault-toolbar flex flex-col gap-3 rounded-xl border p-3 sm:flex-row sm:items-center">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <Search className="offer-vault-muted absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
           <input
             ref={searchInputRef}
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search offers by country, group, or URL…"
-            className="w-full rounded-lg border border-white/10 bg-white/5 pl-10 pr-4 py-2.5 text-sm text-white placeholder-slate-500 focus:border-indigo-400/50 focus:outline-none focus:ring-1 focus:ring-indigo-400/30 transition min-h-[44px]"
+            className="offer-vault-input min-h-[44px] w-full rounded-lg border pl-10 pr-4 py-2.5 text-sm transition focus:border-cyan-500/50 focus:outline-none focus:ring-2 focus:ring-cyan-500/10"
           />
         </div>
         <button
           onClick={() => setFilterActiveOnly((prev) => !prev)}
-          className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition min-h-[44px] ${
-            filterActiveOnly
-              ? "border-emerald-400/50 bg-emerald-500/10 text-emerald-300"
-              : "border-white/10 bg-white/5 text-slate-300 hover:bg-white/10"
-          }`}
+          aria-pressed={filterActiveOnly}
+          className={`offer-vault-filter inline-flex min-h-[44px] items-center gap-2 rounded-lg border px-4 py-2 text-sm font-semibold transition ${filterActiveOnly ? "is-active" : ""}`}
         >
           <Filter className="w-4 h-4" />
-          Active only
+          {filterActiveOnly ? "Showing active" : "Active only"}
         </button>
       </div>
 
@@ -1356,7 +1301,10 @@ export default function OffersPage() {
           {/* Groups */}
           {groupSummaries.length > 0 && (
             <div className="space-y-3">
-              <h3 className="text-xs font-medium text-slate-400 uppercase tracking-wider">Routing Pools</h3>
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="offer-vault-section-title text-sm font-semibold">Routing pools</h3>
+                <span className="offer-vault-muted text-xs">{groupSummaries.length} {groupSummaries.length === 1 ? "pool" : "pools"}</span>
+              </div>
               {groupSummaries.map((group) => (
                 <motion.div
                   key={group.groupName}
@@ -1365,16 +1313,16 @@ export default function OffersPage() {
                   animate="visible"
                   exit="exit"
                   layout
-                  className="rounded-lg border border-white/5 bg-white/3 p-3 md:p-4 hover:border-white/15 transition"
+                  className="offer-vault-pool rounded-xl border p-4 transition-colors md:p-5"
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div className="min-w-0">
                       <div className="flex items-center gap-2.5">
-                        <div className="p-1.5 rounded-lg bg-indigo-500/10 flex-shrink-0">
-                          <MapPinned className="w-4 h-4 text-indigo-300" />
+                        <div className="offer-vault-icon flex-shrink-0 rounded-lg p-2">
+                          <MapPinned className="h-4 w-4" />
                         </div>
-                        <span className="text-sm md:text-base font-medium text-white truncate">{group.groupName}</span>
-                        <span className="text-xs text-slate-400 flex-shrink-0">
+                        <span className="offer-vault-title truncate text-sm font-semibold md:text-base">{group.groupName}</span>
+                        <span className="offer-vault-muted flex-shrink-0 text-xs">
                           {group.groupOffers.length} offers
                         </span>
                       </div>
@@ -1382,33 +1330,33 @@ export default function OffersPage() {
                         {group.poolCountries.slice(0, 5).map((c) => (
                           <span
                             key={c}
-                            className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-slate-300 border border-white/5"
+                            className="offer-vault-tag rounded-full border px-2.5 py-1 text-xs font-medium"
                           >
                             {c}
                           </span>
                         ))}
                         {group.poolCountries.length > 5 && (
-                          <span className="text-[10px] text-slate-500">+{group.poolCountries.length - 5}</span>
+                          <span className="offer-vault-muted self-center text-xs">+{group.poolCountries.length - 5}</span>
                         )}
                       </div>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <button
                         onClick={() => openOfferForm(group.groupName)}
-                        className="text-xs px-3 py-2 rounded-lg border border-indigo-400/30 text-indigo-300 hover:bg-indigo-500/10 transition min-h-[40px]"
+                        className="offer-vault-secondary-button min-h-[40px] rounded-lg border px-3 py-2 text-sm font-semibold transition"
                       >
                         Add
                       </button>
                       <button
                         onClick={() => renameGroup(group.groupName)}
-                        className="text-xs px-3 py-2 rounded-lg border border-white/10 text-slate-400 hover:bg-white/5 transition min-h-[40px]"
+                        className="offer-vault-secondary-button min-h-[40px] rounded-lg border px-3 py-2 text-sm font-semibold transition"
                         aria-label="Edit group"
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => deleteGroup(group.groupName)}
-                        className="text-xs px-3 py-2 rounded-lg border border-rose-400/30 text-rose-300 hover:bg-rose-500/10 transition min-h-[40px]"
+                        className="offer-vault-danger-button min-h-[40px] rounded-lg border px-3 py-2 text-sm font-semibold transition"
                         aria-label="Remove group"
                       >
                         Remove
@@ -1423,7 +1371,10 @@ export default function OffersPage() {
           {/* Offers */}
           {filteredOffers.length > 0 ? (
             <div className="space-y-3">
-              <h3 className="text-xs font-medium text-slate-400 uppercase tracking-wider">Offers</h3>
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="offer-vault-section-title text-sm font-semibold">Offers</h3>
+                <span className="offer-vault-muted text-xs">{filteredOffers.length} {filteredOffers.length === 1 ? "offer" : "offers"}</span>
+              </div>
               {groupedOffers.map(([groupKey, groupOffers]) => {
                 const filteredGroupOffers = groupOffers.filter((offer) =>
                   filteredOffers.some((fo) => fo.id === offer.id)
@@ -1439,18 +1390,18 @@ export default function OffersPage() {
                         animate="visible"
                         exit="exit"
                         layout
-                        className={`group rounded-lg border p-3 md:p-4 transition-all duration-200 ${
-                          offer.isActive 
-                            ? "border-emerald-500/20 bg-emerald-500/5 hover:border-emerald-500/40" 
-                            : "border-white/5 bg-white/3 hover:border-white/15"
+                        className={`offer-vault-offer group rounded-xl border p-4 transition-all duration-200 ${
+                          offer.isActive
+                            ? "is-active"
+                            : ""
                         }`}
                       >
                         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                           <div className="min-w-0 flex-1">
                             <div className="flex flex-wrap items-center gap-2">
-                              <span className="inline-flex items-center gap-1.5 text-sm font-medium text-white">
+                              <span className="offer-vault-title inline-flex items-center gap-1.5 text-sm font-semibold">
                                 {offer.isGlobal ? (
-                                  <Globe2 className="h-4 w-4 text-slate-400" />
+                                  <Globe2 className="offer-vault-muted h-4 w-4" />
                                 ) : (
                                   <Image
                                     src={getFlagImageUrl(offer.country)}
@@ -1463,38 +1414,38 @@ export default function OffersPage() {
                                 {offer.isGlobal ? "🌍 Global" : offer.country}
                               </span>
                               {offer.groupName && (
-                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
+                                <span className="offer-vault-group-tag rounded-full border px-2.5 py-1 text-xs font-medium">
                                   {offer.groupName}
                                 </span>
                               )}
-                              <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-slate-400 border border-white/5">
+                              <span className="offer-vault-tag rounded-full border px-2.5 py-1 text-xs font-medium">
                                 P{offer.priority ?? 100}
                               </span>
-                              <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-slate-400 border border-white/5">
-                                {offer.rotationMode === "RANDOM" ? "🎲" : "🎯"}
+                              <span className="offer-vault-tag rounded-full border px-2.5 py-1 text-xs font-medium">
+                                {offer.rotationMode === "RANDOM" ? "Random" : "Priority"}
                               </span>
                               {offer.isContentLocker && (
-                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-fuchsia-500/10 text-fuchsia-300 border border-fuchsia-500/20">
-                                  🧲 Content Locker
+                                <span className="offer-vault-group-tag rounded-full border px-2.5 py-1 text-xs font-medium">
+                                  Content Locker
                                 </span>
                               )}
                               {offer.usaSecretRedirectEnabled && (
-                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">
-                                  🔒
+                                <span className="offer-vault-tag rounded-full border px-2.5 py-1 text-xs font-medium">
+                                  Proxy protection
                                 </span>
                               )}
                               <span
                                 className={`inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full border ${
                                   offer.isActive
-                                    ? "bg-emerald-500/10 text-emerald-300 border-emerald-500/20"
-                                    : "bg-rose-500/10 text-rose-300 border-rose-500/20"
+                                    ? "offer-vault-status is-on"
+                                    : "offer-vault-status is-off"
                                 }`}
                               >
                                 {offer.isActive ? <Power className="w-3 h-3" /> : <PowerOff className="w-3 h-3" />}
                                 {offer.isActive ? "On" : "Off"}
                               </span>
                             </div>
-                            <p className="mt-1.5 text-xs text-slate-500 break-all font-mono truncate max-w-full">
+                            <p className="offer-vault-url mt-2 max-w-full truncate rounded-lg border px-3 py-2 font-mono text-xs">
                               {offer.offerUrl}
                             </p>
                           </div>
@@ -1503,22 +1454,22 @@ export default function OffersPage() {
                               onClick={() => handleToggle(offer.id, offer.isActive)}
                               className={`text-xs px-3 py-2 rounded-lg border transition min-h-[40px] ${
                                 offer.isActive
-                                  ? "border-amber-400/30 text-amber-300 hover:bg-amber-500/10"
-                                  : "border-emerald-400/30 text-emerald-300 hover:bg-emerald-500/10"
+                                  ? "offer-vault-toggle is-on"
+                                  : "offer-vault-toggle is-off"
                               }`}
                             >
                               {offer.isActive ? "Off" : "On"}
                             </button>
                             <button
                               onClick={() => openOfferForm("", offer)}
-                              className="p-2 rounded-lg border border-white/10 text-slate-400 hover:bg-white/5 transition min-h-[40px]"
+                              className="offer-vault-secondary-button min-h-[40px] rounded-lg border p-2 transition"
                               aria-label="Edit offer"
                             >
                               <Edit className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleDelete(offer.id)}
-                              className="p-2 rounded-lg border border-rose-400/30 text-rose-300 hover:bg-rose-500/10 transition min-h-[40px]"
+                              className="offer-vault-danger-button min-h-[40px] rounded-lg border p-2 transition"
                               aria-label="Delete offer"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -1532,16 +1483,16 @@ export default function OffersPage() {
               })}
             </div>
           ) : (
-            <div className="rounded-lg border border-dashed border-white/10 bg-white/3 p-8 md:p-10 text-center">
-              <div className="flex justify-center gap-4 mb-4">
-                <Globe className="w-8 h-8 md:w-10 md:h-10 text-slate-600" />
-                <Plus className="w-8 h-8 md:w-10 md:h-10 text-slate-600" />
-                <Check className="w-8 h-8 md:w-10 md:h-10 text-slate-600" />
+            <div className="offer-vault-empty rounded-xl border border-dashed p-8 text-center md:p-10">
+              <div className="offer-vault-muted mb-4 flex justify-center gap-4">
+                <Globe className="h-8 w-8 md:h-10 md:w-10" />
+                <Plus className="h-8 w-8 md:h-10 md:w-10" />
+                <Check className="h-8 w-8 md:h-10 md:w-10" />
               </div>
-              <h3 className="text-base md:text-lg font-medium text-white">
+              <h3 className="offer-vault-title text-base font-semibold md:text-lg">
                 {searchTerm || filterActiveOnly ? "No matching offers" : "Your vault is empty"}
               </h3>
-              <p className="mt-1 text-sm text-slate-400 max-w-md mx-auto">
+              <p className="offer-vault-muted mx-auto mt-1 max-w-md text-sm">
                 {searchTerm || filterActiveOnly
                   ? "Try adjusting your search or filters."
                   : "Create a routing pool, then add offers to start building your geo-smart campaign structure."}
@@ -1549,7 +1500,7 @@ export default function OffersPage() {
               {!searchTerm && !filterActiveOnly && (
                 <button
                   onClick={() => openOfferForm()}
-                  className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-indigo-500 text-sm font-medium text-white hover:bg-indigo-600 transition min-h-[44px]"
+                  className="offer-vault-primary-button mt-4 inline-flex min-h-[44px] items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold transition-colors"
                 >
                   <Plus className="w-4 h-4" />
                   Create your first offer
@@ -1561,30 +1512,30 @@ export default function OffersPage() {
 
         {/* Right Column */}
         <div className="grid gap-3 sm:gap-4 lg:flex lg:flex-col lg:space-y-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-1">
-          <div className="rounded-lg border border-white/5 bg-white/3 p-3 sm:p-4">
-            <div className="flex items-center gap-2 text-indigo-300 mb-3 sm:mb-4">
+          <div className="offer-vault-sidebar rounded-xl border p-3 sm:p-4">
+            <div className="offer-vault-sidebar-heading mb-3 flex items-center gap-2 sm:mb-4">
               <ShieldCheck className="w-3 h-3 sm:w-4 sm:h-4" />
               <span className="text-[10px] sm:text-xs font-medium uppercase tracking-wider">Vault Health</span>
             </div>
             <div className="space-y-3 sm:space-y-3">
-              <div className="flex items-center justify-between rounded-lg border border-slate-300/30 dark:border-white/10 bg-slate-50/50 dark:bg-white/5 px-3 sm:px-3 py-2.5 sm:py-3 text-xs sm:text-sm hover:border-slate-400/50 dark:hover:border-white/20 transition">
-                <span className="text-slate-600 dark:text-slate-400 font-medium">Regional</span>
-                <span className="font-bold text-slate-900 dark:text-white text-sm">{regionalOffers}</span>
+              <div className="offer-vault-sidebar-item flex items-center justify-between rounded-lg border px-3 py-2.5 text-xs transition sm:py-3 sm:text-sm">
+                <span className="offer-vault-muted font-medium">Regional</span>
+                <span className="offer-vault-title text-sm font-bold">{regionalOffers}</span>
               </div>
-              <div className="flex items-center justify-between rounded-lg border border-slate-300/30 dark:border-white/10 bg-slate-50/50 dark:bg-white/5 px-3 sm:px-3 py-2.5 sm:py-3 text-xs sm:text-sm hover:border-slate-400/50 dark:hover:border-white/20 transition">
-                <span className="text-slate-600 dark:text-slate-400 font-medium">Fallback</span>
-                <span className="font-bold text-slate-900 dark:text-white text-sm">{globalOffers}</span>
+              <div className="offer-vault-sidebar-item flex items-center justify-between rounded-lg border px-3 py-2.5 text-xs transition sm:py-3 sm:text-sm">
+                <span className="offer-vault-muted font-medium">Fallback</span>
+                <span className="offer-vault-title text-sm font-bold">{globalOffers}</span>
               </div>
-              <div className="flex items-center justify-between rounded-lg border border-slate-300/30 dark:border-white/10 bg-slate-50/50 dark:bg-white/5 px-3 sm:px-3 py-2.5 sm:py-3 text-xs sm:text-sm hover:border-slate-400/50 dark:hover:border-white/20 transition">
-                <span className="text-slate-600 dark:text-slate-400 font-medium">Geo pools</span>
-                <span className="font-bold text-slate-900 dark:text-white text-sm">{geoPoolCount}</span>
+              <div className="offer-vault-sidebar-item flex items-center justify-between rounded-lg border px-3 py-2.5 text-xs transition sm:py-3 sm:text-sm">
+                <span className="offer-vault-muted font-medium">Geo pools</span>
+                <span className="offer-vault-title text-sm font-bold">{geoPoolCount}</span>
               </div>
-              <div className="rounded-lg border border-slate-300/30 dark:border-white/10 bg-slate-50/50 dark:bg-white/5 p-3 sm:p-3">
+              <div className="offer-vault-sidebar-item rounded-lg border p-3">
                 <div className="flex items-center justify-between text-xs sm:text-sm mb-2">
-                  <span className="text-slate-600 dark:text-slate-400 font-medium">Coverage</span>
-                  <span className="font-bold text-slate-900 dark:text-white">{vaultScore}%</span>
+                  <span className="offer-vault-muted font-medium">Coverage</span>
+                  <span className="offer-vault-title font-bold">{vaultScore}%</span>
                 </div>
-                <div className="w-full h-3 bg-slate-300 dark:bg-white/10 rounded-full overflow-hidden">
+                <div className="offer-vault-coverage-track h-3 w-full overflow-hidden rounded-full">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${vaultScore}%` }}
@@ -1600,27 +1551,27 @@ export default function OffersPage() {
             </div>
           </div>
 
-          <div className="rounded-lg border border-white/5 bg-white/3 p-3 sm:p-4">
-            <div className="flex items-center gap-2 text-slate-400 mb-3 sm:mb-4">
+          <div className="offer-vault-sidebar rounded-xl border p-3 sm:p-4">
+            <div className="offer-vault-sidebar-heading mb-3 flex items-center gap-2 sm:mb-4">
               <Layers className="w-3 h-3 sm:w-4 sm:h-4" />
               <span className="text-[10px] sm:text-xs font-medium uppercase tracking-wider">How It Works</span>
             </div>
-            <ul className="space-y-3 sm:space-y-3.5 text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+            <ul className="offer-vault-muted space-y-3 text-xs sm:space-y-3.5 sm:text-sm">
               <li className="flex items-start gap-3">
-                <span className="text-indigo-500 dark:text-indigo-400 mt-0.5 flex-shrink-0 font-bold">✓</span>
-                <span className="leading-relaxed">Create a <span className="text-slate-900 dark:text-white font-medium">routing pool</span> for offers.</span>
+                <span className="offer-vault-check mt-0.5 flex-shrink-0 font-bold">✓</span>
+                <span className="leading-relaxed">Create a <span className="offer-vault-title font-medium">routing pool</span> for offers.</span>
               </li>
               <li className="flex items-start gap-3">
-                <span className="text-indigo-500 dark:text-indigo-400 mt-0.5 flex-shrink-0 font-bold">✓</span>
-                <span className="leading-relaxed">Add offers with <span className="text-slate-900 dark:text-white font-medium">country targeting</span>.</span>
+                <span className="offer-vault-check mt-0.5 flex-shrink-0 font-bold">✓</span>
+                <span className="leading-relaxed">Add offers with <span className="offer-vault-title font-medium">country targeting</span>.</span>
               </li>
               <li className="flex items-start gap-3">
-                <span className="text-indigo-500 dark:text-indigo-400 mt-0.5 flex-shrink-0 font-bold">✓</span>
-                <span className="leading-relaxed"><span className="text-slate-900 dark:text-white font-medium">Global fallback</span> covers unmapped countries.</span>
+                <span className="offer-vault-check mt-0.5 flex-shrink-0 font-bold">✓</span>
+                <span className="leading-relaxed"><span className="offer-vault-title font-medium">Global fallback</span> covers unmapped countries.</span>
               </li>
               <li className="flex items-start gap-3">
-                <span className="text-indigo-500 dark:text-indigo-400 mt-0.5 flex-shrink-0 font-bold">✓</span>
-                <span className="leading-relaxed"><span className="text-slate-900 dark:text-white font-medium">Priority</span> or <span className="text-slate-900 dark:text-white font-medium">random</span> rotation.</span>
+                <span className="offer-vault-check mt-0.5 flex-shrink-0 font-bold">✓</span>
+                <span className="leading-relaxed"><span className="offer-vault-title font-medium">Priority</span> or <span className="offer-vault-title font-medium">random</span> rotation.</span>
               </li>
             </ul>
           </div>

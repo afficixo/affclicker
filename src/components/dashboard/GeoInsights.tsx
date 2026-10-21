@@ -91,7 +91,7 @@ export function GeoInsights({ geoData, countryBreakdown }: GeoInsightsProps) {
       >
         <div className="mb-3 flex items-center justify-between gap-2">
           <p className="text-xs uppercase tracking-[0.24em] text-white/35">Geo heat board</p>
-          <span className="text-[11px] text-white/40">Region intensity</span>
+          <span className="text-xs text-white/60">Region intensity</span>
         </div>
         <div className="grid grid-cols-3 gap-2">
           {regionIntensity.map((region, index) => {
@@ -112,8 +112,8 @@ export function GeoInsights({ geoData, countryBreakdown }: GeoInsightsProps) {
                     transition={{ duration: 0.75, delay: 0.12 + index * 0.06, ease: 'easeOut' }}
                   />
                 </div>
-                <div className="text-[11px] font-medium text-white">{region.region}</div>
-                <div className="text-[10px] text-white/40">{formatNumber(region.value)} clicks</div>
+                <div className="text-xs font-medium text-white">{region.region}</div>
+                <div className="text-xs text-white/60">{formatNumber(region.value)} clicks</div>
               </motion.div>
             )
           })}
@@ -146,10 +146,10 @@ export function GeoInsights({ geoData, countryBreakdown }: GeoInsightsProps) {
                     </span>
                     <div className="min-w-0">
                       <div className="truncate text-xs font-semibold text-white">{getCountryLabel(item.country)}</div>
-                      <div className="text-[10px] text-white/40">{getCountryLabel(item.country)}</div>
+                      <div className="text-xs text-white/60">{getCountryLabel(item.country)}</div>
                     </div>
                   </div>
-                  <span className="text-[11px] font-semibold text-cyan-300">{formatNumber(item.clicks)}</span>
+                  <span className="text-xs font-semibold text-cyan-300">{formatNumber(item.clicks)}</span>
                 </div>
                 <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/5">
                   <motion.div
@@ -159,7 +159,7 @@ export function GeoInsights({ geoData, countryBreakdown }: GeoInsightsProps) {
                     transition={{ duration: 0.8, delay: 0.15 + index * 0.08, ease: 'easeOut' }}
                   />
                 </div>
-                <p className="mt-2 text-[11px] text-white/40">{formatNumber(item.uniqueClicks)} unique</p>
+                <p className="mt-2 text-xs text-white/60">{formatNumber(item.uniqueClicks)} unique</p>
               </div>
             </motion.div>
           )
@@ -192,7 +192,7 @@ export function GeoInsights({ geoData, countryBreakdown }: GeoInsightsProps) {
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-semibold text-cyan-300">{formatNumber(item.clicks)}</p>
-                  <p className="text-[11px] text-white/35">clicks</p>
+                  <p className="text-xs text-white/60">clicks</p>
                 </div>
               </div>
 

@@ -2,7 +2,6 @@
 
 import Image from 'next/image'
 import { useState, useEffect, useCallback } from 'react'
-import AfficixoLoading from '@/components/ui/AfficixoLoading'
 import {
   DEFAULT_LANDING_PAGE_DOMAIN_SETTINGS,
   formatLandingPageUrl,
@@ -21,6 +20,9 @@ import {
   ChevronLeft,
   ChevronRight,
   AlertTriangle,
+  Search,
+  CalendarDays,
+  Users,
 } from 'lucide-react'
 
 interface Template {
@@ -378,26 +380,22 @@ export default function LandingPageBuilder() {
     }
   }
 
-  if (loading && currentStep === 'list') {
-    return <AfficixoLoading compact />
-  }
-
   return (
-    <div className="min-h-screen bg-[var(--page-bg)] px-4 py-6 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl">
+    <div className="w-full px-1 py-2 text-[var(--text-primary)] sm:px-2">
+      <div className="w-full">
         {/* Alerts */}
         {error && (
-          <div className="mb-4 flex items-center justify-between rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+          <div role="alert" className="mb-4 flex items-center justify-between rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-200">
             <span>{error}</span>
-            <button onClick={() => setError('')} className="text-red-400 hover:text-red-300">
+            <button onClick={() => setError('')} aria-label="Dismiss error" className="text-red-500 hover:text-red-700 dark:text-red-300 dark:hover:text-red-200">
               <X className="h-4 w-4" />
             </button>
           </div>
         )}
         {success && (
-          <div className="fixed bottom-4 left-1/2 z-50 flex w-[calc(100%-2rem)] max-w-3xl -translate-x-1/2 items-start justify-between gap-3 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200 shadow-lg shadow-emerald-950/20 backdrop-blur-sm">
+          <div role="status" className="fixed bottom-4 left-1/2 z-50 flex w-[calc(100%-2rem)] max-w-3xl -translate-x-1/2 items-start justify-between gap-3 rounded-xl border border-emerald-500/25 bg-white/95 px-4 py-3 text-sm text-emerald-800 shadow-xl shadow-slate-950/10 backdrop-blur-sm dark:bg-[#0b1b38]/95 dark:text-emerald-200">
             <span className="min-w-0 break-words">{success}</span>
-            <button onClick={() => setSuccess('')} className="text-emerald-400 hover:text-emerald-300">
+            <button onClick={() => setSuccess('')} aria-label="Dismiss notification" className="text-emerald-600 hover:text-emerald-800 dark:text-emerald-300 dark:hover:text-emerald-200">
               <X className="h-4 w-4" />
             </button>
           </div>
@@ -406,46 +404,65 @@ export default function LandingPageBuilder() {
         {currentStep === 'list' ? (
           <>
             {/* List View Header */}
-            <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-3">
-                <Image
-                  src="/afficixo-logo.png"
-                  alt="Afficixo"
-                  width={120}
-                  height={40}
-                  className="h-auto w-[120px] object-contain sm:w-[140px]"
-                />
-                <div>
-                  <h1 className="text-2xl font-bold text-white">Landing Pages</h1>
-                  <p className="text-sm text-slate-400">
-                    {userRole === 'OWNER' ? 'Review landing pages created by each manager' : 'Create and manage your landing pages'}
-                  </p>
+            <div className="relative mb-6 overflow-hidden rounded-2xl border border-[var(--surface-border)] bg-[var(--surface-card)] px-5 py-5 shadow-sm sm:px-7 sm:py-6">
+              <div aria-hidden="true" className="pointer-events-none absolute -right-10 -top-20 h-56 w-56 rounded-full bg-cyan-400/10 blur-3xl" />
+              <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-cyan-500/20 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300">
+                    <Globe className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-cyan-700 dark:text-cyan-300">Campaign workspace</p>
+                    <h1 className="text-2xl font-bold tracking-tight text-[var(--text-primary)] sm:text-3xl">Landing pages</h1>
+                    <p className="mt-1 text-sm text-[var(--text-secondary)]">
+                      {userRole === 'OWNER' ? 'Review and manage pages created by your team.' : 'Create and manage pages for your campaigns.'}
+                    </p>
+                  </div>
                 </div>
+                <button
+                  onClick={() => setCurrentStep('builder')}
+                  className="inline-flex min-h-10 items-center justify-center gap-2 self-start rounded-lg bg-emerald-600 px-4 text-sm font-semibold text-white shadow-sm shadow-emerald-900/15 transition-colors hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 dark:bg-emerald-400 dark:text-[#06142d] dark:hover:bg-emerald-300 sm:self-center"
+                >
+                  <Plus className="h-4 w-4" />
+                  New Page
+                </button>
               </div>
-              <button
-                onClick={() => setCurrentStep('builder')}
-                className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-sm shadow-emerald-600/25 transition-colors hover:bg-emerald-500"
-              >
-                <Plus className="h-4 w-4" />
-                New Page
-              </button>
             </div>
 
-            <div className="mb-6 grid gap-3 rounded-xl border border-slate-700/80 bg-slate-900/40 p-4 shadow-sm sm:grid-cols-[minmax(0,1fr)_minmax(160px,1fr)_auto] lg:grid-cols-4">
-              <input
-                type="search"
-                value={searchFilter}
-                onChange={(event) => setSearchFilter(event.target.value)}
-                placeholder="Search URL, destination, creator..."
-                aria-label="Search landing pages"
-                className="h-10 min-w-0 rounded-lg border border-slate-700 bg-slate-950 px-3 text-sm font-medium text-white outline-none placeholder:font-normal placeholder:text-slate-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15"
-              />
+            <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <div className="flex items-center gap-3 rounded-xl border border-[var(--surface-border)] bg-[var(--surface-card)] p-4 shadow-sm">
+                <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-cyan-500/10 text-cyan-700 dark:text-cyan-300"><LinkIcon className="h-5 w-5" /></span>
+                <div><p className="text-xs font-medium text-[var(--text-secondary)]">Total pages</p><p className="mt-0.5 text-xl font-bold tabular-nums text-[var(--text-primary)]">{landingPages.length}</p></div>
+              </div>
+              <div className="flex items-center gap-3 rounded-xl border border-[var(--surface-border)] bg-[var(--surface-card)] p-4 shadow-sm">
+                <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"><Zap className="h-5 w-5" /></span>
+                <div><p className="text-xs font-medium text-[var(--text-secondary)]">Total views</p><p className="mt-0.5 text-xl font-bold tabular-nums text-[var(--text-primary)]">{landingPages.reduce((total, page) => total + page.totalClicks, 0).toLocaleString()}</p></div>
+              </div>
+              <div className="flex items-center gap-3 rounded-xl border border-[var(--surface-border)] bg-[var(--surface-card)] p-4 shadow-sm">
+                <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-violet-500/10 text-violet-700 dark:text-violet-300"><Globe className="h-5 w-5" /></span>
+                <div><p className="text-xs font-medium text-[var(--text-secondary)]">Available domains</p><p className="mt-0.5 text-xl font-bold tabular-nums text-[var(--text-primary)]">{landingPageDomains.length}</p></div>
+              </div>
+            </div>
+
+            <div className="mb-5 grid gap-3 rounded-xl border border-[var(--surface-border)] bg-[var(--surface-card)] p-4 shadow-sm sm:grid-cols-[minmax(0,1fr)_minmax(160px,1fr)_auto] lg:grid-cols-4">
+              <label className="relative block min-w-0">
+                <span className="sr-only">Search landing pages</span>
+                <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-muted)]" />
+                <input
+                  type="search"
+                  value={searchFilter}
+                  onChange={(event) => setSearchFilter(event.target.value)}
+                  placeholder="Search URL, destination, creator..."
+                  aria-label="Search landing pages"
+                  className="h-10 w-full min-w-0 rounded-lg border border-[var(--surface-border)] bg-[var(--surface-elevated)] pl-9 pr-3 text-sm font-medium text-[var(--text-primary)] outline-none placeholder:font-normal placeholder:text-[var(--text-muted)] focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15"
+                />
+              </label>
               {userRole === 'OWNER' && (
                 <select
                   aria-label="Filter by manager"
                   value={managerFilter}
                   onChange={(event) => setManagerFilter(event.target.value)}
-                  className="h-10 min-w-0 rounded-lg border border-slate-700 bg-slate-950 px-3 text-sm font-medium text-white outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15"
+                  className="h-10 min-w-0 rounded-lg border border-[var(--surface-border)] bg-[var(--surface-elevated)] px-3 text-sm font-medium text-[var(--text-primary)] outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15"
                 >
                   <option value="all">All managers</option>
                   {managerOptions.map((manager) => (
@@ -463,16 +480,20 @@ export default function LandingPageBuilder() {
               >
                 {allVisibleSelected ? 'Clear visible selection' : 'Select all visible'}
               </button>
-              <div className="text-xs text-slate-500 sm:col-span-3 lg:col-span-4">
-                Showing {filteredPages.length} of {landingPages.length} pages
-                {selectedPageIds.length > 0 && ` | ${selectedPageIds.length} selected`}
+              <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[var(--text-secondary)] sm:col-span-3 lg:col-span-4">
+                <span>Showing <strong className="font-semibold text-[var(--text-primary)]">{filteredPages.length}</strong> of {landingPages.length} pages</span>
+                {selectedPageIds.length > 0 && (
+                  <span className="rounded-full bg-cyan-500/10 px-2.5 py-1 font-semibold text-cyan-800 dark:text-cyan-200">
+                    {selectedPageIds.length} selected
+                  </span>
+                )}
               </div>
               {selectedPageIds.length > 0 && (
                 <div className="flex flex-wrap gap-2 sm:col-span-3 lg:col-span-4">
                   <button
                     type="button"
                     onClick={copySelectedLinks}
-                    className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm font-medium text-slate-200 transition-colors hover:bg-slate-700"
+                    className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface-elevated)] px-3 py-2 text-sm font-medium text-[var(--text-primary)] transition-colors hover:opacity-80"
                   >
                     Copy selected links
                   </button>
@@ -481,7 +502,7 @@ export default function LandingPageBuilder() {
                     onClick={requestDeleteSelectedPages}
                     disabled={!canDeleteSelected}
                     title={!canDeleteSelected ? 'You can only delete pages you own' : 'Delete selected pages'}
-                    className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm font-medium text-red-300 transition-colors hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-40 dark:text-red-300"
                   >
                     Delete selected
                   </button>
@@ -522,29 +543,59 @@ export default function LandingPageBuilder() {
             </div>
 
             {/* Landing Pages Grid */}
-            {landingPages.length === 0 || filteredPages.length === 0 ? (
-              <div className="rounded-xl border border-slate-800 bg-slate-900/40 py-12 text-center">
-                <p className="text-sm font-medium text-slate-400">
+            {loading ? (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-label="Loading landing pages">
+                {Array.from({ length: 6 }, (_, index) => (
+                  <div key={index} className="animate-pulse rounded-xl border border-[var(--surface-border)] bg-[var(--surface-card)] p-4">
+                    <div className="mb-5 h-4 w-28 rounded bg-slate-300/70 dark:bg-slate-700/70" />
+                    <div className="mb-3 h-9 rounded bg-slate-200/80 dark:bg-slate-800/80" />
+                    <div className="mb-2 h-3 w-2/3 rounded bg-slate-200/80 dark:bg-slate-800/80" />
+                    <div className="h-3 w-1/2 rounded bg-slate-200/80 dark:bg-slate-800/80" />
+                  </div>
+                ))}
+              </div>
+            ) : landingPages.length === 0 || filteredPages.length === 0 ? (
+              <div className="rounded-2xl border border-[var(--surface-border)] bg-[var(--surface-card)] px-6 py-14 text-center shadow-sm">
+                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-700 dark:text-cyan-300">
+                  <Globe className="h-6 w-6" />
+                </div>
+                <p className="text-base font-semibold text-[var(--text-primary)]">
                   {landingPages.length === 0 ? 'No landing pages yet' : 'No pages match these filters'}
                 </p>
-                <p className="mt-1 text-xs text-slate-500">
+                <p className="mt-1 text-sm text-[var(--text-secondary)]">
                   {landingPages.length === 0 ? 'Create your first landing page to get started.' : 'Try changing the search or filter options.'}
                 </p>
+                {landingPages.length === 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setCurrentStep('builder')}
+                    className="mt-5 inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-500 dark:bg-emerald-400 dark:text-[#06142d] dark:hover:bg-emerald-300"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Create landing page
+                  </button>
+                )}
               </div>
             ) : (
-              <div className="space-y-8">
+              <div className="space-y-7">
                 {Object.entries(visibleGroups).map(([groupName, pages]) => (
                   <section key={groupName}>
                     {userRole === 'OWNER' && (
-                      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-cyan-300">
-                        {groupName}
-                      </h2>
+                      <div className="mb-3 flex items-center justify-between border-b border-[var(--surface-border)] pb-2">
+                        <h2 className="flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
+                          <Users className="h-4 w-4 text-cyan-700 dark:text-cyan-300" />
+                          {groupName}
+                        </h2>
+                        <span className="rounded-full bg-[var(--surface-elevated)] px-2.5 py-1 text-xs font-medium text-[var(--text-secondary)]">
+                          {pages.length} {pages.length === 1 ? 'page' : 'pages'}
+                        </span>
+                      </div>
                     )}
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
                       {pages.map((page) => (
                         <div
                           key={page.id}
-                          className="flex h-full flex-col rounded-lg border border-slate-800 bg-slate-900/60 p-4 shadow-sm transition-shadow hover:shadow-md"
+                          className="flex h-full flex-col rounded-xl border border-[var(--surface-border)] bg-[var(--surface-card)] p-4 shadow-sm transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-cyan-500/40 hover:shadow-md motion-reduce:transform-none motion-reduce:transition-none"
                         >
                     {/* Subdomain & Copy URL */}
                     <div className="mb-3 min-w-0">
@@ -559,7 +610,11 @@ export default function LandingPageBuilder() {
                               aria-label={`Select ${page.subdomain}`}
                             />
                           </label>
-                          <p className="text-xs font-medium text-slate-500">Landing URLs</p>
+                          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">Landing URLs</p>
+                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${page.isPublished ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'bg-slate-500/10 text-slate-600 dark:text-slate-300'}`}>
+                            <span aria-hidden="true" className={`mr-1 inline-block h-1.5 w-1.5 rounded-full ${page.isPublished ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+                            {page.isPublished ? 'Published' : 'Draft'}
+                          </span>
                         </div>
                         {(page.userId === userId || userRole === 'OWNER') && (
                           <button
@@ -573,11 +628,11 @@ export default function LandingPageBuilder() {
                           </button>
                         )}
                       </div>
-                      <div className="divide-y divide-slate-800/80 border-y border-slate-800/80">
+                      <div className="divide-y divide-[var(--surface-border)] border-y border-[var(--surface-border)]">
                         {landingPageDomains.map((domain) => (
                           <div key={domain.domain} className="flex min-h-9 min-w-0 items-center justify-between gap-2 py-1">
                             <h3
-                              className="min-w-0 flex-1 truncate font-mono text-sm text-emerald-600 dark:text-emerald-400"
+                              className="min-w-0 flex-1 truncate font-mono text-sm font-medium text-emerald-700 dark:text-emerald-300"
                               title={formatLandingPageUrl(page.subdomain, domain)}
                             >
                               {formatLandingPageUrl(page.subdomain, domain)}
@@ -585,7 +640,7 @@ export default function LandingPageBuilder() {
                             <button
                               type="button"
                               onClick={() => copyLandingPageLink(page, domain.domain, domain.includeProtocol)}
-                              className="flex shrink-0 items-center justify-center gap-1 whitespace-nowrap rounded-md px-2 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/70"
+                              className="flex shrink-0 items-center justify-center gap-1 whitespace-nowrap rounded-md px-2 py-1.5 text-xs font-medium text-[var(--text-secondary)] transition-colors hover:bg-cyan-500/10 hover:text-cyan-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/70 dark:hover:text-cyan-200"
                               aria-label={`Copy URL for ${page.subdomain}.${domain.domain}`}
                               title="Copy link"
                             >
@@ -597,20 +652,40 @@ export default function LandingPageBuilder() {
                       </div>
                     </div>
 
+                    {(page.headline || page.description) && (
+                      <div className="mb-3">
+                        {page.headline && (
+                          <p className="truncate text-sm font-semibold text-[var(--text-primary)]" title={page.headline}>
+                            {page.headline}
+                          </p>
+                        )}
+                        {page.description && (
+                          <p className="mt-1 line-clamp-2 text-xs leading-5 text-[var(--text-secondary)]" title={page.description}>
+                            {page.description}
+                          </p>
+                        )}
+                      </div>
+                    )}
+
                     {/* Tracking & Views */}
-                    <div className="mb-3 flex-1 border-t border-slate-800 pt-3">
+                    <div className="mb-3 flex-1 border-t border-[var(--surface-border)] pt-3">
                       <div className="grid grid-cols-[minmax(0,1fr)_72px] gap-3">
                       <div className="min-w-0">
-                        <p className="mb-0.5 text-xs text-slate-500">Redirects to</p>
-                        <p className="truncate font-mono text-xs text-slate-300" title={page.trackingUrl}>
+                        <p className="mb-0.5 text-xs text-[var(--text-secondary)]">Redirects to</p>
+                        <p className="truncate font-mono text-xs text-[var(--text-primary)]" title={page.trackingUrl}>
                           {page.trackingUrl}
                         </p>
                       </div>
-                      <div className="border-l border-slate-800 pl-3 text-left">
-                        <p className="mb-0.5 text-xs text-slate-500">Views</p>
-                        <p className="text-sm font-semibold text-white">{page.totalClicks}</p>
+                      <div className="border-l border-[var(--surface-border)] pl-3 text-left">
+                        <p className="mb-0.5 text-xs text-[var(--text-secondary)]">Views</p>
+                        <p className="text-sm font-semibold tabular-nums text-[var(--text-primary)]">{page.totalClicks.toLocaleString()}</p>
                       </div>
                       </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 border-t border-[var(--surface-border)] pt-3 text-xs text-[var(--text-secondary)]">
+                      <CalendarDays className="h-3.5 w-3.5" />
+                      <span>Created {new Date(page.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                     </div>
 
                           {deleteConfirmation?.pageIds.length === 1 && deleteConfirmation.pageIds[0] === page.id && (
@@ -653,34 +728,34 @@ export default function LandingPageBuilder() {
         ) : (
           <>
             {/* Builder View */}
-            <div className="mb-8 flex flex-wrap items-start gap-4 border-b border-slate-800 pb-5">
+            <div className="mb-6 flex flex-wrap items-start gap-4 rounded-2xl border border-[var(--surface-border)] bg-[var(--surface-card)] p-5 shadow-sm sm:p-6">
               <button
                 onClick={() => setCurrentStep('list')}
-                className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-700 px-3 py-2 text-sm text-slate-400 transition-colors hover:border-slate-600 hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-[var(--surface-border)] bg-[var(--surface-elevated)] px-3 py-2 text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
                 aria-label="Back to landing pages"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Back
               </button>
               <div>
-                <h1 className="text-xl font-bold tracking-tight text-white sm:text-2xl">New landing page</h1>
-                <p className="mt-1 text-sm text-slate-400">Choose a URL, destination, and template for your page.</p>
+                <h1 className="text-xl font-bold tracking-tight text-[var(--text-primary)] sm:text-2xl">New landing page</h1>
+                <p className="mt-1 text-sm text-[var(--text-secondary)]">Choose a URL, destination, and template for your page.</p>
               </div>
             </div>
 
-            <div className="mx-auto max-w-3xl">
-              <form onSubmit={createLandingPage} className="flex flex-col space-y-6">
+            <div className="w-full">
+              <form onSubmit={createLandingPage} className="grid items-start gap-5 lg:grid-cols-2">
                 {/* Step 1 */}
-                <div className="order-2 rounded-xl border border-slate-800 bg-slate-900/60 p-5 sm:p-6">
+                <div className="rounded-xl border border-[var(--surface-border)] bg-[var(--surface-card)] p-5 shadow-sm sm:p-6">
                   <div className="mb-4 flex items-center justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-2">
                       <Globe className="h-4 w-4 shrink-0 text-indigo-400" />
-                      <h3 className="truncate text-lg font-semibold text-white">Basic Information</h3>
+                      <h3 className="truncate text-lg font-semibold text-[var(--text-primary)]">Basic Information</h3>
                     </div>
                     <button
                       type="submit"
                       disabled={loading || !selectedTemplate}
-                      className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-sm shadow-emerald-600/25 transition-colors hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-emerald-900/15 transition-colors hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-emerald-400 dark:text-[#06142d] dark:hover:bg-emerald-300"
                     >
                       {loading ? (
                         <>
@@ -698,14 +773,16 @@ export default function LandingPageBuilder() {
 
                   <div className="space-y-4">
                     <div>
-                      <label className="mb-1.5 block text-xs font-medium text-slate-300">Subdomain *</label>
-                      <div className="flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2.5">
+                      <label className="mb-1.5 block text-sm font-medium text-[var(--text-primary)]">Subdomain *</label>
+                      <div className="flex items-center gap-2 rounded-lg border border-[var(--surface-border)] bg-[var(--surface-elevated)] px-3 py-2.5 focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/15">
                         <input
                           type="text"
                           value={subdomain}
                           onChange={(e) => validateSubdomain(e.target.value)}
                           placeholder="your-campaign"
-                          className="w-full bg-transparent text-sm text-white placeholder-slate-500 focus:outline-none"
+                          aria-label="Subdomain"
+                          autoComplete="off"
+                          className="w-full bg-transparent text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none"
                         />
                       </div>
                       {subdomainError && (
@@ -721,8 +798,8 @@ export default function LandingPageBuilder() {
                     </div>
 
                     <div>
-                      <label className="mb-1.5 block text-xs font-medium text-slate-300">Tracking Link *</label>
-                      <div className="flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2.5">
+                      <label className="mb-1.5 block text-sm font-medium text-[var(--text-primary)]">Tracking Link *</label>
+                      <div className="flex items-center gap-2 rounded-lg border border-[var(--surface-border)] bg-[var(--surface-elevated)] px-3 py-2.5 focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/15">
                         <LinkIcon className="h-4 w-4 shrink-0 text-slate-500" />
                         <input
                           type="url"
@@ -730,7 +807,8 @@ export default function LandingPageBuilder() {
                           onChange={(e) => setTrackingUrl(e.target.value)}
                           placeholder="https://example.com/offer"
                           required
-                          className="w-full bg-transparent text-sm text-white placeholder-slate-500 focus:outline-none"
+                          aria-label="Tracking link"
+                          className="w-full bg-transparent text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none"
                         />
                       </div>
                     </div>
@@ -738,32 +816,32 @@ export default function LandingPageBuilder() {
                 </div>
 
                 {/* Step 2 */}
-                <div className="order-1 rounded-xl border border-slate-800 bg-slate-900/60 p-5 sm:p-6">
+                <div className="rounded-xl border border-[var(--surface-border)] bg-[var(--surface-card)] p-5 shadow-sm sm:p-6">
                   <div className="mb-4 flex items-center gap-2">
                     <Zap className="h-4 w-4 text-indigo-400" />
-                    <h3 className="text-lg font-semibold text-white">Choose a template</h3>
+                    <h3 className="text-lg font-semibold text-[var(--text-primary)]">Choose a template</h3>
                   </div>
 
                   {templates.length === 0 ? (
-                    <p className="py-6 text-center text-sm text-slate-400">
+                    <p className="py-6 text-center text-sm text-[var(--text-secondary)]">
                       No templates available. Contact your administrator.
                     </p>
                   ) : (
                     <div className="space-y-3">
-                      <p className="text-xs text-slate-400">
+                      <p className="text-sm text-[var(--text-secondary)]">
                         Use the arrows to browse and change the template.
                       </p>
-                      <div className="flex items-center justify-center gap-3 rounded-lg border border-slate-800 bg-slate-950/30 px-2 py-1.5">
+                      <div className="flex items-center justify-center gap-3 rounded-lg border border-[var(--surface-border)] bg-[var(--surface-elevated)] px-2 py-1.5">
                         <button
                           type="button"
                           aria-label="Previous template"
                           disabled={templates.length <= 1}
                           onClick={() => selectTemplateAt((templateIndex - 1 + templates.length) % templates.length)}
-                          className="rounded-md border border-slate-700 bg-slate-800 p-1.5 text-slate-300 transition-colors hover:border-slate-600 hover:bg-slate-700 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                          className="rounded-md border border-[var(--surface-border)] bg-[var(--surface-card)] p-1.5 text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)] disabled:cursor-not-allowed disabled:opacity-40"
                         >
                           <ChevronLeft className="h-4 w-4" />
                         </button>
-                        <span className="min-w-28 text-center text-xs font-medium text-slate-300">
+                        <span className="min-w-28 text-center text-sm font-medium text-[var(--text-primary)]">
                           Template {templateIndex + 1} of {templates.length}
                         </span>
                         <button
@@ -771,7 +849,7 @@ export default function LandingPageBuilder() {
                           aria-label="Next template"
                           disabled={templates.length <= 1}
                           onClick={() => selectTemplateAt((templateIndex + 1) % templates.length)}
-                          className="rounded-md border border-slate-700 bg-slate-800 p-1.5 text-slate-300 transition-colors hover:border-slate-600 hover:bg-slate-700 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                          className="rounded-md border border-[var(--surface-border)] bg-[var(--surface-card)] p-1.5 text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)] disabled:cursor-not-allowed disabled:opacity-40"
                         >
                           <ChevronRight className="h-4 w-4" />
                         </button>
@@ -784,7 +862,7 @@ export default function LandingPageBuilder() {
                             key={template.id}
                             type="button"
                             onClick={() => selectTemplateAt(templateIndex)}
-                            className="w-full rounded-lg border border-slate-700 bg-slate-800/80 p-3 text-left transition-colors hover:border-slate-600 hover:bg-slate-800"
+                            className="w-full rounded-lg border border-[var(--surface-border)] bg-[var(--surface-elevated)] p-3 text-left transition-colors hover:border-cyan-500/50"
                           >
                             {template.thumbnail && (
                               <Image
@@ -792,12 +870,12 @@ export default function LandingPageBuilder() {
                                 alt={template.name}
                                 width={400}
                                 height={96}
-                                className="mb-3 h-48 w-full rounded-md bg-slate-950/40 object-contain"
+                                className="mb-3 h-48 w-full rounded-md bg-slate-100 object-contain dark:bg-slate-950/40"
                               />
                             )}
                             <div className="flex items-start justify-between gap-2">
                               <div className="min-w-0">
-                                <h4 className="break-words text-sm font-medium text-white">{template.name}</h4>
+                                <h4 className="break-words text-sm font-semibold text-[var(--text-primary)]">{template.name}</h4>
                                 {template.description && (
                                   <p
                                     onPointerDown={(event) => event.stopPropagation()}

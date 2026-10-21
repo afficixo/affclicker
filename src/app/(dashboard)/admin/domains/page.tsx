@@ -17,7 +17,6 @@ import {
   X,
 } from "lucide-react";
 import { coerceArray } from "@/lib/utils/array-response";
-import AfficixoLoading from "@/components/ui/AfficixoLoading";
 
 interface DomainRecord {
   host: string;
@@ -214,7 +213,7 @@ export default function DomainsPage() {
   };
 
   if (loading) {
-    return <AfficixoLoading compact />;
+    return null;
   }
 
   const verifiedCount = domains.filter((d) => d.verified).length;

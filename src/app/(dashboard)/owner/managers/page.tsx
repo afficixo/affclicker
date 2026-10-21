@@ -13,6 +13,7 @@ import {
   Loader2,
   X,
   Inbox,
+  RefreshCw,
 } from 'lucide-react'
 
 type ManagerUser = {
@@ -46,10 +47,10 @@ type Toast = {
 }
 
 const statusStyles: Record<ManagerUser['status'], string> = {
-  PENDING: 'bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/20',
-  ACTIVE: 'bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20',
-  DISABLED: 'bg-slate-500/10 text-slate-400 ring-1 ring-slate-500/20',
-  REJECTED: 'bg-red-500/10 text-red-400 ring-1 ring-red-500/20',
+  PENDING: 'bg-amber-50 text-amber-900 ring-1 ring-amber-600/25 dark:bg-amber-400/10 dark:text-amber-200 dark:ring-amber-300/20',
+  ACTIVE: 'bg-emerald-50 text-emerald-900 ring-1 ring-emerald-600/25 dark:bg-emerald-400/10 dark:text-emerald-200 dark:ring-emerald-300/20',
+  DISABLED: 'bg-slate-100 text-slate-800 ring-1 ring-slate-500/25 dark:bg-slate-500/10 dark:text-slate-200 dark:ring-slate-400/20',
+  REJECTED: 'bg-rose-50 text-rose-900 ring-1 ring-rose-600/25 dark:bg-rose-400/10 dark:text-rose-200 dark:ring-rose-300/20',
 }
 
 const statusLabels: Record<ManagerUser['status'], string> = {
@@ -69,9 +70,9 @@ const statusFilters: Array<{ label: string; value: 'ALL' | ManagerUser['status']
 
 function InfoItem({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg bg-slate-800/50 px-3 py-2">
-      <div className="text-[10px] font-medium uppercase tracking-wider text-slate-500">{label}</div>
-      <div className="mt-1 truncate text-sm font-medium text-slate-200">{value}</div>
+    <div className="min-w-0 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 dark:border-white/10 dark:bg-[#1d282b]">
+      <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300">{label}</div>
+      <div className="mt-1 truncate text-sm font-medium text-slate-900 dark:text-slate-100" title={value}>{value}</div>
     </div>
   )
 }
@@ -90,17 +91,17 @@ function ActionButtons({
   mobile?: boolean
 }) {
   const buttonBase = mobile
-    ? 'min-h-10 rounded-lg px-3 text-xs'
-    : 'rounded-lg px-2.5 py-1.5 text-xs'
+    ? 'min-h-10 rounded-lg px-3 text-sm'
+    : 'min-h-9 rounded-lg px-2.5 py-1.5 text-xs'
 
   return (
-    <div className="ml-auto grid w-full max-w-[190px] grid-cols-2 gap-2">
+    <div className={`ml-auto grid w-full grid-cols-2 gap-2 ${mobile ? 'max-w-none' : 'max-w-[220px]'}`}>
       {manager.status !== 'ACTIVE' && (
         <button
           type="button"
           disabled={isActionLoading}
           onClick={() => updateStatus(manager.id, 'ACTIVE')}
-          className={`inline-flex min-w-0 w-full items-center justify-center gap-1.5 border border-cyan-400/25 bg-cyan-400/10 font-medium text-cyan-300 transition hover:border-cyan-300/40 hover:bg-cyan-400/15 disabled:cursor-wait disabled:opacity-60 ${buttonBase}`}
+          className={`inline-flex min-w-0 w-full items-center justify-center gap-1.5 border border-[#359f25]/35 bg-[#efffec] font-semibold text-[#24651d] transition hover:border-[#359f25]/60 hover:bg-[#d9ffd0] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#359f25] disabled:cursor-wait disabled:opacity-60 dark:border-[#5ff442]/30 dark:bg-[#5ff442]/10 dark:text-[#a2fa8e] dark:hover:border-[#8aff70]/40 dark:hover:bg-[#5ff442]/15 dark:focus-visible:ring-[#8aff70] ${buttonBase}`}
         >
           {isActionLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
           Approve
@@ -112,7 +113,7 @@ function ActionButtons({
           type="button"
           disabled={isActionLoading}
           onClick={() => updateStatus(manager.id, 'DISABLED')}
-          className={`inline-flex min-w-0 w-full items-center justify-center gap-1.5 border border-slate-600 bg-slate-800/70 font-medium text-slate-300 transition hover:border-slate-500 hover:bg-slate-700 disabled:cursor-wait disabled:opacity-60 ${buttonBase}`}
+          className={`inline-flex min-w-0 w-full items-center justify-center gap-1.5 border border-slate-300 bg-white font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 disabled:cursor-wait disabled:opacity-60 dark:border-slate-600 dark:bg-slate-800/70 dark:text-slate-100 dark:hover:border-slate-500 dark:hover:bg-slate-700 ${buttonBase}`}
         >
           {isActionLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <UserX className="h-3.5 w-3.5" />}
           Disable
@@ -124,7 +125,7 @@ function ActionButtons({
           type="button"
           disabled={isActionLoading}
           onClick={() => updateStatus(manager.id, 'PENDING')}
-          className={`inline-flex min-w-0 w-full items-center justify-center gap-1.5 border border-amber-400/25 bg-amber-400/10 font-medium text-amber-300 transition hover:border-amber-300/40 hover:bg-amber-400/15 disabled:cursor-wait disabled:opacity-60 ${buttonBase}`}
+          className={`inline-flex min-w-0 w-full items-center justify-center gap-1.5 border border-amber-700/30 bg-amber-50 font-semibold text-amber-950 transition hover:border-amber-700/50 hover:bg-amber-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 disabled:cursor-wait disabled:opacity-60 dark:border-amber-300/25 dark:bg-amber-300/10 dark:text-amber-100 dark:hover:border-amber-200/40 dark:hover:bg-amber-300/15 dark:focus-visible:ring-amber-300 ${buttonBase}`}
         >
           {isActionLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <AlertTriangle className="h-3.5 w-3.5" />}
           Pending
@@ -136,7 +137,7 @@ function ActionButtons({
           type="button"
           disabled={isActionLoading}
           onClick={() => updateStatus(manager.id, 'REJECTED')}
-          className={`inline-flex min-w-0 w-full items-center justify-center gap-1.5 border border-rose-400/25 bg-rose-400/10 font-medium text-rose-300 transition hover:border-rose-300/40 hover:bg-rose-400/15 disabled:cursor-wait disabled:opacity-60 ${buttonBase}`}
+          className={`inline-flex min-w-0 w-full items-center justify-center gap-1.5 border border-rose-700/30 bg-rose-50 font-semibold text-rose-900 transition hover:border-rose-700/50 hover:bg-rose-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-600 disabled:cursor-wait disabled:opacity-60 dark:border-rose-300/25 dark:bg-rose-300/10 dark:text-rose-100 dark:hover:border-rose-200/40 dark:hover:bg-rose-300/15 dark:focus-visible:ring-rose-300 ${buttonBase}`}
         >
           {isActionLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <AlertTriangle className="h-3.5 w-3.5" />}
           Reject
@@ -147,7 +148,7 @@ function ActionButtons({
         type="button"
         disabled={isActionLoading}
         onClick={() => openDeleteConfirm(manager)}
-        className={`inline-flex min-w-0 w-full items-center justify-center gap-1.5 border border-slate-700 bg-slate-800/40 font-medium text-slate-400 transition hover:border-rose-400/30 hover:bg-rose-400/10 hover:text-rose-300 disabled:cursor-wait disabled:opacity-60 ${buttonBase}`}
+        className={`inline-flex min-w-0 w-full items-center justify-center gap-1.5 border border-slate-300 bg-white font-semibold text-slate-700 transition hover:border-rose-500/50 hover:bg-rose-50 hover:text-rose-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 disabled:cursor-wait disabled:opacity-60 dark:border-slate-600 dark:bg-slate-800/40 dark:text-slate-200 dark:hover:border-rose-300/40 dark:hover:bg-rose-400/10 dark:hover:text-rose-200 ${buttonBase}`}
       >
         {isActionLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
         Delete
@@ -334,64 +335,80 @@ export default function OwnerManagersPage() {
       label: 'Total managers',
       value: summary.total,
       icon: ShieldCheck,
-      color: 'text-indigo-400',
-      bg: 'bg-indigo-500/10',
+      color: 'text-[#24651d] dark:text-[#a2fa8e]',
+      bg: 'bg-[#efffec] dark:bg-[#5ff442]/10',
     },
     {
       label: 'Pending review',
       value: summary.pending,
       icon: Clock3,
-      color: 'text-amber-400',
-      bg: 'bg-amber-500/10',
+      color: 'text-amber-800 dark:text-amber-200',
+      bg: 'bg-amber-50 dark:bg-amber-400/10',
     },
     {
       label: 'Active',
       value: summary.active,
       icon: CheckCircle2,
-      color: 'text-emerald-400',
-      bg: 'bg-emerald-500/10',
+      color: 'text-emerald-800 dark:text-emerald-200',
+      bg: 'bg-emerald-50 dark:bg-emerald-400/10',
     },
     {
       label: 'Inactive',
       value: summary.disabled + summary.rejected,
       icon: UserX,
-      color: 'text-slate-400',
-      bg: 'bg-slate-500/10',
+      color: 'text-slate-700 dark:text-slate-200',
+      bg: 'bg-slate-100 dark:bg-slate-400/10',
     },
   ]
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 px-4 py-6 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl space-y-6">
-          <div className="h-8 w-40 animate-pulse rounded bg-slate-800" />
+      <div className="min-h-full bg-[var(--page-bg)] px-4 py-5 text-[var(--text-primary)] sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-screen-2xl space-y-6">
+          <div className="h-9 w-56 animate-pulse rounded-lg bg-slate-200 dark:bg-slate-800" />
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-24 animate-pulse rounded-xl bg-slate-800" />
+              <div key={i} className="h-28 animate-pulse rounded-2xl bg-white shadow-sm dark:bg-[#263238]" />
             ))}
           </div>
-          <div className="h-64 animate-pulse rounded-xl bg-slate-800" />
+          <div className="h-64 animate-pulse rounded-2xl bg-white shadow-sm dark:bg-[#263238]" />
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 px-4 py-6 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl space-y-6">
-        {/* Stats */}
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+    <div className="min-h-full bg-[var(--page-bg)] px-4 py-5 text-[var(--text-primary)] sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-screen-2xl space-y-6">
+        <header className="flex flex-col gap-4 border-b border-slate-200 pb-5 dark:border-slate-700/70 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#2b7d20] dark:text-[#8aff70]">Owner workspace</p>
+            <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-950 dark:text-white sm:text-3xl">Manager accounts</h1>
+            <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-700 dark:text-slate-300">Review team accounts, check their details, and manage access status.</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => void loadManagers(true)}
+            disabled={refreshing}
+            className="inline-flex min-h-10 items-center justify-center gap-2 self-start rounded-lg border border-slate-300 bg-white px-3.5 text-sm font-semibold text-slate-800 shadow-sm transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 disabled:cursor-wait disabled:opacity-60 dark:border-slate-600 dark:bg-slate-900/70 dark:text-slate-100 dark:hover:bg-slate-800 dark:focus-visible:ring-cyan-300 sm:self-auto"
+          >
+            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+            {refreshing ? 'Refreshing…' : 'Refresh'}
+          </button>
+        </header>
+
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {statCards.map((item) => {
             const Icon = item.icon
             return (
-              <div key={item.label} className="rounded-xl bg-slate-900 p-4 ring-1 ring-slate-800">
+              <div key={item.label} className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-[#263238] sm:p-5">
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-xs font-medium text-slate-400">{item.label}</p>
-                    <p className="mt-2 text-2xl font-bold text-white">{item.value}</p>
+                    <p className="text-sm font-medium text-slate-700 dark:text-slate-300">{item.label}</p>
+                    <p className="mt-2 text-3xl font-bold tracking-tight text-slate-950 dark:text-white">{item.value}</p>
                   </div>
-                  <div className={`rounded-lg ${item.bg} p-2`}>
-                    <Icon className={`h-5 w-5 ${item.color}`} />
+                  <div className={`rounded-xl border border-slate-200/70 p-2.5 dark:border-white/10 ${item.bg}`}>
+                    <Icon className={`h-5 w-5 ${item.color}`} aria-hidden="true" />
                   </div>
                 </div>
               </div>
@@ -400,23 +417,23 @@ export default function OwnerManagersPage() {
         </div>
 
         {/* Search & Filters */}
-        <div className="rounded-xl bg-slate-900 p-4 ring-1 ring-slate-800 sm:p-5">
+        <section aria-label="Search and filter managers" className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-[#263238] sm:p-5">
           <div className="flex flex-col gap-4">
             <div className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-600 dark:text-slate-300" />
               <input
                 aria-label="Search managers by username, email, or Telegram"
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search by username, email, or Telegram..."
-                className="w-full rounded-lg border-0 bg-slate-800 py-2.5 pl-10 pr-10 text-sm text-white placeholder:text-slate-500 focus:ring-2 focus:ring-indigo-500"
+                className="w-full rounded-xl border border-slate-300 bg-slate-50 py-3 pl-10 pr-10 text-sm text-slate-950 outline-none transition placeholder:text-slate-600 focus:border-[#359f25] focus:ring-2 focus:ring-[#359f25]/15 dark:border-white/15 dark:bg-[#1d282b] dark:text-white dark:placeholder:text-slate-400 dark:focus:border-[#5ff442] dark:focus:ring-[#5ff442]/15"
               />
               {search && (
                 <button
                   type="button"
                   onClick={() => setSearch('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 text-slate-400 hover:bg-slate-700 hover:text-white"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-700 transition hover:bg-slate-200 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
                   aria-label="Clear manager search"
                   title="Clear search"
                 >
@@ -425,7 +442,7 @@ export default function OwnerManagersPage() {
               )}
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2" aria-label="Filter managers by status">
               {statusFilters.map((filter) => {
                 const count =
                   filter.value === 'ALL'
@@ -437,46 +454,48 @@ export default function OwnerManagersPage() {
                     key={filter.value}
                     type="button"
                     onClick={() => setStatusFilter(filter.value)}
-                    className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition ${
+                    aria-pressed={isActive}
+                    className={`inline-flex min-h-10 items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#359f25] dark:focus-visible:ring-[#8aff70] ${
                       isActive
-                        ? 'bg-indigo-600 text-white'
-                        : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                        ? 'border-[#359f25] bg-[#5ff442] text-[#263238] shadow-sm dark:border-[#5ff442] dark:bg-[#5ff442] dark:text-[#263238]'
+                        : 'border-slate-300 bg-white text-slate-800 hover:border-slate-400 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900/60 dark:text-slate-200 dark:hover:border-slate-500 dark:hover:bg-slate-800'
                     }`}
                   >
                     {filter.label}
-                    <span className="rounded bg-white/20 px-1.5 py-0.5 text-[10px] font-bold">{count}</span>
+                    <span className={`rounded-md px-1.5 py-0.5 text-xs font-bold tabular-nums ${isActive ? 'bg-white/20 dark:bg-slate-950/15' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200'}`}>{count}</span>
                   </button>
                 )
               })}
             </div>
 
-            <div className="flex items-center justify-between border-t border-slate-800 pt-3 text-sm">
-              <span className="text-slate-400">Showing {filteredManagers.length} of {managers.length}</span>
+            <div className="flex items-center justify-between border-t border-slate-200 pt-3 text-sm dark:border-slate-700">
+              <span className="text-slate-700 dark:text-slate-300">Showing <strong className="font-semibold text-slate-950 dark:text-white">{filteredManagers.length}</strong> of {managers.length} managers</span>
+              {search && <span className="max-w-[45%] truncate text-slate-600 dark:text-slate-400">Search: “{search}”</span>}
             </div>
           </div>
-        </div>
+        </section>
 
         {/* Desktop Table */}
-        <div className="hidden overflow-hidden rounded-xl bg-slate-900 ring-1 ring-slate-800 md:block">
-          <div className="overflow-x-auto max-h-[70vh]">
-            <table className="w-full table-fixed text-left text-sm">
-              <thead className="bg-slate-800/50 text-xs font-medium uppercase tracking-wider text-slate-400">
+        <div className="hidden overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm dark:border-white/10 dark:bg-[#263238] md:block">
+          <div className="max-h-[70vh] overflow-auto">
+            <table className="w-full min-w-[1120px] table-fixed text-left text-sm">
+              <thead className="sticky top-0 z-10 bg-slate-100 text-xs font-semibold uppercase tracking-wider text-slate-700 dark:bg-[#202b2f] dark:text-slate-200">
                 <tr>
-                  <th className="px-4 py-3">Manager</th>
-                  <th className="px-4 py-3">Email</th>
-                  <th className="px-4 py-3">Details</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="w-[190px] px-4 py-3 text-right">Actions</th>
+                  <th className="w-[19%] px-4 py-3">Manager</th>
+                  <th className="w-[20%] px-4 py-3">Email</th>
+                  <th className="w-[27%] px-4 py-3">Details</th>
+                  <th className="w-[13%] px-4 py-3">Status</th>
+                  <th className="w-[21%] px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredManagers.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-4 py-12 text-center">
+                    <td colSpan={5} className="px-4 py-14 text-center">
                       <div className="flex flex-col items-center">
-                        <Inbox className="h-8 w-8 text-slate-600" />
-                        <p className="mt-2 text-sm font-medium text-slate-300">No managers found</p>
-                        <p className="text-xs text-slate-500">
+                        <Inbox className="h-9 w-9 text-slate-500 dark:text-slate-400" />
+                        <p className="mt-3 text-sm font-semibold text-slate-950 dark:text-white">No managers found</p>
+                        <p className="mt-1 text-sm text-slate-700 dark:text-slate-300">
                           {search ? `No results for "${search}"` : 'No managers in this category'}
                         </p>
                       </div>
@@ -486,33 +505,33 @@ export default function OwnerManagersPage() {
                   filteredManagers.map((manager) => {
                     const isActionLoading = actionLoadingId === manager.id
                     return (
-                      <tr key={manager.id} className="border-t border-slate-800 hover:bg-slate-800/30">
+                      <tr key={manager.id} className="border-t border-slate-200 transition-colors hover:bg-slate-50 dark:border-white/10 dark:hover:bg-[#303d42]">
                         <td className="w-[190px] px-4 py-3 align-top">
                           <div className="flex items-center gap-3">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-500/10 text-xs font-bold text-indigo-400">
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#efffec] text-sm font-bold text-[#24651d] ring-1 ring-[#359f25]/15 dark:bg-[#5ff442]/10 dark:text-[#a2fa8e] dark:ring-[#5ff442]/10">
                               {manager.username.slice(0, 1).toUpperCase()}
                             </div>
-                            <div>
-                              <div className="font-medium text-white">{manager.username}</div>
-                              <div className="text-xs text-slate-500">{manager.fullName ?? 'No name'}</div>
+                            <div className="min-w-0">
+                              <div className="truncate font-semibold text-slate-950 dark:text-white" title={manager.username}>{manager.username}</div>
+                              <div className="truncate text-xs text-slate-700 dark:text-slate-300" title={manager.fullName ?? 'No name'}>{manager.fullName ?? 'No name'}</div>
                             </div>
                           </div>
                         </td>
                         <td className="max-w-[200px] px-4 py-3">
-                          <div className="truncate text-slate-300">{manager.email}</div>
+                          <div className="truncate text-slate-800 dark:text-slate-100" title={manager.email}>{manager.email}</div>
                         </td>
                         <td className="px-4 py-3">
-                          <div className="space-y-0.5 text-xs">
-                            <div><span className="text-slate-500">Contract:</span> <span className="text-slate-300">{manager.contractNumber ?? '-'}</span></div>
+                          <div className="space-y-1 text-xs leading-5">
+                            <div className="truncate" title={manager.contractNumber ?? '-'}><span className="font-medium text-slate-700 dark:text-slate-300">Contract:</span> <span className="text-slate-900 dark:text-slate-100">{manager.contractNumber ?? '-'}</span></div>
                             <div>
-                              <span className="text-slate-500">Telegram:</span>{' '}
-                              <span className="text-slate-300">{manager.telegramUsername ? `@${manager.telegramUsername.replace(/^@/, '')}` : '-'}</span>
+                              <span className="font-medium text-slate-700 dark:text-slate-300">Telegram:</span>{' '}
+                              <span className="text-slate-900 dark:text-slate-100">{manager.telegramUsername ? `@${manager.telegramUsername.replace(/^@/, '')}` : '-'}</span>
                             </div>
-                            <div><span className="text-slate-500">Address:</span> <span className="text-slate-300">{manager.address ?? '-'}</span></div>
+                            <div className="truncate" title={manager.address ?? '-'}><span className="font-medium text-slate-700 dark:text-slate-300">Address:</span> <span className="text-slate-900 dark:text-slate-100">{manager.address ?? '-'}</span></div>
                           </div>
                         </td>
                         <td className="px-4 py-3">
-                          <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${statusStyles[manager.status]}`}>
+                          <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${statusStyles[manager.status]}`}>
                             {statusLabels[manager.status]}
                           </span>
                         </td>
@@ -536,10 +555,10 @@ export default function OwnerManagersPage() {
         {/* Mobile Cards */}
         <div className="space-y-4 md:hidden">
           {filteredManagers.length === 0 ? (
-            <div className="rounded-xl bg-slate-900 p-8 text-center ring-1 ring-slate-800">
-              <Inbox className="mx-auto h-8 w-8 text-slate-600" />
-              <p className="mt-2 font-medium text-slate-300">No managers found</p>
-              <p className="text-sm text-slate-500">
+            <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm dark:border-white/10 dark:bg-[#263238]">
+              <Inbox className="mx-auto h-9 w-9 text-slate-500 dark:text-slate-400" />
+              <p className="mt-3 font-semibold text-slate-950 dark:text-white">No managers found</p>
+              <p className="mt-1 text-sm text-slate-700 dark:text-slate-300">
                 {search ? `No results for "${search}"` : 'No managers to display'}
               </p>
             </div>
@@ -547,19 +566,19 @@ export default function OwnerManagersPage() {
             filteredManagers.map((manager) => {
               const isActionLoading = actionLoadingId === manager.id
               return (
-                <div key={manager.id} className="rounded-xl bg-slate-900 p-4 ring-1 ring-slate-800">
+                <div key={manager.id} className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-[#263238] sm:p-5">
                   <div className="flex items-start gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-500/10 text-sm font-bold text-indigo-400">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#efffec] text-sm font-bold text-[#24651d] ring-1 ring-[#359f25]/15 dark:bg-[#5ff442]/10 dark:text-[#a2fa8e] dark:ring-[#5ff442]/10">
                       {manager.username.slice(0, 1).toUpperCase()}
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-2">
-                        <h3 className="font-medium text-white">{manager.username}</h3>
-                        <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${statusStyles[manager.status]}`}>
+                        <h3 className="truncate font-semibold text-slate-950 dark:text-white">{manager.username}</h3>
+                        <span className={`inline-flex shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${statusStyles[manager.status]}`}>
                           {statusLabels[manager.status]}
                         </span>
                       </div>
-                      <p className="text-sm text-slate-400">{manager.email}</p>
+                      <p className="mt-0.5 break-all text-sm text-slate-700 dark:text-slate-300">{manager.email}</p>
                     </div>
                   </div>
 
@@ -575,7 +594,7 @@ export default function OwnerManagersPage() {
                     <InfoItem label="Created" value={new Date(manager.createdAt).toLocaleDateString()} />
                   </div>
 
-                  <div className="mt-3 border-t border-slate-800 pt-3">
+                  <div className="mt-4 border-t border-slate-200 pt-4 dark:border-slate-700">
                     <ActionButtons
                       manager={manager}
                       isActionLoading={isActionLoading}
@@ -592,14 +611,14 @@ export default function OwnerManagersPage() {
       </div>
 
       {/* Toast Notifications */}
-      <div className="fixed bottom-4 right-4 z-50 flex w-full max-w-sm flex-col gap-2">
+      <div className="fixed bottom-4 right-4 z-50 flex w-[calc(100%-2rem)] max-w-sm flex-col gap-2">
         {toasts.map((toast) => (
           <div
             key={toast.id}
             className={`flex items-start gap-2 rounded-lg px-4 py-3 shadow-lg ring-1 ${
               toast.type === 'success'
-                ? 'bg-emerald-950 text-emerald-400 ring-emerald-500/30'
-                : 'bg-red-950 text-red-400 ring-red-500/30'
+                ? 'bg-emerald-50 text-emerald-900 ring-emerald-700/20 dark:bg-emerald-950 dark:text-emerald-200 dark:ring-emerald-500/30'
+                : 'bg-rose-50 text-rose-900 ring-rose-700/20 dark:bg-rose-950 dark:text-rose-200 dark:ring-rose-500/30'
             }`}
           >
             {toast.type === 'success' ? (
@@ -610,7 +629,7 @@ export default function OwnerManagersPage() {
             <p className="flex-1 text-sm font-medium">{toast.message}</p>
             <button
               onClick={() => dismissToast(toast.id)}
-              className="rounded p-1 hover:bg-white/5"
+              className="rounded p-1 transition hover:bg-black/5 dark:hover:bg-white/10"
               aria-label="Dismiss"
             >
               <X className="h-4 w-4" />
@@ -622,18 +641,18 @@ export default function OwnerManagersPage() {
       {/* Confirm Dialog */}
       {confirmDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-          <div className="w-full max-w-md rounded-xl bg-slate-900 p-5 shadow-xl ring-1 ring-slate-800">
+          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-xl dark:border-white/10 dark:bg-[#263238]">
             <div className="flex items-start gap-3">
               <div className="rounded-full bg-red-500/10 p-2">
-                <Trash2 className="h-5 w-5 text-red-400" />
+                <Trash2 className="h-5 w-5 text-rose-700 dark:text-rose-300" />
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-semibold text-white">{confirmDialog.title}</h3>
-                <p className="mt-1 text-sm text-slate-400">{confirmDialog.message}</p>
+                <h3 className="text-lg font-semibold text-slate-950 dark:text-white">{confirmDialog.title}</h3>
+                <p className="mt-1 text-sm leading-6 text-slate-700 dark:text-slate-300">{confirmDialog.message}</p>
               </div>
               <button
                 onClick={() => setConfirmDialog(null)}
-                className="rounded p-1 text-slate-400 hover:bg-slate-800 hover:text-white"
+                className="rounded p-1 text-slate-700 hover:bg-slate-100 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
                 aria-label="Close"
               >
                 <X className="h-5 w-5" />
@@ -642,7 +661,7 @@ export default function OwnerManagersPage() {
             <div className="mt-5 flex justify-end gap-2">
               <button
                 onClick={() => setConfirmDialog(null)}
-                className="rounded-lg px-4 py-2 text-sm font-medium text-slate-300 hover:bg-slate-800"
+                className="rounded-lg px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
               >
                 Cancel
               </button>

@@ -14,11 +14,11 @@ function CampaignTile({ label, value, detail, tone }: CampaignTileProps) {
   return (
     <div className="rounded-2xl border border-white/10 bg-black/20 p-3 sm:p-4">
       <div className="flex items-center justify-between gap-2">
-        <span className="text-[11px] uppercase tracking-[0.24em] text-white/35">{label}</span>
+        <span className="text-xs uppercase tracking-wider text-white/60">{label}</span>
         <Sparkles className="h-4 w-4 text-amber-300" />
       </div>
       <div className={`mt-3 text-xl font-bold ${tone}`}>{value}</div>
-      <p className="mt-1 text-xs text-white/40">{detail}</p>
+      <p className="mt-1 text-sm text-white/60">{detail}</p>
     </div>
   )
 }
@@ -40,7 +40,7 @@ export function CampaignHealthTiles({ totalClicks, uniqueClicks, totalLinks, bot
         <ShieldCheck className="h-5 w-5 text-emerald-400" />
         <div>
           <h3 className="text-lg font-semibold text-white">Campaign Health Tiles</h3>
-          <p className="text-sm text-white/30">Ranked operational performance at a glance</p>
+          <p className="text-sm text-white/60">Ranked operational performance at a glance</p>
         </div>
       </div>
 

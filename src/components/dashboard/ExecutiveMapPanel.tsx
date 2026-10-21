@@ -72,7 +72,7 @@ export function ExecutiveMapPanel({ countryBreakdown = [] }: ExecutiveMapPanelPr
       <div className="rounded-2xl border border-white/10 bg-slate-950/70 p-3 shadow-[0_0_0_1px_rgba(255,255,255,0.02),0_20px_60px_rgba(15,23,42,0.45)]">
         <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.16),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(139,92,246,0.22),transparent_40%),linear-gradient(180deg,rgba(15,23,42,0.95),rgba(2,6,23,0.9))]">
           <div className="absolute inset-0 bg-[linear-gradient(rgba(148,163,184,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.05)_1px,transparent_1px)] bg-[size:40px_40px]" />
-          <div className="absolute right-3 top-3 rounded-full border border-cyan-500/20 bg-cyan-500/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-cyan-300">
+          <div className="absolute right-3 top-3 rounded-full border border-cyan-500/20 bg-cyan-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-cyan-300">
             Live traffic
           </div>
           <svg viewBox="0 0 760 380" className="relative h-[250px] w-full">
@@ -130,7 +130,7 @@ export function ExecutiveMapPanel({ countryBreakdown = [] }: ExecutiveMapPanelPr
                       strokeDasharray="4 5"
                       opacity="0.8"
                     />
-                    <text x={marker.marker.x + (index % 2 === 0 ? 12 : -12)} y={marker.marker.y - (index % 2 === 0 ? 22 : 30)} fill="white" fontSize="11" fontWeight="700" textAnchor={index % 2 === 0 ? 'start' : 'end'}>
+                    <text x={marker.marker.x + (index % 2 === 0 ? 12 : -12)} y={marker.marker.y - (index % 2 === 0 ? 22 : 30)} fill="white" fontSize="13" fontWeight="700" textAnchor={index % 2 === 0 ? 'start' : 'end'}>
                       {marker.country}
                     </text>
                   </g>
@@ -143,14 +143,14 @@ export function ExecutiveMapPanel({ countryBreakdown = [] }: ExecutiveMapPanelPr
 
       <div className="mt-4 grid gap-2 sm:grid-cols-2">
         <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/10 p-3 text-sm">
-          <div className="text-[11px] uppercase tracking-[0.24em] text-cyan-300">Active markets</div>
+          <div className="text-xs uppercase tracking-wider text-cyan-300">Active markets</div>
           <div className="mt-2 text-2xl font-semibold text-white">{markers.length}</div>
-          <div className="text-[11px] text-white/45">high-intensity countries on the map</div>
+          <div className="text-xs text-white/60">high-intensity countries on the map</div>
         </div>
         <div className="rounded-xl border border-violet-500/20 bg-violet-500/10 p-3 text-sm">
-          <div className="text-[11px] uppercase tracking-[0.24em] text-violet-300">Share volume</div>
+          <div className="text-xs uppercase tracking-wider text-violet-300">Share volume</div>
           <div className="mt-2 text-2xl font-semibold text-white">{formatNumber(totalClicks)}</div>
-          <div className="text-[11px] text-white/45">clicks from visible markets</div>
+          <div className="text-xs text-white/60">clicks from visible markets</div>
         </div>
       </div>
 
@@ -172,7 +172,7 @@ export function ExecutiveMapPanel({ countryBreakdown = [] }: ExecutiveMapPanelPr
                   style={{ width: `${Math.max(10, (marker.clicks / maxClicks) * 100)}%` }}
                 />
               </div>
-              <p className="mt-2 text-[11px] text-white/35">{formatNumber(marker.uniqueClicks)} unique visitors</p>
+              <p className="mt-2 text-xs text-white/60">{formatNumber(marker.uniqueClicks)} unique visitors</p>
             </div>
           ))
         )}

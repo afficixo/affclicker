@@ -54,7 +54,7 @@ export default function StatsCards({
     .sort((a, b) => b.clicks - a.clicks)
     .slice(0, 3)
 
-  const flagColors = ['ring-sky-400/30 bg-sky-400/6', 'ring-violet-400/30 bg-violet-400/6', 'ring-emerald-400/30 bg-emerald-400/6']
+  const flagColors = ['ring-[#5ff442]/30 bg-[#5ff442]/[0.06]', 'ring-violet-400/30 bg-violet-400/6', 'ring-emerald-400/30 bg-emerald-400/6']
 
   const activeLabel = showCredit ? 'Total Credit' : 'Total Cost'
   const activeValue = showCredit ? totalPayout : stats.revenue
@@ -73,7 +73,7 @@ export default function StatsCards({
           title="Total Clicks"
           value={stats.totalClicks}
           icon={MousePointerClick}
-          color="indigo"
+          color="green"
           delay={100}
         />
         <StatsCard
@@ -89,15 +89,15 @@ export default function StatsCards({
             initial={{ opacity: 0, y: 16, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.45, delay: 0.3 }}
-            className="h-full min-h-[94px] min-w-0 w-full rounded-lg border border-slate-200 bg-white p-3 text-left shadow-sm transition-colors duration-200 hover:bg-slate-50 sm:p-4 dark:border-slate-700/30 dark:bg-slate-800/30 dark:hover:bg-slate-800/40"
+            className="h-full min-h-[94px] min-w-0 w-full rounded-xl border border-[var(--surface-border)] bg-[var(--surface-card)] p-3 text-left shadow-[var(--shadow-sm)] transition-colors duration-200 hover:border-[var(--primary-600)] hover:bg-[var(--primary-50)] sm:p-4 dark:hover:border-[var(--primary-500)] dark:hover:bg-[#5ff442]/10"
             onClick={() => setShowCredit((current) => !current)}
             aria-label={`Toggle balance view. Current value: ${activeLabel}`}
           >
             <div className="flex items-center justify-between gap-2">
-              <p className="text-[10px] uppercase tracking-wide text-slate-500">{activeLabel}</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">{activeLabel}</p>
               <CircleDollarSign className="h-4 w-4 text-emerald-600 dark:text-emerald-300" />
             </div>
-            <p className="mt-0.5 text-xl font-bold text-slate-900 dark:text-white sm:text-2xl">{formatCurrency(activeValue)}</p>
+            <p className="mt-0.5 text-xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-2xl">{formatCurrency(activeValue)}</p>
           </motion.button>
         ) : (
           <StatsCard

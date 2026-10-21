@@ -12,7 +12,6 @@ import {
   ChevronDown,
 } from "lucide-react";
 import StatsCards from "@/components/dashboard/StatsCards";
-import AfficixoLoading from "@/components/ui/AfficixoLoading";
 
 interface DashboardStats {
   totalClicks: number;
@@ -303,7 +302,7 @@ export default function AnalyticsPage() {
   };
 
   if (loading) {
-    return <AfficixoLoading compact />;
+    return null;
   }
 
   return (

@@ -1,15 +1,19 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   ArrowRight,
+  ArrowLeft,
   CheckCircle2,
   Copy,
   Check,
   Link2,
   Rocket,
   X,
+  Globe2,
+  Eye,
+  ShieldCheck,
 } from "lucide-react";
 import { buildOfferGroupList } from "@/lib/utils/offer-groups";
 import { coerceArray } from "@/lib/utils/array-response";
@@ -39,7 +43,7 @@ const CopyButton = ({ text, onCopy }: { text: string; onCopy: () => void }) => {
       await navigator.clipboard.writeText(text);
       setCopied(true);
       onCopy();
-      setTimeout(() => setCopied(false), 2000);
+      window.setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       console.error("Failed to copy:", error);
     }
@@ -47,8 +51,9 @@ const CopyButton = ({ text, onCopy }: { text: string; onCopy: () => void }) => {
 
   return (
     <button
+      type="button"
       onClick={handleCopy}
-      className="rounded-md p-1.5 text-slate-400 hover:bg-white/10 hover:text-white transition-colors"
+      className="campaign-builder-copy rounded-md p-1.5 transition-colors"
       aria-label="Copy"
     >
       {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
@@ -145,6 +150,7 @@ const buildSmartSlug = (value: string) => {
 // ========== MAIN PAGE ==========
 export default function CreateLinkPage() {
   const router = useRouter();
+  const pathname = usePathname();
   const [accountName, setAccountName] = useState("");
   const [customSlugEnabled, setCustomSlugEnabled] = useState(false);
   const [customSlug, setCustomSlug] = useState("");
@@ -156,6 +162,14 @@ export default function CreateLinkPage() {
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const [createdAccount, setCreatedAccount] = useState<CreatedAccount | null>(null);
+  const [appOrigin, setAppOrigin] = useState("");
+
+  const getBaseUrl = () => {
+    if (typeof window !== "undefined") {
+      return window.location.origin.replace(/\/$/, "");
+    }
+    return (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000").replace(/\/$/, "");
+  };
 
   const fetchDomains = useCallback(async () => {
     try {
@@ -187,18 +201,24 @@ export default function CreateLinkPage() {
   }, [router]);
 
   useEffect(() => {
+    setAppOrigin(getBaseUrl());
     void fetchDomains();
     void fetchOfferGroups();
   }, [fetchDomains, fetchOfferGroups]);
 
-  const getBaseUrl = () => {
-    if (typeof window !== "undefined") {
-      return window.location.origin.replace(/\/$/, "");
-    }
-    return (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000").replace(/\/$/, "");
-  };
-
   const selectableDomains = domains.filter((domain) => domain.verified && domain.isActive);
+  const selectedDomain = selectableDomains.find((domain) => domain.id === customDomainId);
+  const previewSlug = customSlugEnabled
+    ? customSlug.trim() || "your-custom-slug"
+    : buildSmartSlug(accountName) || "your-link";
+  const previewBase = selectedDomain
+    ? `https://${selectedDomain.domain}`
+    : appOrigin || "https://yourdomain.com";
+  const dashboardBasePath = pathname.startsWith("/owner/")
+    ? "/owner"
+    : pathname.startsWith("/publisher/")
+      ? "/publisher"
+      : "/admin";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -256,42 +276,57 @@ export default function CreateLinkPage() {
     }
   };
 
-  const templateText = createdAccount
-    ? `Account Name: \`${createdAccount.accountName}\`\nPublic Analytics: ${createdAccount.publicStatsUrl}\nTracking URL: \`${createdAccount.trackingUrl}\``
-    : "";
-
   return (
-    <div className="campaign-builder-page min-h-screen px-4 py-6 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-6xl">
-        {/* Main Grid */}
-        <div className={`grid w-full min-w-0 grid-cols-1 items-start gap-6 ${createdAccount ? "lg:grid-cols-[minmax(0,1.3fr)_minmax(0,0.7fr)]" : ""}`}>
+    <div className="campaign-builder-page min-h-full w-full px-2 py-3 sm:px-3 sm:py-5">
+      <div className="mx-auto w-full max-w-[1440px]">
+        <header className="mb-6 flex flex-col gap-4 border-b border-[var(--surface-border)] pb-5 sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex items-start gap-3">
+            <span className="campaign-builder-icon mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl">
+              <Rocket className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="campaign-builder-kicker mb-1 text-xs font-semibold uppercase tracking-[0.16em]">Link management</p>
+              <h1 className="campaign-builder-title text-2xl font-bold tracking-tight sm:text-3xl">Create link account</h1>
+              <p className="campaign-builder-muted mt-1 max-w-2xl text-sm">
+                Set up a campaign identity, choose where it routes, and get a shareable tracking link.
+              </p>
+            </div>
+          </div>
+          <a
+            href={`${dashboardBasePath}/links`}
+            className="campaign-builder-back inline-flex min-h-10 items-center justify-center gap-2 self-start rounded-lg border px-3.5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/60 sm:self-auto"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            All link accounts
+          </a>
+        </header>
+
+        <div className="grid w-full min-w-0 grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1.45fr)_minmax(300px,0.75fr)] xl:gap-6">
           {/* Form Card */}
           <div className="campaign-builder-card w-full min-w-0 rounded-2xl p-5 sm:p-7">
-            <div className="mb-7 border-b border-slate-700/60 pb-5">
+            <div className="mb-6 flex items-start justify-between gap-3 border-b border-[var(--surface-border)] pb-5">
               <div>
-                <div className="mb-2 flex items-center gap-2">
-                  <div className="campaign-builder-icon rounded-md p-1.5">
-                    <Rocket className="h-4 w-4" />
-                  </div>
-                  <span className="campaign-builder-kicker text-[11px] font-semibold uppercase tracking-[0.16em]">
-                    Campaign setup
-                  </span>
-                </div>
-                <h2 className="campaign-builder-title text-lg font-semibold tracking-tight">Create link account</h2>
-                <p className="campaign-builder-muted mt-1 text-sm">Set the identity and routing options for this campaign.</p>
+                <p className="campaign-builder-muted text-xs font-semibold uppercase tracking-[0.12em]">Step 1 of 1</p>
+                <h2 className="campaign-builder-title mt-1 text-lg font-semibold tracking-tight">Campaign details</h2>
+                <p className="campaign-builder-muted mt-1 text-sm">Fields marked required must be completed.</p>
               </div>
+              <span className="campaign-builder-secure inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium">
+                <ShieldCheck className="h-3.5 w-3.5" />
+                Secure setup
+              </span>
             </div>
 
             {error && (
-              <div className="mb-4 rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-                {error}
+              <div role="alert" className="mb-4 flex items-start gap-2 rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-200">
+                <X className="mt-0.5 h-4 w-4 shrink-0" />
+                <span>{error}</span>
               </div>
             )}
 
-            {success && (
-              <div className="campaign-builder-success mb-4 rounded-xl border border-emerald-400/20 bg-gradient-to-r from-emerald-500/10 to-emerald-400/5 px-4 py-3 text-sm text-emerald-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+            {success && !createdAccount && (
+              <div role="status" className="campaign-builder-success mb-4 rounded-xl border px-4 py-3 text-sm">
                 <div className="flex items-start gap-2">
-                  <CheckCircle2 className="campaign-builder-success-icon mt-0.5 h-4 w-4 shrink-0 text-emerald-300" />
+                  <CheckCircle2 className="campaign-builder-success-icon mt-0.5 h-4 w-4 shrink-0" />
                   <span>{success}</span>
                 </div>
               </div>
@@ -299,8 +334,10 @@ export default function CreateLinkPage() {
 
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="campaign-builder-field">
-                <label className="campaign-builder-label mb-2 block text-xs font-semibold">Account name</label>
+                <label htmlFor="account-name" className="campaign-builder-label mb-2 block text-sm font-semibold">Account name <span aria-hidden="true" className="text-red-500">*</span></label>
+                <p className="campaign-builder-muted mb-2 text-xs">A recognizable name helps you identify this campaign later.</p>
                 <input
+                  id="account-name"
                   type="text"
                   value={accountName}
                   onChange={(e) => setAccountName(e.target.value)}
@@ -316,10 +353,10 @@ export default function CreateLinkPage() {
                 <div>
                   <div className="campaign-builder-slug-setting-label">
                     <span className="campaign-builder-slug-setting-icon" aria-hidden="true"><Link2 className="h-3 w-3" /></span>
-                    <span>Custom slug</span>
+                    <span className="text-sm">Use a custom slug</span>
                   </div>
                   <div className="campaign-builder-slug-setting-help">
-                    {customSlugEnabled ? "Using your own tracking path" : "If off, your slug will be generated automatically"}
+                    {customSlugEnabled ? "Choose the path used in your tracking URL." : "We’ll suggest a clean slug from your account name."}
                   </div>
                 </div>
                 <div className="campaign-builder-slug-setting-control">
@@ -345,12 +382,13 @@ export default function CreateLinkPage() {
                 aria-hidden={!customSlugEnabled}
                 className={`campaign-builder-custom-slug campaign-builder-field ${customSlugEnabled ? "is-open" : ""}`}
               >
-                  <label className="campaign-builder-label mb-2 block text-xs font-semibold">
+                  <label htmlFor="custom-slug" className="campaign-builder-label mb-2 block text-sm font-semibold">
                     Custom slug <span className="campaign-builder-muted font-normal">(required)</span>
                   </label>
                   <div className="relative">
                     <span className="campaign-builder-slug-prefix" aria-hidden="true">/</span>
                     <input
+                      id="custom-slug"
                       type="text"
                       value={customSlug}
                       onChange={(e) => setCustomSlug(e.target.value.replace(/[^A-Za-z0-9-]/g, "").replace(/-+/g, "-").slice(0, 64))}
@@ -367,31 +405,39 @@ export default function CreateLinkPage() {
               </div>
 
               <div className="campaign-builder-field">
-                <label className="campaign-builder-label mb-2 block text-xs font-semibold">Custom domain</label>
+                <label htmlFor="custom-domain" className="campaign-builder-label mb-2 block text-sm font-semibold">Custom domain <span className="campaign-builder-muted font-normal">(optional)</span></label>
+                <p className="campaign-builder-muted mb-2 text-xs">Choose a verified domain for a branded tracking URL.</p>
                 <select
+                  id="custom-domain"
                   value={customDomainId}
                   onChange={(e) => setCustomDomainId(e.target.value)}
                   disabled={loading || selectableDomains.length === 0}
                   className="campaign-builder-input w-full rounded-lg px-3.5 py-3 text-sm transition focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  <option value="">Select a domain</option>
+                  <option value="">{selectableDomains.length ? "Use the default domain" : "No verified domains available"}</option>
                   {selectableDomains.map((d) => (
                     <option key={d.id} value={d.id}>
                       {d.domain}
                     </option>
                   ))}
                 </select>
+                {selectableDomains.length === 0 && (
+                  <a href={`${dashboardBasePath}/domains`} className="campaign-builder-inline-link mt-2 inline-flex text-xs font-semibold">
+                    Add or verify a domain <ArrowRight className="ml-1 h-3 w-3" />
+                  </a>
+                )}
               </div>
 
               <div className="campaign-builder-field">
-                <label className="campaign-builder-label mb-2 block text-xs font-semibold">Offer group</label>
+                <label htmlFor="offer-group" className="campaign-builder-label mb-2 block text-sm font-semibold">Offer group <span className="campaign-builder-muted font-normal">(optional)</span></label>
                 <select
+                  id="offer-group"
                   value={offerGroupName}
                   onChange={(e) => setOfferGroupName(e.target.value)}
                   disabled={loading}
                   className="campaign-builder-input w-full rounded-lg px-3.5 py-3 text-sm transition focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  <option value="" className="text-slate-400">Select an offer</option>
+                  <option value="">Select an offer</option>
                   {offerGroups.map((g) => (
                     <option key={g} value={g}>
                       {g}
@@ -407,20 +453,64 @@ export default function CreateLinkPage() {
               >
                 {loading ? (
                   <>
-                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                    Creating…
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    Creating account…
                   </>
                 ) : (
                   <>
                     <Rocket className="h-4 w-4" />
-                    Create Link Account
+                    <span>Create link account</span>
+                    <ArrowRight className="h-4 w-4" />
                   </>
                 )}
               </button>
+              <p className="campaign-builder-muted text-center text-xs">You can update routing settings after creating the account.</p>
             </form>
           </div>
 
-          {/* Sidebar / Result */}
+          <aside className="campaign-builder-preview space-y-4 lg:sticky lg:top-5">
+            <section className="campaign-builder-preview-card overflow-hidden rounded-2xl border">
+              <div className="campaign-builder-preview-heading flex items-center justify-between border-b px-5 py-4">
+                <div>
+                  <p className="campaign-builder-kicker text-xs font-semibold uppercase tracking-[0.12em]">Live preview</p>
+                  <h2 className="campaign-builder-title mt-1 text-base font-semibold">Your tracking link</h2>
+                </div>
+                <span className="campaign-builder-preview-icon flex h-9 w-9 items-center justify-center rounded-lg">
+                  <Eye className="h-4 w-4" />
+                </span>
+              </div>
+              <div className="space-y-4 p-5">
+                <div>
+                  <p className="campaign-builder-muted mb-2 text-xs font-semibold uppercase tracking-wide">Destination URL</p>
+                  <div className="campaign-builder-preview-url flex min-w-0 items-center gap-2 rounded-lg border px-3 py-3">
+                    <Globe2 className="campaign-builder-preview-icon-text h-4 w-4 shrink-0" />
+                    <code className="min-w-0 break-all text-sm font-medium">{previewBase}/{previewSlug}</code>
+                  </div>
+                  <p className="campaign-builder-muted mt-2 text-xs">
+                    {customSlugEnabled
+                      ? customSlug.trim() ? "Using your custom path." : "Enter a slug to preview the final URL."
+                      : accountName ? "Suggested from the account name." : "Your link preview will appear here."}
+                  </p>
+                </div>
+                <div className="campaign-builder-preview-note flex items-start gap-2.5 rounded-lg border p-3.5">
+                  <ShieldCheck className="campaign-builder-preview-icon-text mt-0.5 h-4 w-4 shrink-0" />
+                  <p className="campaign-builder-muted text-xs leading-5">
+                    Only active, verified domains can be used. Leave the domain unset to use your default tracking domain.
+                  </p>
+                </div>
+              </div>
+            </section>
+            <section className="campaign-builder-preview-help rounded-2xl border p-5">
+              <h2 className="campaign-builder-title text-sm font-semibold">What happens next?</h2>
+              <ol className="campaign-builder-muted mt-3 space-y-3 text-xs">
+                <li className="flex gap-2.5"><span className="campaign-builder-step-number">1</span><span>Your link account is created with the routing options above.</span></li>
+                <li className="flex gap-2.5"><span className="campaign-builder-step-number">2</span><span>Copy the tracking URL and connect it to a landing page or campaign.</span></li>
+                <li className="flex gap-2.5"><span className="campaign-builder-step-number">3</span><span>Use the public analytics link to monitor performance.</span></li>
+              </ol>
+            </section>
+          </aside>
+
+          {/* Result */}
           {createdAccount && (
             <div
               className="link-result-modal fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 p-4 backdrop-blur-sm"
@@ -495,8 +585,8 @@ export default function CreateLinkPage() {
                           Copy this tracking link, create a landing page in the Landing Builder, and share it on social media to start earning.
                         </p>
                         <a
-                          href="/admin/landing-builder"
-                          className="link-result-builder-link group relative inline-flex w-full items-center justify-center gap-1.5 overflow-hidden rounded-lg border px-3 py-2 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
+                          href={`${dashboardBasePath}/landing-builder`}
+                          className="link-result-builder-link group relative inline-flex w-full items-center justify-center gap-1.5 overflow-hidden rounded-lg border px-3 py-2 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
                         >
                           <span>Go to Landing Builder</span>
                           <ArrowRight className="link-result-builder-arrow h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-1" />
