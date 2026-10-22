@@ -237,7 +237,7 @@ export default function DashboardPage() {
         </section>
 
         <div className="overflow-x-auto">
-          <ClickLogs filter={logFilter} />
+          <ClickLogs filter={logFilter} isOwner={userRole === "OWNER"} />
         </div>
 
       </div>

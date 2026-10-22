@@ -45,9 +45,10 @@ interface Click {
 
 interface ClickLogsProps {
   filter: string
+  isOwner: boolean
 }
 
-export default function ClickLogs({ filter }: ClickLogsProps) {
+export default function ClickLogs({ filter, isOwner }: ClickLogsProps) {
   const router = useRouter()
   const [clicks, setClicks] = useState<Click[]>([])
   const [total, setTotal] = useState(0)
@@ -57,6 +58,8 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
   const [showBrowserVersion, setShowBrowserVersion] = useState<string | null>(null)
   const [showDeviceInfo, setShowDeviceInfo] = useState<string | null>(null)
   const [showGeoInfo, setShowGeoInfo] = useState<string | null>(null)
+  const [deletingClickId, setDeletingClickId] = useState<string | null>(null)
+  const [deleteError, setDeleteError] = useState('')
 
   const limit = 100
 
@@ -92,6 +95,41 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
   useEffect(() => {
     fetchClicks(true)
   }, [fetchClicks])
+
+  const deleteClick = async (click: Click) => {
+    if (!isOwner || deletingClickId) return
+    if (!window.confirm('Delete this click log? This action cannot be undone.')) return
+
+    setDeletingClickId(click.id)
+    setDeleteError('')
+
+    try {
+      const response = await fetch(`/api/analytics/clicks?id=${encodeURIComponent(click.id)}`, {
+        method: 'DELETE',
+      })
+      if (response.status === 401) {
+        router.push('/login')
+        return
+      }
+
+      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to delete click log.')
+      }
+
+      const remainingClicks = clicks.filter((item) => item.id !== click.id)
+      setClicks(remainingClicks)
+      setTotal((currentTotal) => Math.max(0, currentTotal - 1))
+      setTotalPages(Math.max(1, Math.ceil(Math.max(0, total - 1) / limit)))
+      if (remainingClicks.length === 0 && page > 1) {
+        setPage((currentPage) => currentPage - 1)
+      }
+    } catch (error) {
+      setDeleteError(error instanceof Error ? error.message : 'Failed to delete click log.')
+    } finally {
+      setDeletingClickId(null)
+    }
+  }
 
   const getDeviceIcon = (deviceType: string | null) => {
     if (!deviceType) return <Monitor className="w-4 h-4" />
@@ -161,6 +199,11 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
         <Activity className="h-4 w-4 text-[var(--primary-700)] dark:text-[var(--primary-300)]" strokeWidth={1.5} />
         <span className="text-base font-semibold text-slate-900 dark:text-white/90">Click Activity</span>
       </div>
+      {deleteError && (
+        <p role="alert" className="mb-3 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
+          {deleteError}
+        </p>
+      )}
       <div className="space-y-2 lg:hidden">
         {clicks.length === 0 ? (
           <div className="flex flex-col items-center gap-1.5 py-10 text-center">
@@ -202,6 +245,20 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
                     >
                       {click.isUnique ? 'Unique' : 'Repeated'}
                     </span>
+                    {isOwner && (
+                      <button
+                        type="button"
+                        onClick={() => deleteClick(click)}
+                        disabled={deletingClickId !== null}
+                        aria-label="Delete click log"
+                        title="Delete click log"
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-md text-green-600 transition hover:bg-green-50 disabled:cursor-not-allowed disabled:opacity-50 dark:text-green-400 dark:hover:bg-green-500/10"
+                      >
+                        <svg aria-hidden="true" viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">
+                          <path fillRule="evenodd" d="M10 1.75a8.25 8.25 0 1 0 0 16.5 8.25 8.25 0 0 0 0-16.5Zm3.22 6.03a.75.75 0 0 0-1.06-1.06L9 9.88 7.84 8.72a.75.75 0 0 0-1.06 1.06l1.69 1.69a.75.75 0 0 0 1.06 0l3.69-3.69Z" clipRule="evenodd" />
+                        </svg>
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -259,12 +316,13 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
               <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-600 dark:text-slate-300">IP Address</th>
               <th className="px-4 py-2 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-600 dark:text-slate-300">Status</th>
               <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-600 dark:text-slate-300">Time</th>
+              {isOwner && <th className="px-4 py-2 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-600 dark:text-slate-300">Actions</th>}
             </tr>
           </thead>
           <tbody className="divide-y divide-[var(--surface-border)]">
             {clicks.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-4 py-12 text-center">
+                <td colSpan={isOwner ? 9 : 8} className="px-4 py-12 text-center">
                   <div className="flex flex-col items-center gap-1.5">
                     <MousePointerClick className="h-7 w-7 text-slate-400 dark:text-slate-500" strokeWidth={1.5} />
                     <p className="text-sm text-slate-600 dark:text-slate-300">No clicks match your filters</p>
@@ -358,6 +416,22 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
                       })()}
                     </div>
                   </td>
+                  {isOwner && (
+                    <td className="px-4 py-2 text-center">
+                      <button
+                        type="button"
+                        onClick={() => deleteClick(click)}
+                        disabled={deletingClickId !== null}
+                        aria-label={`Delete click log from ${click.ipAddress || 'unknown IP'}`}
+                        title="Delete click log"
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-md text-green-600 transition hover:bg-green-50 disabled:cursor-not-allowed disabled:opacity-50 dark:text-green-400 dark:hover:bg-green-500/10"
+                      >
+                        <svg aria-hidden="true" viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">
+                          <path fillRule="evenodd" d="M10 1.75a8.25 8.25 0 1 0 0 16.5 8.25 8.25 0 0 0 0-16.5Zm3.22 6.03a.75.75 0 0 0-1.06-1.06L9 9.88 7.84 8.72a.75.75 0 0 0-1.06 1.06l1.69 1.69a.75.75 0 0 0 1.06 0l3.69-3.69Z" clipRule="evenodd" />
+                        </svg>
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))
             )}

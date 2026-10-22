@@ -256,6 +256,13 @@ export async function DELETE(request: Request) {
       );
     }
 
+    if (!isOwner(user)) {
+      return NextResponse.json(
+        { error: 'Only the owner can delete click logs' },
+        { status: 403, headers: getCorsHeaders(origin) }
+      );
+    }
+
     const url = new URL(request.url);
     const id = url.searchParams.get('id');
 
@@ -278,13 +285,6 @@ export async function DELETE(request: Request) {
       return NextResponse.json(
         { error: 'Click not found' },
         { status: 404, headers: getCorsHeaders(origin) }
-      );
-    }
-
-    if (!isOwner(user) && click.linkAccount.userId !== user.id) {
-      return NextResponse.json(
-        { error: 'Forbidden' },
-        { status: 403, headers: getCorsHeaders(origin) }
       );
     }
 
