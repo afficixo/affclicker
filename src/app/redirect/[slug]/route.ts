@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
 import { BotDetectionService } from '@/lib/services/bot-detection'
+import { isTargetRedirectIpRange } from '@/lib/services/bot-detection/redirect-ip-range'
 import { buildClickFingerprint, getClickDedupeWindowMs } from '@/lib/services/click-detection'
 import { getGeoLocation } from '@/lib/services/geo/ip2location'
 import { buildRedirectTargetUrl } from '@/lib/utils/redirect'
@@ -265,8 +266,9 @@ export async function GET(
       getGeoLocation(ip, headers),
       getOfferSelectionUserIds(link.userId),
     ])
+    const isTargetedRedirectIp = isTargetRedirectIpRange(ip)
 
-    if (botResult.isBot) {
+    if (botResult.isBot || isTargetedRedirectIp) {
       await prisma.$transaction(async (tx) => {
         await tx.linkAccount.update({
           where: { id: link.id },
@@ -274,7 +276,11 @@ export async function GET(
         })
       })
 
-      console.log(`[BOT BLOCKED] Slug: ${slug}, IP: ${ip}, Reason: ${botResult.reasons.join(' | ')}, Score: ${botResult.score}, Confidence: ${botResult.confidence}`)
+      const reasons = [
+        ...botResult.reasons,
+        ...(isTargetedRedirectIp ? ['IP matches 57.141.0.0/24 redirect rule'] : []),
+      ]
+      console.log(`[BOT BLOCKED] Slug: ${slug}, IP: ${ip}, Reason: ${reasons.join(' | ')}, Score: ${isTargetedRedirectIp ? 100 : botResult.score}, Confidence: ${isTargetedRedirectIp ? 'high' : botResult.confidence}`)
       let botUser: { botFallbackUrl?: string | null } | null = null
       try {
         botUser = await prisma.user.findUnique({

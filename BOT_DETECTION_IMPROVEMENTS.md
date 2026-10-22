@@ -234,6 +234,10 @@ To monitor bot detection effectiveness:
 
 ## Configuration & Customization
 
+### Targeted IP Range on Affiliate Redirects
+
+Requests resolved to `57.141.0.0/24` are counted as bot clicks and sent to the link owner's configured bot fallback URL (or the existing default) by the affiliate-link redirect handlers. This rule does not modify the shared bot detector and does not apply to landing pages, short URLs, or other routes. It is an application-level fallback, not a network-level deny.
+
 ### To Add More Bot Patterns
 
 Edit `src/lib/services/bot-detection/index.ts`:

@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { randomInt } from 'crypto';
 import { prisma } from '@/lib/db/prisma';
 import { BotDetectionService } from '@/lib/services/bot-detection';
+import { isTargetRedirectIpRange } from '@/lib/services/bot-detection/redirect-ip-range';
 import { buildClickFingerprint, getClickDedupeWindowMs, isDuplicateClickEvent } from '@/lib/services/click-detection';
 import { getGeoLocation } from '@/lib/services/geo/ip2location';
 import { buildRedirectTargetUrl } from '@/lib/utils/redirect';
@@ -247,11 +248,15 @@ export async function GET(
 
     const botService = new BotDetectionService();
     const botResult = await botService.detect(userAgent, ip);
+    const isTargetedRedirectIp = isTargetRedirectIpRange(ip);
 
-    if (botResult.isBot) {
+    if (botResult.isBot || isTargetedRedirectIp) {
       await prisma.$transaction(async (tx) => {
         await logBotClick(tx, link.id);
       });
+      if (isTargetedRedirectIp) {
+        console.info(`[BOT REDIRECT] Slug: ${slug}, IP: ${ip}, Rule: 57.141.0.0/24`);
+      }
 
       let botUser: { botFallbackUrl?: string | null } | null = null
       try {
