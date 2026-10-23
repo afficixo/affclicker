@@ -126,10 +126,9 @@ const MetricCard = ({
         isDark ? 'text-white/50' : 'text-slate-500'
       }`}>{label}</p>
       {showIcon && (
-        <div className="shrink-0 rounded-lg p-1.5 ring-1 ring-inset" style={{
+        <div className="shrink-0 rounded-lg p-1.5" style={{
           backgroundColor: `${color}18`,
           color,
-          boxShadow: `inset 0 0 0 1px ${color}20`,
         }}>
           <Icon className="h-5 w-5" strokeWidth={1.75} />
         </div>
@@ -312,15 +311,15 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
-  const [appliedSearch, setAppliedSearch] = useState('')
   const [filterCountry, setFilterCountry] = useState('')
-  const [appliedFilterCountry, setAppliedFilterCountry] = useState('')
   const [filterUnique, setFilterUnique] = useState<'all' | 'unique' | 'repeat'>('all')
-  const [appliedFilterUnique, setAppliedFilterUnique] = useState<'all' | 'unique' | 'repeat'>('all')
   const [earningCurrency, setEarningCurrency] = useState<'USD' | 'BDT'>('BDT')
   const [refreshKey, setRefreshKey] = useState(0)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false)
+  const [showGeoInfo, setShowGeoInfo] = useState<string | null>(null)
+  const [showDeviceInfo, setShowDeviceInfo] = useState<string | null>(null)
+  const [showBrowserVersion, setShowBrowserVersion] = useState<string | null>(null)
   const [showPaymentMethodPrompt, setShowPaymentMethodPrompt] = useState(false)
   const paymentPromptShown = useRef(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -343,7 +342,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
       try {
         setIsRefreshing(true)
         const response = await fetch(
-          `/api/analytics/public/${publicId}?search=${encodeURIComponent(appliedSearch)}&country=${encodeURIComponent(appliedFilterCountry)}&unique=${encodeURIComponent(appliedFilterUnique)}&referrer=all&range=30d&limit=10000`,
+          `/api/analytics/public/${publicId}?search=${encodeURIComponent(search)}&country=${encodeURIComponent(filterCountry)}&unique=${encodeURIComponent(filterUnique)}&referrer=all&range=30d&limit=10000`,
           {
             signal: abortController.signal,
             cache: 'no-store',
@@ -375,7 +374,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
 
     fetchStats()
     return () => abortController.abort()
-  }, [publicId, appliedSearch, appliedFilterCountry, appliedFilterUnique, refreshKey])
+  }, [publicId, search, filterCountry, filterUnique, refreshKey])
 
   const getDeviceIcon = useCallback((deviceType: string | null, deviceBrand: string | null) => {
     if (!deviceType) return Monitor
@@ -600,9 +599,6 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
   }
 
   const selectedCountryLabel = filterCountry ? getCountryLabel(filterCountry) : ''
-  const hasUnappliedFilters = search !== appliedSearch
-    || filterCountry !== appliedFilterCountry
-    || filterUnique !== appliedFilterUnique
 
   return (
     <>
@@ -651,14 +647,14 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                 />
               </div>
               <div className="flex min-w-0 flex-1 items-center gap-3">
-                <div className="inline-flex border-l-2 border-emerald-400/80 pl-2">
-                  <span className="block max-w-full truncate text-sm font-semibold leading-none tracking-tight text-[#09eb63] sm:text-base">
+                <span className={`inline-flex min-w-0 max-w-full items-center rounded-md border px-2 py-1 text-xs font-medium tracking-tight ${
+                  isDark
+                    ? 'border-white/10 bg-white/[0.04] text-white/75'
+                    : 'border-slate-200 bg-slate-50 text-slate-700'
+                }`}>
+                  <span className="truncate">
                     {accountName && accountName !== 'Afficixo' ? accountName : 'Public Analytics'}
                   </span>
-                </div>
-                <span className={`hidden shrink-0 items-center gap-1.5 text-[11px] min-[360px]:inline-flex sm:text-xs ${isDark ? 'text-white/50' : 'text-slate-500'}`}>
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                  Analytics
                 </span>
               </div>
             </div>
@@ -668,34 +664,37 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                 href={`/payment/${publicId}`}
                 aria-label="Wallet and payment settings"
                 title="Wallet and payment settings"
-                className={`group flex min-h-10 min-w-0 items-center justify-between gap-2 rounded-lg border px-2.5 py-1.5 shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400/60 focus:ring-offset-2 sm:min-h-11 sm:gap-3 sm:rounded-xl sm:px-3 sm:py-2 ${
+                className={`group flex min-h-10 min-w-0 items-center justify-between gap-3 rounded-xl border px-3 py-2 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400/60 focus:ring-offset-2 sm:min-h-11 sm:px-3.5 ${
                   isDark
-                    ? 'border-emerald-400/20 bg-gradient-to-r from-emerald-400/[0.1] via-emerald-400/[0.06] to-emerald-400/[0.03] shadow-emerald-950/20 hover:border-emerald-400/40 hover:brightness-110 focus:ring-offset-slate-950'
-                    : 'border-emerald-200 bg-gradient-to-r from-emerald-50 via-white to-emerald-50/70 shadow-emerald-900/5 hover:border-emerald-300 hover:brightness-[0.98] focus:ring-offset-white'
+                    ? 'border-white/10 bg-white/[0.04] hover:border-emerald-400/30 hover:bg-white/[0.07] focus:ring-offset-slate-950'
+                    : 'border-slate-200 bg-white hover:border-emerald-300 hover:bg-emerald-50/50 focus:ring-offset-white'
                 }`}
               >
-                <div className="flex min-w-0 items-center gap-2.5">
-                  <span className={`inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border sm:h-8 sm:w-8 sm:rounded-lg ${
-                    isDark ? 'border-emerald-300/15 bg-emerald-300/10 text-emerald-300' : 'border-emerald-200 bg-white/80 text-emerald-700'
+                <div className="flex min-w-0 items-center gap-2">
+                  <span className={`inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${
+                    isDark ? 'bg-emerald-400/10 text-emerald-300' : 'bg-emerald-50 text-emerald-700'
                   }`}>
-                    <CreditCard className="h-4 w-4" />
+                    <CreditCard className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
                   </span>
-                  <span className={`truncate text-[11px] font-semibold sm:text-xs ${isDark ? 'text-emerald-100/80' : 'text-emerald-800'}`}>
+                  <span className={`truncate text-xs font-semibold ${isDark ? 'text-white/80' : 'text-slate-700'}`}>
                     Wallet
                   </span>
                 </div>
-                {unpaidEarning > 0 && (
-                  <span className={`shrink-0 whitespace-nowrap text-xs font-bold tracking-tight tabular-nums sm:text-sm ${isDark ? 'text-emerald-100' : 'text-emerald-900'}`}>
-                    {earningCurrency === 'USD'
-                      ? formatCurrency(unpaidEarning)
-                      : (
-                        <>
-                          <span className="align-baseline text-[0.78em] font-extrabold">৳</span>{' '}
-                          {formatTaka(unpaidEarning * 118)}
-                        </>
-                      )}
-                  </span>
-                )}
+                <span className="flex shrink-0 items-center gap-2">
+                  {unpaidEarning > 0 && (
+                    <span className={`whitespace-nowrap text-xs font-semibold tabular-nums ${isDark ? 'text-emerald-300' : 'text-emerald-700'}`}>
+                      {earningCurrency === 'USD'
+                        ? formatCurrency(unpaidEarning)
+                        : (
+                          <>
+                            <span className="align-baseline text-[0.78em] font-bold">৳</span>{' '}
+                            {formatTaka(unpaidEarning * 118)}
+                          </>
+                        )}
+                    </span>
+                  )}
+                  <ArrowRight className={`h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 ${isDark ? 'text-white/35' : 'text-slate-400'}`} aria-hidden="true" />
+                </span>
               </a>
               <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-1.5">
                 <button
@@ -803,25 +802,20 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
 
           {/* Chart & Geography */}
           <div className="mb-4 grid grid-cols-1 gap-3 sm:gap-4 lg:grid-cols-3">
-            <div className={`min-w-0 overflow-hidden rounded-xl border p-3 shadow-sm sm:rounded-2xl sm:p-5 lg:col-span-2 ${
-              isDark ? 'bg-white/[0.045] backdrop-blur-sm border-white/10' : 'bg-white/90 backdrop-blur-sm border-slate-200'
+            <div className={`min-w-0 overflow-hidden rounded-xl p-3 sm:rounded-2xl sm:p-4 lg:col-span-2 ${
+              isDark ? 'bg-white/[0.035]' : 'bg-white/80'
             }`}>
-              <div className="mb-3 flex items-center justify-between sm:mb-4">
-                <div className="flex items-center gap-2">
-                  <Activity className="h-5 w-5 text-emerald-400" strokeWidth={1.5} />
-                  <span className={`text-base font-semibold ${isDark ? 'text-white/80' : 'text-gray-700'}`}>Click Activity</span>
+              <div className="mb-2 flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <Activity className="h-4 w-4 text-emerald-400" strokeWidth={1.75} aria-hidden="true" />
+                  <span className={`text-sm font-medium ${isDark ? 'text-white/80' : 'text-slate-700'}`}>Click activity</span>
                 </div>
-                <div className={`flex items-center gap-2 text-xs ${isDark ? 'text-white/40' : 'text-gray-400'}`}>
-                  <span className="flex items-center gap-1">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                    Clicks
-                  </span>
-                </div>
+                <span className={`text-[11px] ${isDark ? 'text-white/40' : 'text-slate-500'}`}>Last 30 days</span>
               </div>
-              <div className="h-[240px] w-full min-w-0 overflow-hidden">
+              <div className="h-[220px] w-full min-w-0 overflow-hidden">
                 <Chart
                   data={chartData}
-                  height={240}
+                  height={220}
                   options={{
                     responsive: true,
                     maintainAspectRatio: false,
@@ -829,16 +823,18 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                     scales: {
                       y: {
                         beginAtZero: true,
-                        grid: { color: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.05)', drawBorder: false },
-                        ticks: { color: isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.45)', font: { size: 11 }, maxTicksLimit: 5 },
+                        grid: { color: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(15,23,42,0.06)', drawBorder: false },
+                        border: { display: false },
+                        ticks: { color: isDark ? 'rgba(255,255,255,0.4)' : 'rgba(71,85,105,0.8)', font: { size: 10 }, maxTicksLimit: 4, padding: 8 },
                       },
                       x: {
                         grid: { display: false },
+                        border: { display: false },
                         ticks: {
-                          color: isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.45)',
-                          font: { size: 11 },
+                          color: isDark ? 'rgba(255,255,255,0.4)' : 'rgba(71,85,105,0.8)',
+                          font: { size: 10 },
                           autoSkip: true,
-                          maxTicksLimit: 6,
+                          maxTicksLimit: 5,
                           maxRotation: 0,
                           minRotation: 0,
                         },
@@ -859,7 +855,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                   <span className={`text-sm font-medium ${isDark ? 'text-white/70' : 'text-gray-700'}`}>Top Countries</span>
                 </div>
               </div>
-              <div className="space-y-2.5 max-h-[200px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent">
+              <div className="space-y-2.5">
                 {geoSummary.slice(0, 5).map((country) => (
                   <CountryBar
                     key={country.country}
@@ -1050,23 +1046,6 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
               )}
             </div>
 
-            <button
-              type="button"
-              onClick={() => {
-                setAppliedSearch(search)
-                setAppliedFilterCountry(filterCountry)
-                setAppliedFilterUnique(filterUnique)
-              }}
-              disabled={!hasUnappliedFilters || isRefreshing}
-              className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
-                isDark
-                  ? 'bg-emerald-500 text-slate-950 hover:bg-emerald-400'
-                  : 'bg-emerald-600 text-white hover:bg-emerald-700'
-              }`}
-            >
-              {isRefreshing && hasUnappliedFilters ? 'Applying...' : 'Apply filters'}
-            </button>
-
             <div className="flex items-center gap-1 ml-auto">
               <span className={`text-[10px] px-2 py-1 rounded border ${
                 isDark ? 'text-white/30 bg-white/5 border-white/5' : 'text-gray-600 bg-gray-50 border-gray-200'
@@ -1082,64 +1061,136 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
               filteredClicks.map((click) => {
                 const DeviceIcon = getDeviceIcon(click.deviceType, click.deviceBrand)
                 const deviceLabel = getDeviceLabel(click)
+                const locationDetails = [
+                  click.city,
+                  click.region,
+                  click.isp && !['Unknown', 'Proxy Geo Header'].includes(click.isp) ? click.isp : null,
+                ]
+                  .filter((value): value is string => Boolean(value))
+                  .map((value) => decodeURIComponent(value))
                 return (
                   <article
                     key={click.id}
-                    className={`rounded-xl border p-3 ${
-                      isDark ? 'border-white/10 bg-white/[0.045]' : 'border-slate-200 bg-white'
+                    className={`rounded-xl border p-3 shadow-sm transition-colors ${
+                      isDark ? 'border-white/10 bg-white/[0.045] hover:border-white/15' : 'border-slate-200 bg-white hover:border-slate-300'
                     }`}
                   >
-                    <div className="flex items-start justify-between gap-2">
-                      <time className={`min-w-0 text-sm font-medium ${isDark ? 'text-white/75' : 'text-slate-700'}`}>
+                    <div className="flex min-w-0 items-center justify-between gap-3">
+                      <time
+                        dateTime={click.createdAt || click.timestamp}
+                        className={`min-w-0 truncate text-sm font-medium ${isDark ? 'text-white/75' : 'text-slate-700'}`}
+                      >
                         {formatDate(click.createdAt || click.timestamp)}
                       </time>
-                      <div className="flex shrink-0 items-center">
-                        <ClickStatusIcon isUnique={click.isUnique} isDark={isDark} />
-                      </div>
+                      <span className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-[10px] font-semibold ${
+                        click.isUnique
+                          ? (isDark ? 'bg-emerald-400/10 text-emerald-300' : 'bg-emerald-50 text-emerald-700')
+                          : (isDark ? 'bg-amber-400/10 text-amber-300' : 'bg-amber-50 text-amber-700')
+                      }`}>
+                        {click.isUnique
+                          ? <Check className="h-3 w-3" strokeWidth={2.5} aria-hidden="true" />
+                          : <X className="h-3 w-3" strokeWidth={2.5} aria-hidden="true" />}
+                        {click.isUnique ? 'Unique' : 'Repeat'}
+                      </span>
                     </div>
 
-                    <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3">
-                      <div className="min-w-0">
-                        <p className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-white/45' : 'text-slate-500'}`}>Location</p>
-                        <p className={`mt-1 truncate text-sm ${isDark ? 'text-white/85' : 'text-slate-700'}`} title={click.city ? `${getCountryLabel(click.country)}, ${decodeURIComponent(click.city)}` : getCountryLabel(click.country)}>
-                          <CountryFlag country={click.country} className="mr-1.5 inline-block h-3 w-[18px] align-middle" />{getCountryLabel(click.country)}
-                          {click.city && <span className={isDark ? 'text-white/40' : 'text-slate-500'}>, {decodeURIComponent(click.city)}</span>}
-                        </p>
+                    <div className="mt-3 flex min-w-0 flex-wrap items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setShowGeoInfo(showGeoInfo === click.id ? null : click.id)}
+                        aria-label={`Location: ${getCountryLabel(click.country)}. ${showGeoInfo === click.id ? 'Hide' : 'Show'} location details`}
+                        aria-pressed={showGeoInfo === click.id}
+                        title="Show location details"
+                        className={`inline-flex max-w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-xs transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
+                          showGeoInfo === click.id
+                            ? (isDark ? 'bg-white/10 text-white' : 'bg-slate-100 text-slate-900')
+                            : (isDark ? 'text-white/65 hover:bg-white/5 hover:text-white' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900')
+                        }`}
+                      >
+                        <CountryFlag country={click.country} className="h-3 w-[18px] shrink-0" />
+                        <span className="max-w-[120px] truncate">{getCountryLabel(click.country)}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowDeviceInfo(showDeviceInfo === click.id ? null : click.id)}
+                        aria-label={`Device: ${deviceLabel}. ${showDeviceInfo === click.id ? 'Hide' : 'Show'} device details`}
+                        aria-pressed={showDeviceInfo === click.id}
+                        title="Show device details"
+                        className={`inline-flex max-w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-xs transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
+                          showDeviceInfo === click.id
+                            ? (isDark ? 'bg-white/10 text-white' : 'bg-slate-100 text-slate-900')
+                            : (isDark ? 'text-white/65 hover:bg-white/5 hover:text-white' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900')
+                        }`}
+                      >
+                        <DeviceIcon
+                          className={`h-3.5 w-3.5 shrink-0 ${isDark ? 'text-white/55' : 'text-slate-400'}`}
+                          strokeWidth={1.5}
+                          aria-hidden="true"
+                        />
+                        <span className="max-w-[120px] truncate">{deviceLabel}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowBrowserVersion(showBrowserVersion === click.id ? null : click.id)}
+                        aria-label={`Browser: ${click.browser || 'Unknown'}, ${click.browserVersion || 'version unknown'}. ${showBrowserVersion === click.id ? 'Hide' : 'Show'} browser details`}
+                        aria-pressed={showBrowserVersion === click.id}
+                        title="Show browser details"
+                        className={`inline-flex max-w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-xs transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
+                          showBrowserVersion === click.id
+                            ? (isDark ? 'bg-white/10 text-white' : 'bg-slate-100 text-slate-900')
+                            : (isDark ? 'text-white/65 hover:bg-white/5 hover:text-white' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900')
+                        }`}
+                      >
+                        <BrowserLogo name={click.browser || 'Unknown'} />
+                        <span className="max-w-[90px] truncate">{click.browser || 'Unknown'}</span>
+                      </button>
+                    </div>
+
+                    {(showGeoInfo === click.id || showDeviceInfo === click.id || showBrowserVersion === click.id) && (
+                      <div className={`flex flex-wrap items-center gap-x-2 gap-y-1 pt-2 text-xs ${isDark ? 'text-white/65' : 'text-slate-600'}`}>
+                        {showGeoInfo === click.id && (
+                          <div className="flex min-w-0 items-center gap-1.5">
+                            <CountryFlag country={click.country} />
+                            <span className="min-w-0">
+                              <span className={`font-medium ${isDark ? 'text-white/80' : 'text-slate-700'}`}>{getCountryLabel(click.country)}</span>
+                              {locationDetails.length > 0 && (
+                                <span className="ml-1">{locationDetails.join(' · ')}</span>
+                              )}
+                            </span>
+                          </div>
+                        )}
+                        {showDeviceInfo === click.id && (
+                          <span>{deviceLabel}</span>
+                        )}
+                        {showBrowserVersion === click.id && (
+                          <span>{click.browser || 'Unknown'} · {click.browserVersion || 'Version not available'}</span>
+                        )}
                       </div>
-                      <div className="min-w-0">
-                        <p className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-white/45' : 'text-slate-500'}`}>IP address</p>
-                        <p className={`mt-1 truncate font-mono text-sm ${isDark ? 'text-cyan-300/90' : 'text-cyan-700'}`}>{click.ipAddress || 'N/A'}</p>
+                    )}
+
+                    <div className={`mt-3 flex min-w-0 flex-col gap-2 border-t pt-3 ${isDark ? 'border-white/10' : 'border-slate-200'}`}>
+                      <div
+                        className={`flex min-w-0 items-center gap-1.5 font-mono text-xs ${isDark ? 'text-cyan-200/90' : 'text-cyan-700'}`}
+                        title={`IP address: ${click.ipAddress || 'N/A'}`}
+                      >
+                        <Hash className={`h-3.5 w-3.5 shrink-0 ${isDark ? 'text-white/40' : 'text-slate-400'}`} aria-hidden="true" />
+                        <span className="truncate">{click.ipAddress || 'N/A'}</span>
                       </div>
-                      <div className="min-w-0">
-                        <p className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-white/45' : 'text-slate-500'}`}>Device</p>
-                        <p className={`mt-1 flex min-w-0 items-center gap-1.5 text-sm ${isDark ? 'text-white/75' : 'text-slate-700'}`}>
-                          <DeviceIcon className={`h-4 w-4 shrink-0 ${isDark ? 'text-white/50' : 'text-slate-400'}`} strokeWidth={1.5} />
-                          <span className="truncate" title={deviceLabel}>{deviceLabel}</span>
-                        </p>
-                      </div>
-                      <div className="min-w-0">
-                        <p className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-white/45' : 'text-slate-500'}`}>Browser</p>
-                        <div className={`mt-1 flex min-w-0 items-center gap-1.5 text-sm ${isDark ? 'text-white/75' : 'text-slate-700'}`} title={`${click.browser || 'Unknown'}${click.browserVersion ? ` v${click.browserVersion}` : ''}`}>
-                          <BrowserLogo name={click.browser || 'Unknown'} />
-                          <p className="truncate">
-                            {click.browser || 'Unknown'}{click.browserVersion && <span className={isDark ? 'text-white/35' : 'text-slate-500'}> v{click.browserVersion}</span>}
-                          </p>
-                        </div>
-                      </div>
-                      <div className={`col-span-2 min-w-0 border-t pt-2 ${isDark ? 'border-white/10' : 'border-slate-200'}`}>
-                        <p className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-white/45' : 'text-slate-500'}`}>Referrer</p>
+                      <div className={`flex min-w-0 items-center gap-1.5 text-xs ${isDark ? 'text-white/65' : 'text-slate-600'}`}>
+                        <Link2 className={`h-3.5 w-3.5 shrink-0 ${isDark ? 'text-white/40' : 'text-slate-400'}`} aria-hidden="true" />
                         {click.referrer ? (
                           <a
                             href={click.referrer}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className={`mt-1 block truncate text-sm transition-colors ${isDark ? 'text-emerald-300/90 hover:text-emerald-200' : 'text-emerald-700 hover:text-emerald-900'}`}
+                            className={`min-w-0 flex-1 truncate transition-colors ${isDark ? 'text-emerald-300/90 hover:text-emerald-200' : 'text-emerald-700 hover:text-emerald-900'}`}
+                            aria-label={`Referrer: ${click.referrer}`}
                             title={click.referrer}
                           >
                             {click.referrer}
                           </a>
                         ) : (
-                          <span className={`mt-1 block text-sm ${isDark ? 'text-white/50' : 'text-slate-500'}`}>Direct</span>
+                          <span className={isDark ? 'text-white/50' : 'text-slate-500'}>Direct</span>
                         )}
                       </div>
                     </div>
