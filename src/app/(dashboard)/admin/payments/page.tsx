@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
@@ -380,11 +379,6 @@ export default function PaymentsPage() {
   return (
     <div className="space-y-5 pb-8">
       <div className="flex flex-col gap-4 border-b border-slate-200 pb-5 dark:border-white/10 sm:flex-row sm:items-end sm:justify-between">
-        <div className="min-w-0">
-          <p className="text-sm font-semibold uppercase tracking-[0.16em] text-sky-800 dark:text-sky-200">Finance</p>
-          <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-950 dark:text-white sm:text-3xl">Payments</h1>
-          <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-700 dark:text-slate-300">Review earnings, payout activity, and payment details in one place.</p>
-        </div>
         <div className="flex shrink-0 items-center gap-3 self-start rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm dark:border-white/10 dark:bg-slate-900/60 sm:self-end">
           <span className="hidden text-sm font-medium text-slate-700 dark:text-slate-300 sm:inline">1 USD = 118 BDT</span>
           <div className="flex rounded-lg border border-slate-200 bg-slate-100 p-0.5 dark:border-white/10 dark:bg-slate-950/70" aria-label="Display currency">

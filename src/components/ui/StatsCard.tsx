@@ -30,12 +30,12 @@ export function StatsCard({
   className = '',
 }: StatsCardProps) {
   const colorClasses = {
-    indigo: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300',
-    green: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300',
-    purple: 'bg-violet-100 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300',
-    red: 'bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300',
-    blue: 'bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300',
-    orange: 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300',
+    indigo: 'text-indigo-700 dark:text-indigo-200',
+    green: 'text-emerald-700 dark:text-emerald-200',
+    purple: 'text-violet-700 dark:text-violet-200',
+    red: 'text-rose-700 dark:text-rose-200',
+    blue: 'text-sky-700 dark:text-sky-200',
+    orange: 'text-amber-700 dark:text-amber-200',
   }
 
   const isPositive = trend !== undefined && trend >= 0
@@ -49,7 +49,7 @@ export function StatsCard({
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-600 dark:text-slate-300">
+          <p className="text-[10px] font-semibold uppercase leading-[14px] tracking-[0.08em] text-slate-600 dark:text-slate-300 sm:text-xs sm:leading-5 sm:tracking-[0.12em]">
             {title}
           </p>
           <p className="mt-2 text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
@@ -65,8 +65,8 @@ export function StatsCard({
             </p>
           )}
         </div>
-        <div className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg ${colorClasses[color]}`}>
-          <Icon className="h-4 w-4" />
+        <div aria-hidden="true" className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl ${colorClasses[color]}`}>
+          <Icon className="h-[18px] w-[18px]" strokeWidth={1.8} />
         </div>
       </div>
 

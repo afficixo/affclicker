@@ -13,7 +13,7 @@ import {
   Loader2,
   X,
   Inbox,
-  RefreshCw,
+  MoreHorizontal,
 } from 'lucide-react'
 
 type ManagerUser = {
@@ -94,8 +94,48 @@ function ActionButtons({
     ? 'min-h-10 rounded-lg px-3 text-sm'
     : 'min-h-9 rounded-lg px-2.5 py-1.5 text-xs'
 
+  if (manager.status === 'PENDING') {
+    return (
+      <div className={`ml-auto grid w-full grid-cols-2 gap-2 ${mobile ? 'max-w-none' : 'max-w-[220px]'}`}>
+        <button
+          type="button"
+          disabled={isActionLoading}
+          onClick={() => updateStatus(manager.id, 'ACTIVE')}
+          className={`inline-flex min-w-0 w-full items-center justify-center gap-1.5 border border-[#359f25]/35 bg-[#efffec] font-semibold text-[#24651d] transition hover:border-[#359f25]/60 hover:bg-[#d9ffd0] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#359f25] disabled:cursor-wait disabled:opacity-60 dark:border-[#5ff442]/30 dark:bg-[#5ff442]/10 dark:text-[#a2fa8e] dark:hover:border-[#8aff70]/40 dark:hover:bg-[#5ff442]/15 dark:focus-visible:ring-[#8aff70] ${buttonBase}`}
+        >
+          {isActionLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
+          Approve
+        </button>
+        <button
+          type="button"
+          disabled={isActionLoading}
+          onClick={() => updateStatus(manager.id, 'REJECTED')}
+          className={`inline-flex min-w-0 w-full items-center justify-center gap-1.5 border border-rose-700/30 bg-rose-50 font-semibold text-rose-900 transition hover:border-rose-700/50 hover:bg-rose-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-600 disabled:cursor-wait disabled:opacity-60 dark:border-rose-300/25 dark:bg-rose-300/10 dark:text-rose-100 dark:hover:border-rose-200/40 dark:hover:bg-rose-300/15 dark:focus-visible:ring-rose-300 ${buttonBase}`}
+        >
+          {isActionLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <AlertTriangle className="h-3.5 w-3.5" />}
+          Reject
+        </button>
+      </div>
+    )
+  }
+
   return (
-    <div className={`ml-auto grid w-full grid-cols-2 gap-2 ${mobile ? 'max-w-none' : 'max-w-[220px]'}`}>
+    <details
+      className="relative ml-auto w-fit"
+      onClick={(event) => {
+        if (event.target instanceof Element && event.target.closest('button')) {
+          event.currentTarget.open = false
+        }
+      }}
+    >
+      <summary
+        aria-label={`Actions for ${manager.username}`}
+        title={`Actions for ${manager.username}`}
+        className="flex min-h-10 w-10 cursor-pointer items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700 transition hover:border-slate-400 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 dark:border-slate-600 dark:bg-slate-800/70 dark:text-slate-100 dark:hover:border-slate-500 dark:hover:bg-slate-700 [&::-webkit-details-marker]:hidden"
+      >
+        <MoreHorizontal className="h-5 w-5" aria-hidden="true" />
+      </summary>
+      <div className="absolute right-0 top-full z-20 mt-2 grid w-44 gap-1 rounded-xl border border-slate-200 bg-white p-2 shadow-lg dark:border-white/10 dark:bg-[#263238]">
       {manager.status !== 'ACTIVE' && (
         <button
           type="button"
@@ -120,7 +160,7 @@ function ActionButtons({
         </button>
       )}
 
-      {manager.status !== 'PENDING' && manager.status !== 'REJECTED' && (
+      {manager.status !== 'REJECTED' && (
         <button
           type="button"
           disabled={isActionLoading}
@@ -153,7 +193,8 @@ function ActionButtons({
         {isActionLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
         Delete
       </button>
-    </div>
+      </div>
+    </details>
   )
 }
 
@@ -163,7 +204,6 @@ export default function OwnerManagersPage() {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<'ALL' | ManagerUser['status']>('ALL')
   const [loading, setLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
   const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogState | null>(null)
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null)
   const [toasts, setToasts] = useState<Toast[]>([])
@@ -216,10 +256,9 @@ export default function OwnerManagersPage() {
   }, [managers, search, statusFilter])
 
   const loadManagers = useCallback(
-    async (silent = false) => {
+    async () => {
       try {
-        if (silent) setRefreshing(true)
-        else setLoading(true)
+        setLoading(true)
 
         const response = await fetch('/api/owner/managers', { credentials: 'include' })
 
@@ -248,14 +287,13 @@ export default function OwnerManagersPage() {
         pushToast('error', 'Unable to load manager accounts. Please check your connection.')
       } finally {
         setLoading(false)
-        setRefreshing(false)
       }
     },
     [router, pushToast],
   )
 
   useEffect(() => {
-    void loadManagers(false)
+    void loadManagers()
   }, [loadManagers])
 
   const updateStatus = async (id: string, status: ManagerUser['status']) => {
@@ -379,24 +417,7 @@ export default function OwnerManagersPage() {
 
   return (
     <div className="min-h-full bg-[var(--page-bg)] px-4 py-5 text-[var(--text-primary)] sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-screen-2xl space-y-6">
-        <header className="flex flex-col gap-4 border-b border-slate-200 pb-5 dark:border-slate-700/70 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#2b7d20] dark:text-[#8aff70]">Owner workspace</p>
-            <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-950 dark:text-white sm:text-3xl">Manager accounts</h1>
-            <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-700 dark:text-slate-300">Review team accounts, check their details, and manage access status.</p>
-          </div>
-          <button
-            type="button"
-            onClick={() => void loadManagers(true)}
-            disabled={refreshing}
-            className="inline-flex min-h-10 items-center justify-center gap-2 self-start rounded-lg border border-slate-300 bg-white px-3.5 text-sm font-semibold text-slate-800 shadow-sm transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 disabled:cursor-wait disabled:opacity-60 dark:border-slate-600 dark:bg-slate-900/70 dark:text-slate-100 dark:hover:bg-slate-800 dark:focus-visible:ring-cyan-300 sm:self-auto"
-          >
-            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-            {refreshing ? 'Refreshing…' : 'Refresh'}
-          </button>
-        </header>
-
+      <div className="mx-auto w-full max-w-none space-y-6">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {statCards.map((item) => {
             const Icon = item.icon
@@ -476,16 +497,15 @@ export default function OwnerManagersPage() {
         </section>
 
         {/* Desktop Table */}
-        <div className="hidden overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm dark:border-white/10 dark:bg-[#263238] md:block">
-          <div className="max-h-[70vh] overflow-auto">
-            <table className="w-full min-w-[1120px] table-fixed text-left text-sm">
+        <div className="hidden w-full md:block">
+          <table className="w-full table-fixed text-left text-sm">
               <thead className="sticky top-0 z-10 bg-slate-100 text-xs font-semibold uppercase tracking-wider text-slate-700 dark:bg-[#202b2f] dark:text-slate-200">
                 <tr>
-                  <th className="w-[19%] px-4 py-3">Manager</th>
-                  <th className="w-[20%] px-4 py-3">Email</th>
-                  <th className="w-[27%] px-4 py-3">Details</th>
+                  <th className="w-[18%] px-4 py-3">Manager</th>
+                  <th className="w-[22%] px-4 py-3">Email</th>
+                  <th className="w-[30%] px-4 py-3">Details</th>
                   <th className="w-[13%] px-4 py-3">Status</th>
-                  <th className="w-[21%] px-4 py-3 text-right">Actions</th>
+                  <th className="w-[17%] px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -506,7 +526,7 @@ export default function OwnerManagersPage() {
                     const isActionLoading = actionLoadingId === manager.id
                     return (
                       <tr key={manager.id} className="border-t border-slate-200 transition-colors hover:bg-slate-50 dark:border-white/10 dark:hover:bg-[#303d42]">
-                        <td className="w-[190px] px-4 py-3 align-top">
+                        <td className="px-4 py-3 align-top">
                           <div className="flex items-center gap-3">
                             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#efffec] text-sm font-bold text-[#24651d] ring-1 ring-[#359f25]/15 dark:bg-[#5ff442]/10 dark:text-[#a2fa8e] dark:ring-[#5ff442]/10">
                               {manager.username.slice(0, 1).toUpperCase()}
@@ -548,8 +568,7 @@ export default function OwnerManagersPage() {
                   })
                 )}
               </tbody>
-            </table>
-          </div>
+          </table>
         </div>
 
         {/* Mobile Cards */}

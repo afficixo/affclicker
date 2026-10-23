@@ -9,6 +9,7 @@ import {
 } from '@/lib/utils/landing-page-host'
 import {
   Plus,
+  Rocket,
   Trash2,
   Copy,
   Check,
@@ -84,6 +85,8 @@ export default function LandingPageBuilder() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [publishedSite, setPublishedSite] = useState<{ subdomain: string; customText?: string } | null>(null)
+  const [copiedPublishedItem, setCopiedPublishedItem] = useState<string | null>(null)
   const [landingPageDomain, setLandingPageDomain] = useState('')
   const [landingPageDomains, setLandingPageDomains] = useState<LandingPageDomainSetting[]>(DEFAULT_LANDING_PAGE_DOMAIN_SETTINGS)
   const [userId, setUserId] = useState<string | null>(null)
@@ -193,6 +196,17 @@ export default function LandingPageBuilder() {
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [deleteConfirmation, isDeleting])
 
+  useEffect(() => {
+    if (!publishedSite) return
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setPublishedSite(null)
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [publishedSite])
+
   const validateSubdomain = async (value: string) => {
     setSubdomain(value)
     if (!value.trim()) {
@@ -246,21 +260,35 @@ export default function LandingPageBuilder() {
         throw new Error(data.error || 'Failed to create landing page')
       }
 
-      setSuccess('Landing page created successfully!')
-      setCurrentStep('list')
+      const createdPage: Pick<LandingPage, 'subdomain'> = await response.json()
+      setPublishedSite({ subdomain: createdPage.subdomain, customText: selectedTemplate.customText })
+      setCopiedPublishedItem(null)
       
       setSubdomain('')
       setTrackingUrl('')
       setSelectedTemplate(null)
-      
-      setTimeout(() => {
-        fetchLandingPages()
-        setSuccess('')
-      }, 1500)
+      fetchLandingPages()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create landing page')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const copyPublishedContent = async (domain: LandingPageDomainSetting, includeText: boolean) => {
+    if (!publishedSite) return
+
+    const url = formatLandingPageUrl(publishedSite.subdomain, domain)
+    const text = includeText && publishedSite.customText
+      ? publishedSite.customText.replace(/\{link\}/gi, `${url}_`)
+      : url
+    const copiedKey = `${domain.domain}-${includeText ? 'text' : 'url'}`
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopiedPublishedItem(copiedKey)
+    } catch (err) {
+      console.error('Copy published site content failed:', err)
+      setError(includeText ? 'Failed to copy share text' : 'Failed to copy site link')
     }
   }
 
@@ -401,6 +429,85 @@ export default function LandingPageBuilder() {
           </div>
         )}
 
+        {publishedSite && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/60 px-4 py-6 backdrop-blur-sm">
+            <section
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="publish-success-title"
+              className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-xl border border-[var(--surface-border)] bg-[var(--surface-card)] p-4 shadow-2xl sm:p-5"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-300">
+                  <Rocket className="h-4 w-4" aria-hidden="true" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h2 id="publish-success-title" className="text-sm font-semibold text-[var(--text-primary)]">
+                    Site published
+                  </h2>
+                  <p className="text-xs text-[var(--text-secondary)]">
+                    Your page is live.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setPublishedSite(null)}
+                  aria-label="Close publish confirmation"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[var(--surface-border)] text-[var(--text-secondary)] transition-colors hover:border-[var(--text-secondary)] hover:bg-[var(--surface-elevated)] hover:text-[var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface-card)] active:scale-95"
+                >
+                  <X className="h-4 w-4" aria-hidden="true" />
+                </button>
+              </div>
+              {error && (
+                <p role="alert" className="mt-3 text-sm text-red-600 dark:text-red-300">
+                  {error}
+                </p>
+              )}
+              <div className="mt-4 space-y-2">
+                {(landingPageDomains.length > 0
+                  ? landingPageDomains
+                  : [{ domain: landingPageDomain, includeProtocol: false }]
+                ).map((domain) => {
+                  const url = formatLandingPageUrl(publishedSite.subdomain, domain)
+                  const urlCopyKey = `${domain.domain}-url`
+                  const textCopyKey = `${domain.domain}-text`
+
+                  return (
+                    <div key={domain.domain} className="rounded-lg border border-[var(--surface-border)] px-3 py-2.5">
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-xs font-medium text-[var(--text-secondary)]">{domain.domain}</p>
+                          <p className="break-all font-mono text-xs text-[var(--text-primary)]">{url}</p>
+                        </div>
+                        <div className="flex shrink-0 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => copyPublishedContent(domain, false)}
+                            className="inline-flex min-h-8 flex-1 items-center justify-center gap-1.5 rounded-md bg-emerald-600 px-2.5 text-xs font-medium text-white transition-colors hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 dark:bg-emerald-400 dark:text-[#06142d] dark:hover:bg-emerald-300 sm:flex-none"
+                          >
+                            {copiedPublishedItem === urlCopyKey ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                            {copiedPublishedItem === urlCopyKey ? 'Copied' : 'Copy URL'}
+                          </button>
+                          {publishedSite.customText && (
+                            <button
+                              type="button"
+                              onClick={() => copyPublishedContent(domain, true)}
+                              className="inline-flex min-h-8 flex-1 items-center justify-center gap-1.5 rounded-md border border-[var(--surface-border)] px-2.5 text-xs font-medium text-[var(--text-primary)] transition-colors hover:bg-[var(--surface-elevated)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 sm:flex-none"
+                            >
+                              {copiedPublishedItem === textCopyKey ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                              {copiedPublishedItem === textCopyKey ? 'Copied' : 'Copy message'}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </section>
+          </div>
+        )}
+
         {currentStep === 'list' ? (
           <>
             {/* List View Header */}
@@ -412,7 +519,6 @@ export default function LandingPageBuilder() {
                     <Globe className="h-5 w-5" />
                   </div>
                   <div>
-                    <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-cyan-700 dark:text-cyan-300">Campaign workspace</p>
                     <h1 className="text-2xl font-bold tracking-tight text-[var(--text-primary)] sm:text-3xl">Landing pages</h1>
                     <p className="mt-1 text-sm text-[var(--text-secondary)]">
                       {userRole === 'OWNER' ? 'Review and manage pages created by your team.' : 'Create and manage pages for your campaigns.'}
@@ -571,8 +677,8 @@ export default function LandingPageBuilder() {
                     onClick={() => setCurrentStep('builder')}
                     className="mt-5 inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-500 dark:bg-emerald-400 dark:text-[#06142d] dark:hover:bg-emerald-300"
                   >
-                    <Plus className="h-4 w-4" />
-                    Create landing page
+                    <Rocket className="h-4 w-4" />
+                    Publish landing page
                   </button>
                 )}
               </div>
@@ -728,47 +834,27 @@ export default function LandingPageBuilder() {
         ) : (
           <>
             {/* Builder View */}
-            <div className="mb-6 flex flex-wrap items-start gap-4 rounded-2xl border border-[var(--surface-border)] bg-[var(--surface-card)] p-5 shadow-sm sm:p-6">
+            <div className="mb-8">
               <button
                 onClick={() => setCurrentStep('list')}
-                className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-[var(--surface-border)] bg-[var(--surface-elevated)] px-3 py-2 text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
+                className="mb-4 inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-emerald-900/15 transition-colors hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--page-bg)] dark:bg-emerald-400 dark:text-[#06142d] dark:hover:bg-emerald-300"
                 aria-label="Back to landing pages"
               >
                 <ArrowLeft className="h-4 w-4" />
-                Back
+                All landing pages
               </button>
-              <div>
-                <h1 className="text-xl font-bold tracking-tight text-[var(--text-primary)] sm:text-2xl">New landing page</h1>
-                <p className="mt-1 text-sm text-[var(--text-secondary)]">Choose a URL, destination, and template for your page.</p>
-              </div>
             </div>
 
             <div className="w-full">
-              <form onSubmit={createLandingPage} className="grid items-start gap-5 lg:grid-cols-2">
-                {/* Step 1 */}
-                <div className="rounded-xl border border-[var(--surface-border)] bg-[var(--surface-card)] p-5 shadow-sm sm:p-6">
-                  <div className="mb-4 flex items-center justify-between gap-3">
+              <form onSubmit={createLandingPage} className="flex flex-col gap-5">
+                {/* Step 2 */}
+                <div className="order-2">
+                  <div className="mb-4 flex items-center gap-3">
                     <div className="flex min-w-0 items-center gap-2">
+                      <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-emerald-500/10 px-2 text-xs font-bold text-emerald-600 dark:text-emerald-300">2</span>
                       <Globe className="h-4 w-4 shrink-0 text-indigo-400" />
                       <h3 className="truncate text-lg font-semibold text-[var(--text-primary)]">Basic Information</h3>
                     </div>
-                    <button
-                      type="submit"
-                      disabled={loading || !selectedTemplate}
-                      className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-emerald-900/15 transition-colors hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-emerald-400 dark:text-[#06142d] dark:hover:bg-emerald-300"
-                    >
-                      {loading ? (
-                        <>
-                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                          Creating...
-                        </>
-                      ) : (
-                        <>
-                          <Plus className="h-4 w-4" />
-                          Create
-                        </>
-                      )}
-                    </button>
                   </div>
 
                   <div className="space-y-4">
@@ -815,9 +901,10 @@ export default function LandingPageBuilder() {
                   </div>
                 </div>
 
-                {/* Step 2 */}
-                <div className="rounded-xl border border-[var(--surface-border)] bg-[var(--surface-card)] p-5 shadow-sm sm:p-6">
+                {/* Step 1 */}
+                <div className="order-1">
                   <div className="mb-4 flex items-center gap-2">
+                    <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-emerald-500/10 px-2 text-xs font-bold text-emerald-600 dark:text-emerald-300">1</span>
                     <Zap className="h-4 w-4 text-indigo-400" />
                     <h3 className="text-lg font-semibold text-[var(--text-primary)]">Choose a template</h3>
                   </div>
@@ -831,27 +918,28 @@ export default function LandingPageBuilder() {
                       <p className="text-sm text-[var(--text-secondary)]">
                         Use the arrows to browse and change the template.
                       </p>
-                      <div className="flex items-center justify-center gap-3 rounded-lg border border-[var(--surface-border)] bg-[var(--surface-elevated)] px-2 py-1.5">
+                      <div className="mx-auto flex w-fit items-center gap-4 py-1">
                         <button
                           type="button"
                           aria-label="Previous template"
                           disabled={templates.length <= 1}
                           onClick={() => selectTemplateAt((templateIndex - 1 + templates.length) % templates.length)}
-                          className="rounded-md border border-[var(--surface-border)] bg-[var(--surface-card)] p-1.5 text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)] disabled:cursor-not-allowed disabled:opacity-40"
+                          className="group flex h-9 w-11 items-center justify-center rounded-xl border border-[var(--surface-border)] bg-[var(--surface-elevated)] text-[var(--text-secondary)] shadow-sm transition-[transform,border-color,background-color,color,box-shadow] duration-200 ease-out enabled:hover:-translate-y-0.5 enabled:hover:border-emerald-500/50 enabled:hover:bg-emerald-500/10 enabled:hover:text-emerald-500 enabled:hover:shadow-md enabled:active:translate-y-0 enabled:active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 disabled:cursor-not-allowed disabled:opacity-40 motion-reduce:transform-none motion-reduce:transition-none"
                         >
-                          <ChevronLeft className="h-4 w-4" />
+                          <ChevronLeft className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-0.5 motion-reduce:transform-none motion-reduce:transition-none" />
                         </button>
-                        <span className="min-w-28 text-center text-sm font-medium text-[var(--text-primary)]">
-                          Template {templateIndex + 1} of {templates.length}
+                        <span aria-live="polite" className="flex min-w-28 items-baseline justify-center gap-1.5 text-sm">
+                          <span className="font-semibold tabular-nums text-[var(--text-primary)]">{templateIndex + 1}</span>
+                          <span className="text-[var(--text-muted)]">of {templates.length} templates</span>
                         </span>
                         <button
                           type="button"
                           aria-label="Next template"
                           disabled={templates.length <= 1}
                           onClick={() => selectTemplateAt((templateIndex + 1) % templates.length)}
-                          className="rounded-md border border-[var(--surface-border)] bg-[var(--surface-card)] p-1.5 text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)] disabled:cursor-not-allowed disabled:opacity-40"
+                          className="group flex h-9 w-11 items-center justify-center rounded-xl border border-[var(--surface-border)] bg-[var(--surface-elevated)] text-[var(--text-secondary)] shadow-sm transition-[transform,border-color,background-color,color,box-shadow] duration-200 ease-out enabled:hover:-translate-y-0.5 enabled:hover:border-emerald-500/50 enabled:hover:bg-emerald-500/10 enabled:hover:text-emerald-500 enabled:hover:shadow-md enabled:active:translate-y-0 enabled:active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 disabled:cursor-not-allowed disabled:opacity-40 motion-reduce:transform-none motion-reduce:transition-none"
                         >
-                          <ChevronRight className="h-4 w-4" />
+                          <ChevronRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5 motion-reduce:transform-none motion-reduce:transition-none" />
                         </button>
                       </div>
 
@@ -864,6 +952,7 @@ export default function LandingPageBuilder() {
                             onClick={() => selectTemplateAt(templateIndex)}
                             className="w-full rounded-lg border border-[var(--surface-border)] bg-[var(--surface-elevated)] p-3 text-left transition-colors hover:border-cyan-500/50"
                           >
+                            <h4 className="mb-3 break-words text-center text-sm font-semibold text-[var(--text-primary)]">{template.name}</h4>
                             {template.thumbnail && (
                               <Image
                                 src={template.thumbnail}
@@ -873,16 +962,20 @@ export default function LandingPageBuilder() {
                                 className="mb-3 h-48 w-full rounded-md bg-slate-100 object-contain dark:bg-slate-950/40"
                               />
                             )}
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="min-w-0">
-                                <h4 className="break-words text-sm font-semibold text-[var(--text-primary)]">{template.name}</h4>
+                            <div className="flex w-full items-start justify-between gap-2">
+                              <div className="w-full min-w-0">
                                 {template.description && (
-                                  <p
+                                  <div
                                     onPointerDown={(event) => event.stopPropagation()}
-                                    className="mt-2 cursor-text select-text break-words rounded-md border border-amber-400/30 bg-amber-400/10 px-2 py-1.5 text-xs font-medium leading-5 text-amber-200"
+                                    className="mt-2 cursor-text select-text break-words rounded-lg border border-cyan-500/20 bg-cyan-500/5 px-3 py-2.5 dark:bg-cyan-400/5"
                                   >
-                                    {template.description}
-                                  </p>
+                                    <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-cyan-700 dark:text-cyan-300">
+                                      Template note
+                                    </p>
+                                    <p className="whitespace-pre-line text-sm font-normal leading-5 text-[var(--text-secondary)]">
+                                      {template.description}
+                                    </p>
+                                  </div>
                                 )}
                               </div>
                             </div>
@@ -891,6 +984,26 @@ export default function LandingPageBuilder() {
                       })()}
                     </div>
                   )}
+                </div>
+
+                <div className="order-3 flex justify-end border-t border-[var(--surface-border)] pt-4">
+                  <button
+                    type="submit"
+                    disabled={loading || !selectedTemplate}
+                    className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-5 text-sm font-semibold text-white shadow-sm shadow-emerald-900/15 transition-colors hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-emerald-400 dark:text-[#06142d] dark:hover:bg-emerald-300 sm:w-auto"
+                  >
+                    {loading ? (
+                      <>
+                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                        Publishing...
+                      </>
+                    ) : (
+                      <>
+                        <Rocket className="h-4 w-4" />
+                        Publish
+                      </>
+                    )}
+                  </button>
                 </div>
 
               </form>

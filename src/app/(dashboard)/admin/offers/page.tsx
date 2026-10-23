@@ -11,8 +11,6 @@ import {
   Trash2,
   Check,
   X,
-  Power,
-  PowerOff,
   ShieldCheck,
   MapPinned,
   Flag,
@@ -44,6 +42,46 @@ interface Offer {
   rotationMode: "PRIORITY" | "RANDOM";
 }
 
+function OfferStatusSwitch({
+  isActive,
+  offerLabel,
+  onToggle,
+}: {
+  isActive: boolean;
+  offerLabel: string;
+  onToggle: () => void;
+}) {
+  const nextAction = isActive ? "Pause" : "Activate";
+
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={isActive}
+      aria-label={`${offerLabel} offer status`}
+      title={`${nextAction} offer`}
+      onClick={onToggle}
+      className="offer-vault-muted inline-flex h-8 items-center gap-2 rounded-md border-0 bg-transparent px-2 text-xs font-medium transition-colors hover:text-[var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/60"
+    >
+      <span
+        aria-hidden="true"
+        className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors ${
+          isActive ? "bg-emerald-500" : "bg-slate-400/50"
+        }`}
+      >
+        <span
+          className={`h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform ${
+            isActive ? "translate-x-4" : "translate-x-1"
+          }`}
+        />
+      </span>
+      <span className={isActive ? "text-emerald-500" : "offer-vault-muted"}>
+        {isActive ? "Active" : "Paused"}
+      </span>
+    </button>
+  );
+}
+
 interface ConfirmDialogState {
   title: string;
   message: string;
@@ -59,10 +97,10 @@ interface RenameModalState {
 }
 
 const getFlagImageUrl = (code: string) => {
-  if (!code || code === "GLOBAL") return "https://flagcdn.com/w40/gb.png";
+  if (!code || code === "GLOBAL") return "https://flagcdn.com/gb.svg";
   const normalized = code.toUpperCase();
-  if (normalized.length !== 2) return "https://flagcdn.com/w40/gb.png";
-  return `https://flagcdn.com/w40/${normalized.toLowerCase()}.png`;
+  if (normalized.length !== 2) return "https://flagcdn.com/gb.svg";
+  return `https://flagcdn.com/${normalized.toLowerCase()}.svg`;
 };
 
 const normalizeGroupName = (value?: string | null) => value?.trim() ?? "";
@@ -233,6 +271,7 @@ export default function OffersPage() {
   });
   const [searchTerm, setSearchTerm] = useState("");
   const [filterActiveOnly, setFilterActiveOnly] = useState(false);
+  const [expandedPools, setExpandedPools] = useState<Record<string, boolean>>({});
   const countryPickerRef = useRef<HTMLDivElement | null>(null);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -376,6 +415,7 @@ export default function OffersPage() {
       return matchesSearch && matchesActive;
     });
   }, [offers, searchTerm, filterActiveOnly]);
+  const filteredUngroupedOffers = filteredOffers.filter((offer) => !normalizeGroupName(offer.groupName));
 
   const handleCountrySelect = (countryCode: string) => {
     setFormData((prev) => ({
@@ -790,7 +830,7 @@ export default function OffersPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-2 backdrop-blur-sm sm:p-4"
             onClick={(e) => {
               if (e.target === e.currentTarget) closeFormModal();
             }}
@@ -800,43 +840,51 @@ export default function OffersPage() {
               initial="hidden"
               animate="visible"
               exit="exit"
-              className="w-full sm:max-w-lg rounded-t-2xl sm:rounded-xl border border-slate-200 bg-white p-5 text-slate-900 shadow-2xl shadow-slate-900/10 max-h-[90vh] overflow-y-auto dark:border-white/10 dark:bg-[#0d1724] dark:text-slate-100 sm:p-6 dark:shadow-indigo-500/10"
+              className="offer-vault-modal max-h-[calc(100dvh-1rem)] w-full max-w-2xl overflow-y-auto rounded-2xl border p-4 shadow-2xl sm:p-6"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between mb-5">
+              <div className="offer-vault-modal-header sticky top-0 z-10 -mx-4 -mt-4 mb-5 flex items-center justify-between border-b px-4 py-3 sm:-mx-6 sm:-mt-6 sm:px-6">
                 <div className="flex items-center gap-2.5">
-                  <Plus className="h-5 w-5 text-indigo-500 dark:text-indigo-300" />
-                  <h2 className="text-lg font-semibold text-slate-900 dark:!text-white">
-                    {editingId ? "Edit Offer" : "Add Offer"}
-                  </h2>
+                  <div className="offer-vault-modal-icon flex h-9 w-9 items-center justify-center rounded-lg">
+                    {editingId ? <Edit aria-hidden="true" className="h-4 w-4" /> : <Plus aria-hidden="true" className="h-4 w-4" />}
+                  </div>
+                  <div>
+                    <h2 className="offer-vault-title text-base font-semibold">
+                      {editingId ? "Edit offer" : "Add offer"}
+                    </h2>
+                    <p className="offer-vault-muted text-xs">Configure targeting and routing behavior</p>
+                  </div>
                 </div>
                 <button
+                  type="button"
                   onClick={closeFormModal}
-                  className="p-2 rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:!text-white"
+                  className="offer-vault-icon-action flex h-9 w-9 items-center justify-center rounded-lg transition-colors"
                   aria-label="Close"
+                  title="Close"
                 >
-                  <X className="w-5 h-5" />
+                  <X aria-hidden="true" className="h-4 w-4" />
                 </button>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-5">
+              <form onSubmit={handleSubmit} className="space-y-4">
                 {formError && (
-                  <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-200">
+                  <div className="offer-vault-form-error rounded-lg border p-3 text-sm">
                     {formError}
                   </div>
                 )}
 
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-3">
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:!text-slate-200">Country</label>
+                    <label htmlFor="offer-country" className="offer-vault-form-label mb-1.5 block text-xs font-semibold">Country</label>
                     <div ref={countryPickerRef} className="relative">
                       <button
+                        id="offer-country"
                         type="button"
                         onClick={() => {
                           setCountrySearch("");
                           setIsCountryMenuOpen((prev) => !prev);
                         }}
-                        className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white flex items-center justify-between hover:border-white/20 transition min-h-[44px]"
+                        className="offer-vault-input flex min-h-[42px] w-full items-center justify-between rounded-lg border px-3 py-2 text-sm transition"
                       >
                         <span className="flex items-center gap-2.5">
                           {selectedCountry ? (
@@ -858,16 +906,16 @@ export default function OffersPage() {
                             <span className="text-slate-400">Select country</span>
                           )}
                         </span>
-                        <ChevronDown className="w-4 h-4 text-slate-400" />
+                        <ChevronDown aria-hidden="true" className="offer-vault-muted h-4 w-4" />
                       </button>
                       {isCountryMenuOpen && (
-                        <div className="absolute left-0 right-0 top-full mt-1 z-20 max-h-60 overflow-y-auto rounded-lg border border-white/10 bg-slate-900/95 p-2 shadow-xl backdrop-blur-xl">
+                        <div className="offer-vault-country-menu absolute left-0 right-0 top-full z-20 mt-1 max-h-60 overflow-y-auto rounded-lg border p-2 shadow-xl">
                           <input
                             type="text"
                             value={countrySearch}
                             onChange={(e) => setCountrySearch(e.target.value)}
                             placeholder="Search countries…"
-                            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-indigo-400/50 focus:outline-none focus:ring-1 focus:ring-indigo-400/30"
+                            className="offer-vault-input min-h-10 w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
                             autoFocus
                           />
                           <div className="mt-2 space-y-1">
@@ -876,7 +924,7 @@ export default function OffersPage() {
                                 key={country.code}
                                 type="button"
                                 onClick={() => handleCountrySelect(country.code)}
-                                className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-white hover:bg-white/5 transition min-h-[44px]"
+                                className="offer-vault-country-option flex min-h-10 w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition-colors"
                               >
                                 {country.code === "GLOBAL" ? (
                                   <Globe2 className="h-4 w-4 text-slate-400" />
@@ -890,7 +938,7 @@ export default function OffersPage() {
                                   />
                                 )}
                                 <span>{country.code}</span>
-                                <span className="text-xs text-slate-400 truncate">{country.name}</span>
+                                <span className="offer-vault-muted truncate text-xs">{country.name}</span>
                               </button>
                             ))}
                           </div>
@@ -900,71 +948,69 @@ export default function OffersPage() {
                   </div>
 
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:!text-slate-200">Routing Pool</label>
+                    <label htmlFor="offer-pool" className="offer-vault-form-label mb-1.5 block text-xs font-semibold">Offer group</label>
                     <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={formData.groupName}
-                        onChange={(e) => setFormData({ ...formData, groupName: e.target.value })}
-                        placeholder="Pool name"
-                        className="flex-1 rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:border-indigo-400/50 focus:outline-none focus:ring-1 focus:ring-indigo-400/30 transition min-h-[44px]"
-                      />
+                      <div className="relative min-w-0 flex-1">
+                        <select
+                          id="offer-pool"
+                          value={formData.groupName}
+                          onChange={(e) => selectGroup(e.target.value)}
+                          aria-describedby="offer-pool-hint"
+                          className="offer-vault-input min-h-[42px] w-full appearance-none rounded-lg border px-3 py-2 pr-10 text-sm transition focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
+                        >
+                          <option value="">No group (unassigned)</option>
+                          {availableGroupNames.map((groupName) => (
+                            <option key={groupName} value={groupName}>
+                              {groupName}
+                            </option>
+                          ))}
+                        </select>
+                        <ChevronDown aria-hidden="true" className="offer-vault-muted pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2" />
+                      </div>
                       <button
                         type="button"
                         onClick={() => setIsGroupCreatorOpen((prev) => !prev)}
-                        className="px-3 py-2.5 rounded-lg border border-indigo-400/30 bg-indigo-500/10 text-indigo-300 hover:bg-indigo-500/20 transition min-h-[44px]"
-                        aria-label="Create new group"
+                        className="offer-vault-secondary-button flex min-h-[42px] w-[42px] items-center justify-center rounded-lg border transition"
+                        aria-label={isGroupCreatorOpen ? "Close new group form" : "Create new offer group"}
+                        aria-expanded={isGroupCreatorOpen}
+                        aria-controls="new-offer-group-form"
+                        title={isGroupCreatorOpen ? "Close new group form" : "Create new offer group"}
                       >
-                        <Plus className="w-4 h-4" />
+                        {isGroupCreatorOpen ? <X aria-hidden="true" className="h-4 w-4" /> : <Plus aria-hidden="true" className="h-4 w-4" />}
                       </button>
                     </div>
+                    <p id="offer-pool-hint" className="offer-vault-muted mt-1.5 text-[11px]">
+                      Choose a group to route related offers together, or leave unassigned.
+                    </p>
                     {isGroupCreatorOpen && (
-                      <div className="mt-2 flex gap-2">
+                      <div id="new-offer-group-form" className="mt-2 flex gap-2">
                         <input
+                          aria-label="New offer group name"
                           type="text"
                           value={newGroupName}
                           onChange={(e) => setNewGroupName(e.target.value)}
                           placeholder="New pool name"
-                          className="flex-1 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-indigo-400/50 focus:outline-none"
+                          className="offer-vault-input min-h-10 min-w-0 flex-1 rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
                         />
                         <button
                           type="button"
                           onClick={createGroup}
-                          className="px-3 py-2 rounded-lg bg-indigo-500 text-sm text-white hover:bg-indigo-600 transition"
+                          disabled={!newGroupName.trim()}
+                          className="offer-vault-primary-button min-h-10 rounded-lg px-4 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                          Save
+                          Create
                         </button>
-                      </div>
-                    )}
-                    {availableGroupNames.length > 0 && (
-                      <div className="mt-2 flex flex-wrap gap-1.5">
-                        {availableGroupNames.slice(0, 8).map((g) => (
-                          <button
-                            key={g}
-                            type="button"
-                            onClick={() => selectGroup(g)}
-                            className={`text-xs px-3 py-1 rounded-full border transition min-h-[30px] ${
-                              formData.groupName === g
-                                ? "border-indigo-400/50 bg-indigo-500/20 text-indigo-200"
-                                : "border-white/10 bg-white/5 text-slate-300 hover:bg-white/10"
-                            }`}
-                          >
-                            {g}
-                          </button>
-                        ))}
-                        {availableGroupNames.length > 8 && (
-                          <span className="text-xs text-slate-500">+{availableGroupNames.length - 8} more</span>
-                        )}
                       </div>
                     )}
                   </div>
                 </div>
 
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-3 sm:grid-cols-2">
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:!text-slate-200">Priority</label>
+                    <label htmlFor="offer-priority" className="offer-vault-form-label mb-1.5 block text-xs font-semibold">Priority</label>
                     <div className="flex items-center gap-4">
                       <input
+                        id="offer-priority"
                         type="range"
                         min="1"
                         max="999"
@@ -972,22 +1018,23 @@ export default function OffersPage() {
                         onChange={(e) => setFormData({ ...formData, priority: Number(e.target.value) })}
                         className="priority-slider flex-1 h-1.5 rounded-full appearance-none cursor-pointer"
                       />
-                      <span className="text-sm font-semibold text-white min-w-[3rem] text-center">
+                      <span className="offer-vault-title min-w-[3rem] text-center text-sm font-semibold tabular-nums">
                         {formData.priority}
                       </span>
                     </div>
                   </div>
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:!text-slate-200">Rotator Mood</label>
+                    <label htmlFor="offer-rotation" className="offer-vault-form-label mb-1.5 block text-xs font-semibold">Rotation</label>
                     <select
+                      id="offer-rotation"
                       value={formData.rotationMode}
                       onChange={(e) =>
                         setFormData({ ...formData, rotationMode: e.target.value as "PRIORITY" | "RANDOM" })
                       }
-                      className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white focus:border-indigo-400/50 focus:outline-none focus:ring-1 focus:ring-indigo-400/30 transition min-h-[44px]"
+                      className="offer-vault-input min-h-[42px] w-full rounded-lg border px-3 py-2 text-sm transition focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
                     >
                       {rotationModeOptions.map((opt) => (
-                        <option key={opt.value} value={opt.value} className="bg-slate-800 text-white">
+                        <option key={opt.value} value={opt.value}>
                           {opt.label}
                         </option>
                       ))}
@@ -996,19 +1043,20 @@ export default function OffersPage() {
                 </div>
 
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:!text-slate-200">Offer URL</label>
+                  <label htmlFor="offer-url" className="offer-vault-form-label mb-1.5 block text-xs font-semibold">Offer URL</label>
                   <input
+                    id="offer-url"
                     type="url"
                     value={formData.offerUrl}
                     onChange={(e) => setFormData({ ...formData, offerUrl: e.target.value })}
                     placeholder="https://affiliate.com/?s1="
-                    className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:border-indigo-400/50 focus:outline-none focus:ring-1 focus:ring-indigo-400/30 transition min-h-[44px]"
+                    className="offer-vault-input min-h-[42px] w-full rounded-lg border px-3 py-2 text-sm transition focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
                     required
                   />
                 </div>
 
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3 p-3 rounded-lg border border-white/5 bg-white/5">
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <label htmlFor="content-locker" className="offer-vault-option-card flex min-h-11 cursor-pointer items-center gap-3 rounded-lg border px-3 py-2 text-sm">
                     <input
                       type="checkbox"
                       id="content-locker"
@@ -1016,14 +1064,12 @@ export default function OffersPage() {
                       onChange={(e) =>
                         setFormData({ ...formData, isContentLocker: e.target.checked })
                       }
-                      className="h-5 w-5 rounded border-white/10 bg-white/5 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-0"
+                      className="h-4 w-4 rounded border accent-emerald-500"
                     />
-                    <label htmlFor="content-locker" className="text-sm text-slate-300 cursor-pointer">
-                      Content Locker
-                    </label>
-                  </div>
-                  {canUseSecretRedirect && <div className="rounded-lg border border-white/5 bg-white/5 p-3">
-                    <label className="flex items-center gap-3 text-sm text-slate-300 cursor-pointer">
+                    Content locker
+                  </label>
+                  {canUseSecretRedirect && <div className="offer-vault-option-card rounded-lg border px-3 py-2">
+                    <label htmlFor="usa-secret-modal" className="offer-vault-title flex min-h-7 cursor-pointer items-center gap-3 text-sm">
                       <input
                         type="checkbox"
                         id="usa-secret-modal"
@@ -1031,15 +1077,15 @@ export default function OffersPage() {
                         onChange={(e) =>
                           setFormData({ ...formData, usaSecretRedirectEnabled: e.target.checked })
                         }
-                        className="h-5 w-5 rounded border-white/10 bg-white/5 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-0"
+                        className="h-4 w-4 rounded border accent-emerald-500"
                       />
                       Block Proxy
                     </label>
                     {formData.usaSecretRedirectEnabled && (
                       <div className="mt-3 flex flex-wrap items-center gap-3">
-                        <div className="flex items-center gap-3">
-                          <label htmlFor="usa-secret-percentage" className="text-sm font-medium text-slate-300">
-                            Shield Level
+                        <div className="flex items-center justify-between gap-3">
+                          <label htmlFor="usa-secret-percentage" className="offer-vault-muted text-xs font-medium">
+                            Proxy block rate
                           </label>
                           <input
                             id="usa-secret-percentage"
@@ -1053,7 +1099,7 @@ export default function OffersPage() {
                                 usaSecretRedirectPercentage: Number(e.target.value),
                               })
                             }
-                            className="w-20 rounded-lg border border-white/10 bg-slate-950/70 px-3 py-2 text-sm text-white focus:border-indigo-400/50 focus:outline-none focus:ring-1 focus:ring-indigo-400/30 transition min-h-[40px]"
+                            className="offer-vault-input min-h-9 w-20 rounded-lg border px-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
                           />
                         </div>
                       </div>
@@ -1061,18 +1107,18 @@ export default function OffersPage() {
                   </div>}
                 </div>
 
-                <div className="flex flex-col-reverse sm:flex-row gap-3 pt-2">
+                <div className="offer-vault-modal-actions sticky bottom-0 -mx-4 -mb-4 mt-1 grid grid-cols-2 gap-2 border-t px-4 py-3 sm:-mx-6 sm:-mb-6 sm:px-6">
                   <button
                     type="button"
                     onClick={closeFormModal}
-                    className="px-5 py-3 rounded-lg border border-white/10 text-sm font-medium text-slate-300 hover:bg-white/5 transition min-h-[44px]"
+                    className="offer-vault-secondary-button min-h-10 rounded-lg border px-4 text-sm font-medium transition"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={formLoading}
-                    className="flex-1 px-5 py-3 rounded-lg bg-indigo-500 text-sm font-medium text-white hover:bg-indigo-600 transition disabled:opacity-60 min-h-[44px]"
+                    className="offer-vault-primary-button min-h-10 rounded-lg px-4 text-sm font-semibold transition disabled:opacity-60"
                   >
                     {formLoading ? (
                       <span className="flex items-center justify-center gap-2">
@@ -1100,50 +1146,84 @@ export default function OffersPage() {
         animate="visible"
         className="space-y-5"
       >
-        <div className="flex flex-col gap-5 rounded-2xl border border-[var(--surface-border)] bg-[var(--surface-card)] p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-6">
-          <div className="flex items-start gap-3">
-            <span className="offer-vault-icon flex h-11 w-11 shrink-0 items-center justify-center rounded-xl">
-              <Layers className="h-5 w-5" />
-            </span>
-            <div>
-              <p className="offer-vault-accent mb-1 text-xs font-semibold uppercase tracking-[0.16em]">Campaign operations</p>
-              <h1 className="offer-vault-title text-2xl font-bold tracking-tight sm:text-3xl">Offer vault</h1>
-              <p className="offer-vault-muted mt-1 text-sm">Manage routing pools, geo-targeted offers, and fallback behavior.</p>
+        {/* Stats */}
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
+          {[
+            {
+              label: "Active",
+              value: activeOffers,
+              icon: Zap,
+              color: "offer-vault-stat"
+            },
+            {
+              label: "Pools",
+              value: geoPoolCount,
+              icon: Layers,
+              color: "offer-vault-stat"
+            },
+            {
+              label: "Global",
+              value: globalOffers,
+              icon: Globe,
+              color: "offer-vault-stat"
+            },
+            {
+              label: "Score",
+              value: `${vaultScore}%`,
+              icon: TrendingUp,
+              color: "offer-vault-stat"
+            },
+          ].map((stat) => (
+            <div
+              key={stat.label}
+              className={`rounded-xl border ${stat.color} p-4 shadow-sm`}
+            >
+              <div className="flex items-center justify-between">
+                <p className="offer-vault-muted text-xs font-medium">{stat.label}</p>
+                <stat.icon className="offer-vault-accent h-4 w-4" />
+              </div>
+              <p className="offer-vault-title mt-1 text-xl font-bold tabular-nums md:text-2xl">{stat.value}</p>
             </div>
-          </div>
-          <div className="flex flex-wrap gap-2">
+          ))}
+        </div>
+
+        <div className="flex justify-end">
+          <div className="flex w-full flex-row gap-2 sm:w-auto">
             <button
+              type="button"
               onClick={() => {
                 setIsQuickGroupOpen((prev) => !prev);
                 setQuickGroupName("");
               }}
-              className="offer-vault-secondary-button inline-flex min-h-10 items-center gap-2 rounded-lg border px-3.5 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50"
+              aria-expanded={isQuickGroupOpen}
+              className="offer-vault-secondary-button inline-flex min-h-10 min-w-0 flex-1 items-center justify-center gap-1 rounded-lg border px-2 py-2 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--page-bg)] sm:min-h-11 sm:flex-none sm:gap-2 sm:rounded-xl sm:px-4 sm:text-sm"
             >
-              <Plus className="h-4 w-4" />
-              Add Group
+              <Plus className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
+              <span className="whitespace-nowrap">Add Group</span>
             </button>
             <button
+              type="button"
               onClick={() => openOfferForm()}
-              className="offer-vault-primary-button inline-flex min-h-10 items-center gap-2 rounded-lg px-3.5 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 focus-visible:ring-offset-2"
+              className="offer-vault-primary-button inline-flex min-h-10 min-w-0 flex-1 items-center justify-center gap-1 rounded-lg px-2 py-2 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--page-bg)] sm:min-h-11 sm:flex-none sm:gap-2 sm:rounded-xl sm:px-4 sm:text-sm"
             >
-              <Plus className="h-4 w-4" />
-              Add Offer
+              <Plus className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
+              <span className="whitespace-nowrap">Add Offer</span>
             </button>
             <button
               type="button"
               onClick={() => setShowBotFallbackSettings((prev) => !prev)}
               aria-expanded={showBotFallbackSettings}
-              className="offer-vault-secondary-button inline-flex min-h-10 items-center gap-2 rounded-lg border px-3.5 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50"
+              className="offer-vault-secondary-button inline-flex min-h-10 min-w-0 flex-1 items-center justify-center gap-1 rounded-lg border px-2 py-2 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--page-bg)] sm:min-h-11 sm:flex-none sm:gap-2 sm:rounded-xl sm:px-4 sm:text-sm"
             >
-              <ShieldCheck className="h-4 w-4" />
-              <span>Fallback URL</span>
-              <ChevronDown className={["h-4 w-4 transition-transform duration-200", showBotFallbackSettings && "rotate-180"].filter(Boolean).join(" ")} />
+              <ShieldCheck className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
+              <span className="whitespace-nowrap">Fallback URL</span>
+              <ChevronDown className={["h-3.5 w-3.5 shrink-0 transition-transform duration-200 sm:h-4 sm:w-4", showBotFallbackSettings && "rotate-180"].filter(Boolean).join(" ")} />
             </button>
           </div>
         </div>
 
         {showBotFallbackSettings && (
-          <div className="offer-vault-panel rounded-xl border p-4 sm:p-5">
+          <div className="w-full bg-transparent py-2">
             <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center">
               <input
                 type="url"
@@ -1167,10 +1247,6 @@ export default function OffersPage() {
                 {botFallbackStatus === 'saving' ? 'Saving...' : 'Save URL'}
               </button>
             </div>
-
-            <p className="offer-vault-muted mt-2 text-sm leading-6">
-              This URL is used when bot or suspicious traffic is detected. Instead of sending visitors to a broken or blocked page, they are redirected here.
-            </p>
 
             {botFallbackMessage && (
               <p
@@ -1229,50 +1305,10 @@ export default function OffersPage() {
           )}
         </AnimatePresence>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
-          {[
-            { 
-              label: "Active", 
-              value: activeOffers, 
-              icon: Zap, 
-              color: "offer-vault-stat"
-            },
-            { 
-              label: "Pools", 
-              value: geoPoolCount, 
-              icon: Layers, 
-              color: "offer-vault-stat"
-            },
-            { 
-              label: "Global", 
-              value: globalOffers, 
-              icon: Globe, 
-              color: "offer-vault-stat"
-            },
-            { 
-              label: "Score", 
-              value: `${vaultScore}%`, 
-              icon: TrendingUp, 
-              color: "offer-vault-stat"
-            },
-          ].map((stat) => (
-            <div
-              key={stat.label}
-              className={`rounded-xl border ${stat.color} p-4 shadow-sm`}
-            >
-              <div className="flex items-center justify-between">
-                <p className="offer-vault-muted text-xs font-medium">{stat.label}</p>
-                <stat.icon className="offer-vault-accent h-4 w-4" />
-              </div>
-              <p className="offer-vault-title mt-1 text-xl font-bold tabular-nums md:text-2xl">{stat.value}</p>
-            </div>
-          ))}
-        </div>
       </motion.div>
 
       {/* ===== SEARCH & FILTER BAR ===== */}
-      <div className="offer-vault-toolbar flex flex-col gap-3 rounded-xl border p-3 sm:flex-row sm:items-center">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="relative flex-1">
           <Search className="offer-vault-muted absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
           <input
@@ -1295,9 +1331,9 @@ export default function OffersPage() {
       </div>
 
       {/* ===== MAIN CONTENT ===== */}
-      <div className="grid gap-3 sm:gap-5 lg:grid-cols-[1.25fr_0.75fr]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:gap-5 lg:grid-cols-[1.25fr_0.75fr]">
         {/* Left Column */}
-        <div className="space-y-3 sm:space-y-4">
+        <div className="min-w-0 space-y-3 sm:space-y-4">
           {/* Groups */}
           {groupSummaries.length > 0 && (
             <div className="space-y-3">
@@ -1305,83 +1341,191 @@ export default function OffersPage() {
                 <h3 className="offer-vault-section-title text-sm font-semibold">Routing pools</h3>
                 <span className="offer-vault-muted text-xs">{groupSummaries.length} {groupSummaries.length === 1 ? "pool" : "pools"}</span>
               </div>
-              {groupSummaries.map((group) => (
-                <motion.div
-                  key={group.groupName}
-                  variants={itemVariants}
-                  initial="hidden"
-                  animate="visible"
-                  exit="exit"
-                  layout
-                  className="offer-vault-pool rounded-xl border p-4 transition-colors md:p-5"
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2.5">
+              {groupSummaries.map((group) => {
+                const isExpanded = expandedPools[group.groupName] ?? false;
+                const poolOffersId = `pool-offers-${encodeURIComponent(group.groupName)}`;
+                const visibleGroupOffers = group.groupOffers.filter((offer) =>
+                  filteredOffers.some((filteredOffer) => filteredOffer.id === offer.id)
+                );
+                const shouldShowGroup = visibleGroupOffers.length > 0 ||
+                  (!searchTerm.trim() && !filterActiveOnly && group.groupOffers.length === 0);
+                if (!shouldShowGroup) return null;
+
+                return (
+                  <div
+                    key={group.groupName}
+                    className="offer-vault-pool overflow-hidden rounded-xl border transition-colors"
+                  >
+                    <div className="flex flex-col gap-2 p-3 sm:flex-row sm:items-center sm:gap-3">
+                      <button
+                        type="button"
+                        aria-expanded={isExpanded}
+                        aria-controls={poolOffersId}
+                        onClick={() => setExpandedPools((current) => ({
+                          ...current,
+                          [group.groupName]: !isExpanded,
+                        }))}
+                        className="flex min-w-0 flex-1 items-center gap-2.5 rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/60"
+                      >
+                        <ChevronDown className={`h-4 w-4 shrink-0 text-[var(--text-secondary)] transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
                         <div className="offer-vault-icon flex-shrink-0 rounded-lg p-2">
                           <MapPinned className="h-4 w-4" />
                         </div>
-                        <span className="offer-vault-title truncate text-sm font-semibold md:text-base">{group.groupName}</span>
-                        <span className="offer-vault-muted flex-shrink-0 text-xs">
-                          {group.groupOffers.length} offers
+                        <span className="offer-vault-title min-w-0 flex-1 truncate text-sm font-semibold">{group.groupName}</span>
+                        <span className="offer-vault-muted shrink-0 text-xs">
+                          {group.groupOffers.length} {group.groupOffers.length === 1 ? "offer" : "offers"}
                         </span>
+                      </button>
+                      <div className="flex shrink-0 items-center gap-2 pl-6 sm:pl-0">
+                        <div className="hidden min-w-0 flex-1 flex-wrap gap-1 sm:flex">
+                          {group.poolCountries.slice(0, 3).map((country) => (
+                            <span key={country} className="offer-vault-tag inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-medium">
+                              {country === "GLOBAL SMART LINK" ? (
+                                <Globe2 aria-hidden="true" className="h-3 w-3" />
+                              ) : country === "CONTENT LOCKER" ? (
+                                <ShieldCheck aria-hidden="true" className="h-3 w-3" />
+                              ) : (
+                                <Image
+                                  src={getFlagImageUrl(country)}
+                                  alt=""
+                                  width={16}
+                                  height={12}
+                                  className="h-3 w-4 shrink-0 rounded-[2px] object-cover"
+                                />
+                              )}
+                              <span>{country}</span>
+                            </span>
+                          ))}
+                          {group.poolCountries.length > 3 && (
+                            <span className="offer-vault-muted self-center text-[10px]">+{group.poolCountries.length - 3}</span>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setExpandedPools((current) => ({ ...current, [group.groupName]: true }));
+                            openOfferForm(group.groupName);
+                          }}
+                          className="offer-vault-secondary-button min-h-8 rounded-lg border px-2.5 text-xs font-semibold transition"
+                        >
+                          Add offer
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => renameGroup(group.groupName)}
+                          className="offer-vault-icon-action flex h-8 w-8 items-center justify-center rounded-lg transition-colors"
+                          aria-label={`Edit ${group.groupName}`}
+                          title={`Edit ${group.groupName}`}
+                        >
+                          <Edit aria-hidden="true" className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => deleteGroup(group.groupName)}
+                          className="offer-vault-icon-action flex h-8 w-8 items-center justify-center rounded-lg transition-colors"
+                          aria-label={`Remove ${group.groupName}`}
+                          title={`Remove ${group.groupName}`}
+                        >
+                          <Trash2 aria-hidden="true" className="h-3.5 w-3.5" />
+                        </button>
                       </div>
-                      <div className="flex flex-wrap gap-1 mt-1 ml-8">
-                        {group.poolCountries.slice(0, 5).map((c) => (
-                          <span
-                            key={c}
-                            className="offer-vault-tag rounded-full border px-2.5 py-1 text-xs font-medium"
-                          >
-                            {c}
-                          </span>
-                        ))}
-                        {group.poolCountries.length > 5 && (
-                          <span className="offer-vault-muted self-center text-xs">+{group.poolCountries.length - 5}</span>
+                    </div>
+                    <div
+                      id={poolOffersId}
+                      aria-hidden={!isExpanded}
+                      inert={!isExpanded}
+                      style={{ gridTemplateRows: isExpanded ? "1fr" : "0fr" }}
+                      className={`grid overflow-hidden border-t transition-[grid-template-rows,border-color] duration-200 ease-out motion-reduce:transition-none ${isExpanded ? "border-[var(--surface-border)]" : "border-transparent"}`}
+                    >
+                      <div className="min-h-0 overflow-hidden">
+                        {visibleGroupOffers.length > 0 ? (
+                          <div className="divide-y divide-[var(--surface-border)] px-3 py-2">
+                            {visibleGroupOffers.map((offer) => (
+                              <div
+                                key={offer.id}
+                                className="grid grid-cols-1 items-center gap-x-3 gap-y-1.5 py-2.5 sm:grid-cols-[minmax(0,1fr)_auto]"
+                              >
+                                <div className="col-start-1 flex min-w-0 items-center gap-2">
+                                  {offer.isGlobal ? (
+                                    <Globe2 className="offer-vault-muted h-4 w-4 shrink-0" />
+                                  ) : (
+                                    <Image
+                                      src={getFlagImageUrl(offer.country)}
+                                      alt={offer.country}
+                                      width={20}
+                                      height={14}
+                                      className="h-3.5 w-5 shrink-0 rounded-sm object-cover"
+                                    />
+                                  )}
+                                  <span className="offer-vault-title shrink-0 text-xs font-semibold">
+                                    {offer.isGlobal ? "Global" : offer.country}
+                                  </span>
+                                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium ${offer.isActive ? 'text-emerald-500' : 'offer-vault-muted'}`}>
+                                    {offer.isActive ? "Active" : "Paused"}
+                                  </span>
+                                </div>
+                                <a
+                                  href={offer.offerUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  title={offer.offerUrl}
+                                  className="offer-vault-url col-start-1 min-w-0 truncate rounded-md px-2 py-1 font-mono text-xs sm:text-[13px] hover:underline"
+                                >
+                                  {offer.offerUrl}
+                                </a>
+                                <div className="col-start-1 row-start-3 flex min-w-0 items-center justify-end gap-1 sm:col-start-2 sm:row-span-2 sm:row-start-auto">
+                                  <OfferStatusSwitch
+                                    isActive={offer.isActive}
+                                    offerLabel={`${offer.country}${offer.isGlobal ? " global" : ""}`}
+                                    onToggle={() => handleToggle(offer.id, offer.isActive)}
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => openOfferForm(group.groupName, offer)}
+                                    className="offer-vault-icon-action flex h-8 w-8 items-center justify-center rounded-md transition-colors"
+                                    aria-label={`Edit ${offer.country} offer`}
+                                    title={`Edit ${offer.country} offer`}
+                                  >
+                                    <Edit aria-hidden="true" className="h-3.5 w-3.5" />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDelete(offer.id)}
+                                    className="offer-vault-icon-action flex h-8 w-8 items-center justify-center rounded-md transition-colors"
+                                    aria-label={`Delete ${offer.country} offer`}
+                                    title={`Delete ${offer.country} offer`}
+                                  >
+                                    <Trash2 aria-hidden="true" className="h-3.5 w-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="offer-vault-muted px-3 py-2 text-xs">No offers in this pool yet.</p>
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <button
-                        onClick={() => openOfferForm(group.groupName)}
-                        className="offer-vault-secondary-button min-h-[40px] rounded-lg border px-3 py-2 text-sm font-semibold transition"
-                      >
-                        Add
-                      </button>
-                      <button
-                        onClick={() => renameGroup(group.groupName)}
-                        className="offer-vault-secondary-button min-h-[40px] rounded-lg border px-3 py-2 text-sm font-semibold transition"
-                        aria-label="Edit group"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => deleteGroup(group.groupName)}
-                        className="offer-vault-danger-button min-h-[40px] rounded-lg border px-3 py-2 text-sm font-semibold transition"
-                        aria-label="Remove group"
-                      >
-                        Remove
-                      </button>
-                    </div>
                   </div>
-                </motion.div>
-              ))}
+                );
+              })}
             </div>
           )}
 
           {/* Offers */}
-          {filteredOffers.length > 0 ? (
+          {filteredUngroupedOffers.length > 0 ? (
             <div className="space-y-3">
               <div className="flex items-center justify-between gap-3">
-                <h3 className="offer-vault-section-title text-sm font-semibold">Offers</h3>
-                <span className="offer-vault-muted text-xs">{filteredOffers.length} {filteredOffers.length === 1 ? "offer" : "offers"}</span>
+                <h3 className="offer-vault-section-title text-sm font-semibold">Unassigned offers</h3>
+                <span className="offer-vault-muted text-xs">{filteredUngroupedOffers.length} {filteredUngroupedOffers.length === 1 ? "offer" : "offers"}</span>
               </div>
               {groupedOffers.map(([groupKey, groupOffers]) => {
                 const filteredGroupOffers = groupOffers.filter((offer) =>
-                  filteredOffers.some((fo) => fo.id === offer.id)
+                  filteredUngroupedOffers.some((fo) => fo.id === offer.id)
                 );
                 if (filteredGroupOffers.length === 0) return null;
                 return (
-                  <div key={groupKey} className="space-y-2">
+                  <div key={groupKey} className="divide-y divide-[var(--surface-border)]">
                     {filteredGroupOffers.map((offer) => (
                       <motion.div
                         key={offer.id}
@@ -1390,91 +1534,69 @@ export default function OffersPage() {
                         animate="visible"
                         exit="exit"
                         layout
-                        className={`offer-vault-offer group rounded-xl border p-4 transition-all duration-200 ${
-                          offer.isActive
-                            ? "is-active"
-                            : ""
-                        }`}
+                        className="offer-vault-offer offer-vault-offer-compact group px-1 py-3 transition-colors"
                       >
-                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-                          <div className="min-w-0 flex-1">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <span className="offer-vault-title inline-flex items-center gap-1.5 text-sm font-semibold">
-                                {offer.isGlobal ? (
-                                  <Globe2 className="offer-vault-muted h-4 w-4" />
-                                ) : (
-                                  <Image
-                                    src={getFlagImageUrl(offer.country)}
-                                    alt={offer.country}
-                                    width={24}
-                                    height={16}
-                                    className="rounded-sm"
-                                  />
-                                )}
-                                {offer.isGlobal ? "🌍 Global" : offer.country}
-                              </span>
-                              {offer.groupName && (
-                                <span className="offer-vault-group-tag rounded-full border px-2.5 py-1 text-xs font-medium">
-                                  {offer.groupName}
-                                </span>
-                              )}
-                              <span className="offer-vault-tag rounded-full border px-2.5 py-1 text-xs font-medium">
-                                P{offer.priority ?? 100}
-                              </span>
-                              <span className="offer-vault-tag rounded-full border px-2.5 py-1 text-xs font-medium">
-                                {offer.rotationMode === "RANDOM" ? "Random" : "Priority"}
-                              </span>
-                              {offer.isContentLocker && (
-                                <span className="offer-vault-group-tag rounded-full border px-2.5 py-1 text-xs font-medium">
-                                  Content Locker
-                                </span>
-                              )}
-                              {offer.usaSecretRedirectEnabled && (
-                                <span className="offer-vault-tag rounded-full border px-2.5 py-1 text-xs font-medium">
-                                  Proxy protection
-                                </span>
-                              )}
-                              <span
-                                className={`inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full border ${
-                                  offer.isActive
-                                    ? "offer-vault-status is-on"
-                                    : "offer-vault-status is-off"
-                                }`}
-                              >
-                                {offer.isActive ? <Power className="w-3 h-3" /> : <PowerOff className="w-3 h-3" />}
-                                {offer.isActive ? "On" : "Off"}
-                              </span>
-                            </div>
-                            <p className="offer-vault-url mt-2 max-w-full truncate rounded-lg border px-3 py-2 font-mono text-xs">
-                              {offer.offerUrl}
-                            </p>
+                        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2">
+                          <div className="flex min-w-0 items-center gap-2">
+                            {offer.isGlobal ? (
+                              <Globe2 aria-hidden="true" className="offer-vault-muted h-4 w-4 shrink-0" />
+                            ) : (
+                              <Image
+                                src={getFlagImageUrl(offer.country)}
+                                alt=""
+                                width={20}
+                                height={14}
+                                className="h-3.5 w-5 shrink-0 rounded-sm"
+                              />
+                            )}
+                            <span className="offer-vault-title truncate text-sm font-semibold">
+                              {offer.isGlobal ? "Global" : offer.country}
+                            </span>
+                            <span className={`offer-vault-muted shrink-0 text-xs ${offer.isActive ? "text-emerald-500" : ""}`}>
+                              {offer.isActive ? "Active" : "Paused"}
+                            </span>
                           </div>
-                          <div className="flex items-center gap-2 flex-shrink-0 mt-2 sm:mt-0">
+                          <div className="col-start-2 row-span-2 flex shrink-0 items-center gap-1">
+                            <OfferStatusSwitch
+                              isActive={offer.isActive}
+                              offerLabel={`${offer.country}${offer.isGlobal ? " global" : ""}`}
+                              onToggle={() => handleToggle(offer.id, offer.isActive)}
+                            />
                             <button
-                              onClick={() => handleToggle(offer.id, offer.isActive)}
-                              className={`text-xs px-3 py-2 rounded-lg border transition min-h-[40px] ${
-                                offer.isActive
-                                  ? "offer-vault-toggle is-on"
-                                  : "offer-vault-toggle is-off"
-                              }`}
-                            >
-                              {offer.isActive ? "Off" : "On"}
-                            </button>
-                            <button
+                              type="button"
                               onClick={() => openOfferForm("", offer)}
-                              className="offer-vault-secondary-button min-h-[40px] rounded-lg border p-2 transition"
+                              className="offer-vault-icon-action flex h-8 w-8 items-center justify-center rounded-md transition-colors"
                               aria-label="Edit offer"
+                              title="Edit offer"
                             >
-                              <Edit className="w-4 h-4" />
+                              <Edit aria-hidden="true" className="h-3.5 w-3.5" />
                             </button>
                             <button
+                              type="button"
                               onClick={() => handleDelete(offer.id)}
-                              className="offer-vault-danger-button min-h-[40px] rounded-lg border p-2 transition"
+                              className="offer-vault-icon-action flex h-8 w-8 items-center justify-center rounded-md transition-colors"
                               aria-label="Delete offer"
+                              title="Delete offer"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 aria-hidden="true" className="h-3.5 w-3.5" />
                             </button>
                           </div>
+                          <div className="offer-vault-muted col-start-1 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-[11px]">
+                            {offer.groupName && <span className="truncate">{offer.groupName}</span>}
+                            <span>Priority {offer.priority ?? 100}</span>
+                            <span>{offer.rotationMode === "RANDOM" ? "Random" : "Priority"}</span>
+                            {offer.isContentLocker && <span>Content locker</span>}
+                            {offer.usaSecretRedirectEnabled && <span>Proxy protection</span>}
+                          </div>
+                          <a
+                            href={offer.offerUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title={offer.offerUrl}
+                            className="offer-vault-url col-span-2 min-w-0 truncate font-mono text-xs sm:text-[13px] hover:underline"
+                          >
+                            {offer.offerUrl}
+                          </a>
                         </div>
                       </motion.div>
                     ))}
@@ -1482,7 +1604,7 @@ export default function OffersPage() {
                 );
               })}
             </div>
-          ) : (
+          ) : filteredOffers.length === 0 ? (
             <div className="offer-vault-empty rounded-xl border border-dashed p-8 text-center md:p-10">
               <div className="offer-vault-muted mb-4 flex justify-center gap-4">
                 <Globe className="h-8 w-8 md:h-10 md:w-10" />
@@ -1507,7 +1629,7 @@ export default function OffersPage() {
                 </button>
               )}
             </div>
-          )}
+          ) : null}
         </div>
 
         {/* Right Column */}

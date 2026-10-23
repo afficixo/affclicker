@@ -2,9 +2,7 @@
 
 import { useCallback, useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import {
-  RefreshCw,
   Filter,
   X,
   CalendarRange,
@@ -78,7 +76,6 @@ export default function AnalyticsPage() {
     revenue: 0,
   });
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
 
   const [filters, setFilters] = useState({
     startDate: "",
@@ -93,18 +90,6 @@ export default function AnalyticsPage() {
     direction: "ascending" | "descending";
   } | null>(null);
   const [period, setPeriod] = useState<'week' | 'month' | 'year'>('week');
-  const [isMobile, setIsMobile] = useState(false);
-
-  // Detect mobile screen size
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768); // md breakpoint
-    };
-    
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
 
   const handlePeriodChange = useCallback((newPeriod: 'week' | 'month' | 'year') => {
     setPeriod(newPeriod);
@@ -112,12 +97,11 @@ export default function AnalyticsPage() {
 
   const fetchStats = useCallback(
     async (
-      showRefreshing = false,
+      background = false,
       filterParams: Partial<FilterParams> = {},
       selectedPeriod: 'week' | 'month' | 'year' = period
     ) => {
-      if (showRefreshing) setRefreshing(true);
-      else setLoading(true);
+      if (!background) setLoading(true);
 
       try {
         const params = new URLSearchParams();
@@ -143,7 +127,6 @@ export default function AnalyticsPage() {
         console.error("Failed to fetch analytics overview:", error);
       } finally {
         setLoading(false);
-        setRefreshing(false);
       }
     },
     [period, router]
@@ -213,7 +196,7 @@ export default function AnalyticsPage() {
     const report = stats.accountGeoReport;
     if (!report || report.accountBreakdown.length === 0) return;
 
-    const labelsToExport = isMobile ? visibleLabels : report.labels;
+    const labelsToExport = report.labels;
     const headers = ["Account", ...labelsToExport];
     const rows = report.accountBreakdown.map((account) => [
       account.accountName,
@@ -248,19 +231,7 @@ export default function AnalyticsPage() {
   const reportLabels = report?.labels ?? [];
   const reportRows = report?.accountBreakdown ?? [];
 
-  const MAX_COLUMNS = isMobile ? 8 : 12;
-  
-  // Mobile: prioritize major geo countries, then show others
-  const visibleLabels = (() => {
-    if (!isMobile) return reportLabels;
-
-    const priorityCountries = ['US', 'GB', 'CA', 'AU'];
-    const maxCountries = MAX_COLUMNS - 1;
-    const priorityVisible = priorityCountries.filter(c => reportLabels.includes(c));
-    const otherCountries = reportLabels.filter(c => !priorityCountries.includes(c));
-
-    return [...priorityVisible, ...otherCountries].slice(0, maxCountries);
-  })();
+  const visibleLabels = reportLabels;
 
   const blankColumns = 0;
 
@@ -312,31 +283,6 @@ export default function AnalyticsPage() {
 
 
       <div className="relative z-10 w-full px-0 py-0">
-        {/* ===== TOP BAR ===== */}
-        <div className="mb-8 px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-white">Analytics</h1>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => fetchStats(true, filters)}
-                className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-white/5 transition-all duration-200"
-              >
-                <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} />
-                <span className="hidden sm:inline">Refresh</span>
-              </button>
-              <Link
-                href="/admin/links/create"
-                className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 px-4 py-2 text-sm font-medium text-white transition-colors duration-200"
-              >
-                <span>+ New Link</span>
-              </Link>
-            </div>
-          </div>
-        </div>
-
         {/* ===== STATS CARDS ===== */}
         <div className="mb-8 px-4 sm:px-6 lg:px-8">
           <StatsCards
@@ -351,23 +297,20 @@ export default function AnalyticsPage() {
         <div className="overflow-hidden px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="flex flex-col gap-4 border-b border-white/10 pb-5 mb-6 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h2 className="text-lg font-semibold tracking-tight text-white">Account performance</h2>
-              <p className="mt-1 text-sm text-slate-400">Clicks by account and country</p>
-            </div>
             <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={() => setShowFilters(!showFilters)}
                 className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:border-white/20 hover:bg-white/[0.07] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
                 aria-expanded={showFilters}
                 aria-controls="analytics-filters"
+                aria-label={showFilters ? "Hide analytics filters" : "Show analytics filters"}
               >
                 <Filter className="w-4 h-4" />
                 <span className="hidden sm:inline">{showFilters ? "Hide" : "Show"} Filters</span>
                 <ChevronDown className={`w-3 h-3 transition-transform ${showFilters ? "rotate-180" : ""}`} />
               </button>
               <div className="rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 text-xs font-medium text-slate-400">
-                {report?.datasets?.length ? `${reportRows.length} accounts` : "—"}
+                {reportRows.length} accounts
               </div>
               {reportRows.length > 0 && (
                 <button
@@ -494,12 +437,17 @@ export default function AnalyticsPage() {
 
           {/* ===== TABLE ===== */}
           {report?.datasets?.length ? (
-            <div className="overflow-x-auto rounded-lg border border-white/10 bg-slate-950/40 w-full">
-              <table className="w-full table-auto border-collapse text-left text-xs whitespace-nowrap">
-                <thead className="sticky top-0 bg-slate-900/60">
+            <div
+              className="analytics-table-wrap w-full"
+              role="region"
+              aria-label="Account performance by country"
+              tabIndex={0}
+            >
+              <table className="analytics-table w-max min-w-full table-auto border-collapse text-left text-xs whitespace-nowrap">
+                <thead className="analytics-table-head sticky top-0">
                   <tr className="border-b border-slate-700/50">
                     <th
-                      className="px-2.5 py-1.5 font-medium text-slate-300 cursor-pointer hover:text-slate-200 border-r border-slate-700/30 select-none whitespace-normal break-words"
+                      className="analytics-account-head sticky left-0 z-20 min-w-[10rem] max-w-[14rem] px-3 py-2 font-medium text-slate-300 cursor-pointer hover:text-slate-200 border-r border-slate-700/30 select-none whitespace-normal break-words"
                       onClick={() => requestSort("accountName")}
                       title="Click to sort"
                     >
@@ -513,7 +461,7 @@ export default function AnalyticsPage() {
                     {visibleLabels.map((country) => (
                       <th
                         key={country}
-                        className="px-2 py-1.5 font-medium text-slate-300 cursor-pointer hover:text-slate-200 border-r border-slate-700/30 last:border-r-0 select-none text-center min-w-[80px]"
+                        className="min-w-[5.5rem] px-3 py-2 font-medium text-slate-300 cursor-pointer hover:text-slate-200 border-r border-slate-700/30 last:border-r-0 select-none text-center"
                         onClick={() => requestSort(country)}
                         title="Click to sort"
                       >
@@ -540,9 +488,9 @@ export default function AnalyticsPage() {
                   {sortedRows.map((account, index) => (
                     <tr
                       key={account.accountName}
-                      className={`border-b border-slate-800/40 hover:bg-slate-900/30 transition-colors ${index % 2 === 0 ? "bg-slate-950/20" : ""}`}
+                      className={`analytics-table-row border-b border-slate-800/40 hover:bg-slate-900/30 transition-colors ${index % 2 === 0 ? "bg-slate-950/20" : ""}`}
                     >
-                      <td className="px-2.5 py-1.5 font-medium text-slate-200 border-r border-slate-700/30 whitespace-normal break-words">
+                      <td className="analytics-account-cell sticky left-0 z-10 min-w-[10rem] max-w-[14rem] px-3 py-2 font-medium text-slate-200 border-r border-slate-700/30 whitespace-normal break-words">
                         {account.accountName}
                       </td>
                       {visibleLabels.map((country) => {
@@ -550,7 +498,7 @@ export default function AnalyticsPage() {
                         return (
                           <td 
                             key={`${account.accountName}-${country}`} 
-                            className="px-2 py-1.5 border-r border-slate-700/30 last:border-r-0 text-center text-slate-300 min-w-[80px]"
+                            className="min-w-[5.5rem] px-3 py-2 border-r border-slate-700/30 last:border-r-0 text-center text-slate-300"
                           >
                             {countryValue ? (
                               <span className="text-slate-100 font-medium">
@@ -573,9 +521,9 @@ export default function AnalyticsPage() {
                   {/* Totals row */}
                   {totals.some((t) => t > 0) && (
                     <tr className="border-t border-teal-600/50 bg-teal-500/15 font-semibold">
-                      <td className="px-2.5 py-1.5 text-teal-200 border-r border-teal-600/30 font-bold">TOTAL</td>
+                      <td className="analytics-total-account sticky left-0 z-10 min-w-[10rem] max-w-[14rem] px-3 py-2 text-teal-200 border-r border-teal-600/30 font-bold">TOTAL</td>
                       {totals.map((total, idx) => (
-                        <td key={`total-${idx}`} className="px-2 py-1.5 text-center border-r border-teal-600/30 last:border-r-0 text-teal-100 font-bold min-w-[80px]">
+                        <td key={`total-${idx}`} className="min-w-[5.5rem] px-3 py-2 text-center border-r border-teal-600/30 last:border-r-0 text-teal-100 font-bold">
                           {total}
                         </td>
                       ))}

@@ -11,7 +11,6 @@ import {
   Package,
   Globe2,
   Link2,
-  Settings,
   LogOut,
   BarChart3,
   ShieldCheck,
@@ -215,12 +214,10 @@ export default function Sidebar({ collapsed, mobileOpen, onMobileOpenChange }: S
     {
       label: 'System',
       items: [
-        { href: `${dashboardBasePath}/settings`, label: 'Settings', icon: Settings },
         ...(userRole === 'OWNER'
           ? [
               { href: '/owner/managers', label: 'Manage Publishers', icon: ShieldCheck },
               { href: '/owner/admins', label: 'Manage Admins', icon: UsersRound },
-              { href: '/owner/support', label: 'Support Inbox', icon: MessageCircle },
             ]
           : []),
       ],

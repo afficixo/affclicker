@@ -111,21 +111,12 @@ export function TrafficBreakdown({
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <BreakdownSection
-          title="Top Referrers"
-          icon={Globe2}
-          items={referrerBreakdown}
-          accent={palette[0]}
-          titleColor="text-[var(--primary-700)] dark:text-[var(--primary-300)]"
-          iconColor="text-[var(--primary-700)] dark:text-[var(--primary-300)]"
-          valueColor="text-slate-700 dark:text-slate-200"
-        />
-        <BreakdownSection
-          title="Browsers"
-          icon={Globe2}
-          items={browserBreakdown}
-          accent={palette[1]}
-          titleColor="text-violet-700 dark:text-violet-300"
-          iconColor="text-violet-600 dark:text-violet-300"
+          title="Devices"
+          icon={MonitorSmartphone}
+          items={deviceBreakdown}
+          accent={palette[2]}
+          titleColor="text-emerald-700 dark:text-emerald-300"
+          iconColor="text-emerald-600 dark:text-emerald-300"
           valueColor="text-slate-700 dark:text-slate-200"
         />
         <BreakdownSection
@@ -138,12 +129,21 @@ export function TrafficBreakdown({
           valueColor="text-slate-700 dark:text-slate-200"
         />
         <BreakdownSection
-          title="Devices"
-          icon={MonitorSmartphone}
-          items={deviceBreakdown}
-          accent={palette[2]}
-          titleColor="text-emerald-700 dark:text-emerald-300"
-          iconColor="text-emerald-600 dark:text-emerald-300"
+          title="Browsers"
+          icon={Globe2}
+          items={browserBreakdown}
+          accent={palette[1]}
+          titleColor="text-violet-700 dark:text-violet-300"
+          iconColor="text-violet-600 dark:text-violet-300"
+          valueColor="text-slate-700 dark:text-slate-200"
+        />
+        <BreakdownSection
+          title="Top Referrers"
+          icon={Globe2}
+          items={referrerBreakdown}
+          accent={palette[0]}
+          titleColor="text-[var(--primary-700)] dark:text-[var(--primary-300)]"
+          iconColor="text-[var(--primary-700)] dark:text-[var(--primary-300)]"
           valueColor="text-slate-700 dark:text-slate-200"
         />
     </div>

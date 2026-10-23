@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -14,7 +13,6 @@ import {
   ShieldCheck,
   Globe,
   Zap,
-  X,
 } from "lucide-react";
 import { coerceArray } from "@/lib/utils/array-response";
 
@@ -220,7 +218,7 @@ export default function DomainsPage() {
   const activeCount = domains.filter((d) => d.isActive).length;
 
   return (
-    <div className="space-y-6">
+    <div className="domain-page mx-auto w-full max-w-7xl space-y-5 pb-8">
       {/* Confirmation Modal */}
       {confirmDialog && (
         <div
@@ -281,23 +279,23 @@ export default function DomainsPage() {
       )}
 
       {/* Header */}
-      <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5 sm:p-6">
+      <div className="domain-surface rounded-2xl border p-5 sm:p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <div className="flex items-center gap-2 text-indigo-400">
+            <div className="domain-accent flex items-center gap-2">
               <Globe className="h-4 w-4" />
               <span className="text-xs font-medium uppercase tracking-wider">
                 Domain Management
               </span>
             </div>
-            <h1 className="mt-1 text-2xl font-bold text-white">Custom Domains</h1>
-            <p className="mt-0.5 text-sm text-slate-400">
+            <h1 className="domain-title mt-1 text-2xl font-bold">Custom Domains</h1>
+            <p className="domain-muted mt-0.5 text-sm">
               Connect your own domains with DNS verification
             </p>
           </div>
           <button
             onClick={() => setShowForm(!showForm)}
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500"
+            className="domain-primary inline-flex min-h-10 items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition"
           >
             {showForm ? (
               <>
@@ -322,15 +320,12 @@ export default function DomainsPage() {
             { label: "Verified", value: verifiedCount, icon: CheckCircle, color: "text-emerald-400", bg: "bg-emerald-500/10" },
             { label: "Active", value: activeCount, icon: Zap, color: "text-amber-400", bg: "bg-amber-500/10" },
             { label: "Pending", value: domains.length - verifiedCount, icon: RefreshCw, color: "text-rose-400", bg: "bg-rose-500/10" },
-          ].map((stat, idx) => (
-            <div
-              key={idx}
-              className="rounded-xl border border-slate-800 bg-slate-900/60 p-4"
-            >
+          ].map((stat) => (
+            <div key={stat.label} className="domain-surface rounded-xl border p-4">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-xs font-medium text-slate-400">{stat.label}</p>
-                  <p className="mt-1 text-xl font-bold text-white">{stat.value}</p>
+                  <p className="domain-muted text-xs font-medium">{stat.label}</p>
+                  <p className="domain-title mt-1 text-xl font-bold tabular-nums">{stat.value}</p>
                 </div>
                 <div className={`rounded-md ${stat.bg} p-1.5`}>
                   <stat.icon className={`h-4 w-4 ${stat.color}`} />
@@ -343,7 +338,7 @@ export default function DomainsPage() {
 
       {/* Form */}
       {showForm && (
-        <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
+        <div className="domain-surface rounded-2xl border p-5 sm:p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             {formError && (
               <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
@@ -352,31 +347,32 @@ export default function DomainsPage() {
             )}
 
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-slate-300">
+              <label htmlFor="domain-name" className="domain-label mb-1.5 block text-xs font-semibold">
                 Domain Name
               </label>
               <input
+                id="domain-name"
                 type="text"
                 value={newDomain}
                 onChange={(e) => setNewDomain(e.target.value.toLowerCase())}
                 placeholder="example.com"
-                className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="domain-input min-h-11 w-full rounded-lg border px-3 py-2.5 text-sm transition focus:outline-none focus:ring-2"
                 required
                 disabled={formLoading}
               />
             </div>
 
-            <div className="rounded-lg border border-indigo-500/20 bg-indigo-500/5 p-4">
-              <p className="text-sm font-medium text-indigo-300">DNS Setup Guide</p>
-              <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm text-slate-300">
+            <div className="domain-guide rounded-lg border p-4">
+              <p className="domain-guide-title text-sm font-semibold">DNS Setup Guide</p>
+              <ol className="domain-guide-text mt-2 list-decimal space-y-1 pl-5 text-sm">
                 <li>Open your DNS provider settings and add the exact DNS values shown below.</li>
                 <li>
-                  For apex domains (e.g., <span className="font-mono text-indigo-300">example.com</span>), add two A records pointing to{' '}
-                  <span className="font-mono text-indigo-300">76.76.21.21</span> and{' '}
-                  <span className="font-mono text-indigo-300">76.76.21.22</span>.
+                  For apex domains (e.g., <span className="domain-guide-code font-mono">example.com</span>), add two A records pointing to{' '}
+                  <span className="domain-guide-code font-mono">76.76.21.21</span> and{' '}
+                  <span className="domain-guide-code font-mono">76.76.21.22</span>.
                 </li>
                 <li>
-                  For subdomains (e.g., <span className="font-mono text-indigo-300">go.example.com</span>), add a CNAME record with the host shown below.
+                  For subdomains (e.g., <span className="domain-guide-code font-mono">go.example.com</span>), add a CNAME record with the host shown below.
                 </li>
                 <li>
                   After adding the records, click the <strong>Verify</strong> button on the domain card.
@@ -386,7 +382,10 @@ export default function DomainsPage() {
 
             {latestInstructions && (
               <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4">
-                <p className="text-sm font-medium text-emerald-300">📋 DNS Records to Add</p>
+                <p className="flex items-center gap-2 text-sm font-medium text-emerald-300">
+                  <ShieldCheck aria-hidden="true" className="h-4 w-4" />
+                  DNS Records to Add
+                </p>
                 {latestStatusMessage && (
                   <div className="mt-2 rounded-md border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
                     {latestStatusMessage}
@@ -455,7 +454,7 @@ export default function DomainsPage() {
             <button
               type="submit"
               disabled={formLoading}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"
+              className="domain-primary inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60"
             >
               {formLoading ? (
                 <>
@@ -475,31 +474,40 @@ export default function DomainsPage() {
 
       {/* Domains List */}
       {domains.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-700 bg-slate-900/40 p-10 text-center">
-          <p className="text-4xl">🌐</p>
-          <h3 className="mt-2 text-lg font-semibold text-white">No domains added</h3>
-          <p className="mt-1 text-sm text-slate-400">
+        <div className="domain-empty rounded-2xl border border-dashed p-10 text-center">
+          <div className="domain-empty-icon mx-auto flex h-12 w-12 items-center justify-center rounded-xl">
+            <Globe aria-hidden="true" className="h-6 w-6" />
+          </div>
+          <h3 className="domain-title mt-3 text-lg font-semibold">No domains added</h3>
+          <p className="domain-muted mt-1 text-sm">
             Add your first custom domain to start using branded tracking links.
           </p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <section aria-labelledby="connected-domains-heading" className="space-y-3">
+          <div className="flex items-center justify-between gap-3 px-1">
+            <div>
+              <h2 id="connected-domains-heading" className="domain-title text-base font-semibold">Connected domains</h2>
+              <p className="domain-muted mt-0.5 text-xs">Manage verification and availability for your domains.</p>
+            </div>
+            <span className="domain-count rounded-full px-2.5 py-1 text-xs font-semibold tabular-nums">{domains.length}</span>
+          </div>
           {domains.map((domain) => (
             <div
               key={domain.id}
-              className={`rounded-xl border bg-slate-900/60 p-4 ${
+              className={`domain-card rounded-xl border p-4 transition-colors ${
                 domain.verified && domain.isActive
-                  ? "border-l-2 border-l-emerald-500 border-slate-800"
+                  ? "is-active"
                   : domain.verified
-                  ? "border-l-2 border-l-amber-500 border-slate-800"
-                  : "border-l-2 border-l-rose-500 border-slate-800"
+                  ? "is-inactive"
+                  : "is-pending"
               }`}
             >
               <div className="flex flex-col gap-4">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
+                <div className="flex flex-row items-start justify-between gap-3 sm:items-center">
+                  <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-lg font-semibold text-white">{domain.domain}</span>
+                      <span className="domain-title break-all text-base font-semibold">{domain.domain}</span>
                       <span
                         className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-medium ${
                           domain.verified
@@ -534,7 +542,7 @@ export default function DomainsPage() {
                         {domain.isActive ? "Active" : "Inactive"}
                       </span>
                     </div>
-                    <p className="mt-1 text-xs text-slate-500">
+                    <p className="domain-muted mt-1 text-xs">
                       Added {new Date(domain.createdAt).toLocaleDateString()}
                       {domain.verifiedAt &&
                         ` • Verified ${new Date(domain.verifiedAt).toLocaleDateString()}`}
@@ -546,7 +554,7 @@ export default function DomainsPage() {
                       <button
                         onClick={() => handleVerify(domain.id)}
                         disabled={verifyingId === domain.id}
-                        className="inline-flex items-center gap-1.5 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-500 disabled:opacity-60"
+                        className="domain-verify inline-flex min-h-9 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         {verifyingId === domain.id ? (
                           <>
@@ -564,17 +572,15 @@ export default function DomainsPage() {
                     <button
                       onClick={() => handleDelete(domain.id)}
                       disabled={deletingId === domain.id}
-                      className="inline-flex items-center gap-1.5 rounded-md border border-red-500/20 bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-400 hover:bg-red-500/20 disabled:opacity-60"
+                      aria-label={deletingId === domain.id ? `Deleting ${domain.domain}` : `Delete ${domain.domain}`}
+                      title={deletingId === domain.id ? "Deleting domain" : `Delete ${domain.domain}`}
+                      className="domain-delete inline-flex h-9 w-9 items-center justify-center rounded-lg transition disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {deletingId === domain.id ? (
-                        <>
-                          <span className="h-3 w-3 animate-spin rounded-full border-2 border-red-400 border-t-transparent" />
-                          Deleting…
-                        </>
+                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
                       ) : (
                         <>
-                          <Trash2 className="h-3 w-3" />
-                          Delete
+                          <Trash2 aria-hidden="true" className="h-4 w-4" />
                         </>
                       )}
                     </button>
@@ -652,7 +658,7 @@ export default function DomainsPage() {
               </div>
             </div>
           ))}
-        </div>
+        </section>
       )}
     </div>
   );

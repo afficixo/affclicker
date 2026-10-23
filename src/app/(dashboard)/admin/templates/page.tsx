@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useState, useEffect, useCallback } from 'react'
-import { Plus, Trash2, Edit2, X, ArrowLeft, Image as ImageIcon, Check, Globe } from 'lucide-react'
+import { Plus, Trash2, Edit2, X, ArrowLeft, Image as ImageIcon, Check, Globe, Search } from 'lucide-react'
 import {
   DEFAULT_LANDING_PAGE_DOMAIN_SETTINGS,
   type LandingPageDomainSetting,
@@ -21,6 +21,7 @@ interface Template {
 
 export default function TemplateManager() {
   const [templates, setTemplates] = useState<Template[]>([])
+  const [templateSearch, setTemplateSearch] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -245,6 +246,14 @@ export default function TemplateManager() {
       htmlContent: '',
     })
   }
+
+  const searchTerm = templateSearch.trim().toLocaleLowerCase()
+  const filteredTemplates = searchTerm
+    ? templates.filter((template) =>
+        [template.name, template.description, template.customText]
+          .some((value) => value?.toLocaleLowerCase().includes(searchTerm)),
+      )
+    : templates
 
   if (authLoading) {
     return null
@@ -493,15 +502,53 @@ export default function TemplateManager() {
         )}
 
         {/* Templates Grid */}
+        {templates.length > 0 && (
+          <div className="template-manager-library-header">
+            <div className="template-manager-library-heading">
+              <h2 className="template-manager-section-title">Template library</h2>
+              <span className="template-manager-count">
+                {searchTerm
+                  ? `${filteredTemplates.length} of ${templates.length} templates`
+                  : `${templates.length} template${templates.length === 1 ? '' : 's'}`}
+              </span>
+            </div>
+            <label className="template-manager-search">
+              <Search className="h-4 w-4" aria-hidden="true" />
+              <input
+                type="search"
+                value={templateSearch}
+                onChange={(event) => setTemplateSearch(event.target.value)}
+                placeholder="Search templates"
+                aria-label="Search templates"
+              />
+              {templateSearch && (
+                <button
+                  type="button"
+                  onClick={() => setTemplateSearch('')}
+                  aria-label="Clear template search"
+                  title="Clear search"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </label>
+          </div>
+        )}
         {templates.length === 0 ? (
           <div className="template-manager-empty">
             <ImageIcon className="h-7 w-7" />
             <p className="template-manager-empty-title">No templates yet</p>
             <p>Create your first template to get started.</p>
           </div>
+        ) : filteredTemplates.length === 0 ? (
+          <div className="template-manager-empty">
+            <Search className="h-7 w-7" />
+            <p className="template-manager-empty-title">No matching templates</p>
+            <p>Try a different name or search term.</p>
+          </div>
         ) : (
           <div className="template-manager-grid">
-            {templates.map((template) => (
+            {filteredTemplates.map((template) => (
               <div
                 key={template.id}
                 className="template-manager-card"

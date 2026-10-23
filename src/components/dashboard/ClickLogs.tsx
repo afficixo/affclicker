@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { getCountryLabel } from '@/lib/utils/country'
 import { BrowserLogo } from '@/components/ui/BrowserLogo'
@@ -59,7 +59,9 @@ export default function ClickLogs({ filter, isOwner }: ClickLogsProps) {
   const [showDeviceInfo, setShowDeviceInfo] = useState<string | null>(null)
   const [showGeoInfo, setShowGeoInfo] = useState<string | null>(null)
   const [deletingClickId, setDeletingClickId] = useState<string | null>(null)
+  const [clickToDelete, setClickToDelete] = useState<Click | null>(null)
   const [deleteError, setDeleteError] = useState('')
+  const cancelDeleteButtonRef = useRef<HTMLButtonElement>(null)
 
   const limit = 100
 
@@ -96,10 +98,30 @@ export default function ClickLogs({ filter, isOwner }: ClickLogsProps) {
     fetchClicks(true)
   }, [fetchClicks])
 
-  const deleteClick = async (click: Click) => {
-    if (!isOwner || deletingClickId) return
-    if (!window.confirm('Delete this click log? This action cannot be undone.')) return
+  useEffect(() => {
+    if (!clickToDelete) return
 
+    cancelDeleteButtonRef.current?.focus()
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !deletingClickId) {
+        setClickToDelete(null)
+      }
+    }
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    window.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [clickToDelete, deletingClickId])
+
+  const deleteClick = async () => {
+    if (!isOwner || deletingClickId || !clickToDelete) return
+    const click = clickToDelete
+
+    setClickToDelete(null)
     setDeletingClickId(click.id)
     setDeleteError('')
 
@@ -131,7 +153,27 @@ export default function ClickLogs({ filter, isOwner }: ClickLogsProps) {
     }
   }
 
-  const getDeviceIcon = (deviceType: string | null) => {
+  const getDeviceIcon = (deviceType: string | null, os: string | null, deviceBrand: string | null) => {
+    const platform = `${os || ''} ${deviceBrand || ''}`.toLowerCase()
+    if (
+      platform.includes('ios') ||
+      platform.includes('apple') ||
+      platform.includes('iphone') ||
+      platform.includes('ipad') ||
+      platform.includes('mac')
+    ) {
+      return (
+        <svg
+          viewBox="0 0 24 24"
+          className="h-4 w-4 fill-current"
+          role="img"
+          aria-label="Apple logo"
+        >
+          <path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701" />
+        </svg>
+      )
+    }
+
     if (!deviceType) return <Monitor className="w-4 h-4" />
     const device = deviceType.toLowerCase()
     if (device.includes('mobile') || device.includes('phone')) {
@@ -215,88 +257,99 @@ export default function ClickLogs({ filter, isOwner }: ClickLogsProps) {
           </div>
         ) : (
           clicks.map((click) => {
+            const createdAt = new Date(click.createdAt)
+            const compactTimestamp = `${createdAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} · ${createdAt.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`
+
             return (
               <div
                 key={click.id}
-                className={`rounded-xl border border-[var(--surface-border)] bg-[var(--surface-card)] p-3 shadow-[var(--shadow-sm)] ${click.isUnique ? '' : 'border-amber-400/40 bg-amber-50 dark:bg-amber-500/5'}`}
+                className={`rounded-xl border border-[var(--surface-border)] bg-[var(--surface-card)] p-2.5 shadow-[var(--shadow-sm)] ${click.isUnique ? '' : 'border-amber-400/40 bg-amber-50 dark:bg-amber-500/5'}`}
               >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <div className="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">Time</div>
-                    <div className="flex flex-col gap-0">
-                      {(() => {
-                        const { date, time } = formatDateTwoLines(click.createdAt)
-                        return (
-                          <>
-                            <div className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">{date}</div>
-                            <div className="text-xs text-slate-600 dark:text-slate-300">{time}</div>
-                          </>
-                        )
-                      })()}
-                    </div>
-                    <div className="mt-1 max-w-[220px] truncate text-xs font-semibold text-slate-900 dark:text-white" title={click.linkAccount.accountName}>
-                      {click.linkAccount.accountName}
-                    </div>
+                <div className="flex min-w-0 items-center justify-between gap-2">
+                  <div className="min-w-0 truncate text-[13px] font-semibold text-slate-900 dark:text-white" title={click.linkAccount.accountName}>
+                    {click.linkAccount.accountName}
                   </div>
-                  <div className="flex items-center gap-1">
-                    <span
-                      aria-label={click.isUnique ? 'Unique click' : 'Repeated click'}
-                      className={`shrink-0 rounded-full border px-2 py-0.5 text-xs font-semibold uppercase tracking-wide ${click.isUnique ? 'border-emerald-300 bg-emerald-100 text-emerald-800 dark:border-emerald-400/30 dark:bg-emerald-400/15 dark:text-emerald-300' : 'border-amber-300 bg-amber-100 text-amber-800 dark:border-amber-400/30 dark:bg-amber-400/15 dark:text-amber-300'}`}
-                    >
-                      {click.isUnique ? 'Unique' : 'Repeated'}
-                    </span>
-                    {isOwner && (
-                      <button
-                        type="button"
-                        onClick={() => deleteClick(click)}
-                        disabled={deletingClickId !== null}
-                        aria-label="Delete click log"
-                        title="Delete click log"
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-md text-green-600 transition hover:bg-green-50 disabled:cursor-not-allowed disabled:opacity-50 dark:text-green-400 dark:hover:bg-green-500/10"
-                      >
-                        <svg aria-hidden="true" viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">
-                          <path fillRule="evenodd" d="M10 1.75a8.25 8.25 0 1 0 0 16.5 8.25 8.25 0 0 0 0-16.5Zm3.22 6.03a.75.75 0 0 0-1.06-1.06L9 9.88 7.84 8.72a.75.75 0 0 0-1.06 1.06l1.69 1.69a.75.75 0 0 0 1.06 0l3.69-3.69Z" clipRule="evenodd" />
-                        </svg>
-                      </button>
-                    )}
-                  </div>
+                  <time
+                    dateTime={createdAt.toISOString()}
+                    title={createdAt.toLocaleString()}
+                    className="shrink-0 text-[10px] font-medium tabular-nums text-slate-500 dark:text-slate-400"
+                  >
+                    {compactTimestamp}
+                  </time>
                 </div>
 
-                <div className="mt-2 space-y-0 divide-y divide-[var(--surface-border)] text-xs text-slate-700 dark:text-slate-300">
-                  <div className="flex justify-between py-1.5">
-                    <span className="text-slate-600 dark:text-slate-300">IP:</span>
-                    <span className="font-medium text-slate-800 dark:text-slate-100">{click.ipAddress}</span>
+                <div className="mt-1.5 flex items-center gap-1 border-y border-[var(--surface-border)] py-0.5">
+                  <button
+                    type="button"
+                    onClick={() => setShowGeoInfo(showGeoInfo === click.id ? null : click.id)}
+                    aria-label={`Location: ${getCountryLabel(click.country)}. ${showGeoInfo === click.id ? 'Hide' : 'Show'} location details`}
+                    aria-pressed={showGeoInfo === click.id}
+                    title={`Location: ${getCountryLabel(click.country)}`}
+                    className="flex h-7 w-8 items-center justify-center rounded-md transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#359f25] dark:hover:bg-white/10"
+                  >
+                    <CountryFlag country={click.country} className="h-3.5 w-5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowDeviceInfo(showDeviceInfo === click.id ? null : click.id)}
+                    aria-label={`Device: ${getDeviceLabel(click)}. ${showDeviceInfo === click.id ? 'Hide' : 'Show'} device details`}
+                    aria-pressed={showDeviceInfo === click.id}
+                    title={`Device: ${getDeviceLabel(click)}`}
+                    className="flex h-7 w-8 items-center justify-center rounded-md text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#359f25] dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white"
+                  >
+                    {getDeviceIcon(click.deviceType, click.os, click.deviceBrand)}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowBrowserVersion(showBrowserVersion === click.id ? null : click.id)}
+                    aria-label={`Browser: ${getBrowserLabel(click)}, ${getBrowserVersion(click)}. ${showBrowserVersion === click.id ? 'Hide' : 'Show'} browser details`}
+                    aria-pressed={showBrowserVersion === click.id}
+                    title={`Browser: ${getBrowserLabel(click)} · ${getBrowserVersion(click)}`}
+                    className="flex h-7 w-8 items-center justify-center rounded-md transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#359f25] dark:hover:bg-white/10"
+                  >
+                    <BrowserLogo name={getBrowserLabel(click)} />
+                  </button>
+                  <span className="ml-auto flex h-7 w-7 items-center justify-center" aria-label={click.isUnique ? 'Unique click' : 'Repeated click'} title={click.isUnique ? 'Unique click' : 'Repeated click'}>
+                    {click.isUnique
+                      ? <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" strokeWidth={2.5} aria-hidden="true" />
+                      : <X className="h-4 w-4 text-amber-600 dark:text-amber-400" strokeWidth={2.5} aria-hidden="true" />}
+                  </span>
+                </div>
+                {(showGeoInfo === click.id || showDeviceInfo === click.id || showBrowserVersion === click.id) && (
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1 pt-2 text-xs text-slate-600 dark:text-slate-300">
+                    {showGeoInfo === click.id && <div>{getLocationSummary(click)}</div>}
+                    {showDeviceInfo === click.id && <span>{getDeviceLabel(click)}</span>}
+                    {showBrowserVersion === click.id && <span>{getBrowserLabel(click)} · {getBrowserVersion(click)}</span>}
                   </div>
-                  <div className="flex justify-between py-1.5">
+                )}
+                <div className="mt-1 space-y-0 divide-y divide-[var(--surface-border)] text-[11px] text-slate-700 dark:text-slate-300">
+                  <div className="flex items-center justify-between gap-2 py-1">
+                    <span className="text-slate-600 dark:text-slate-300">IP:</span>
+                    {isOwner ? (
+                      <button
+                        type="button"
+                        onClick={() => setClickToDelete(click)}
+                        disabled={deletingClickId !== null}
+                        className="max-w-[78%] truncate font-medium text-slate-800 underline decoration-dotted underline-offset-2 transition hover:text-[#24651d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#359f25] disabled:cursor-not-allowed disabled:opacity-50 dark:text-slate-100 dark:hover:text-[#a2fa8e]"
+                        aria-label={`Delete click log from ${click.ipAddress || 'unknown IP'}`}
+                        title="Click the IP address to delete this click log"
+                      >
+                        {deletingClickId === click.id ? 'Deleting…' : click.ipAddress || 'Unknown'}
+                      </button>
+                    ) : (
+                      <span className="max-w-[78%] truncate font-medium text-slate-800 dark:text-slate-100">{click.ipAddress || 'Unknown'}</span>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between gap-2 py-1">
                     <span className="text-slate-600 dark:text-slate-300">Campaign:</span>
                     <span className="truncate text-[var(--primary-700)] dark:text-[var(--primary-300)]">{click.linkAccount.slug}</span>
                   </div>
-                  <div className="flex justify-between py-1.5">
-                    <span className="text-slate-600 dark:text-slate-300">Device:</span>
-                    <button onClick={() => setShowDeviceInfo(showDeviceInfo === click.id ? null : click.id)} className="truncate text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white cursor-pointer transition" title="More details">
-                      {getDeviceLabel(click)}
-                    </button>
-                  </div>
-                  <div className="flex justify-between py-1.5">
-                    <span className="text-slate-600 dark:text-slate-300">Browser:</span>
-                    <button onClick={() => setShowBrowserVersion(showBrowserVersion === click.id ? null : click.id)} className="flex max-w-[70%] items-center gap-1.5 text-violet-700 hover:text-violet-900 dark:text-violet-300 dark:hover:text-violet-200 cursor-pointer transition" title="More details">
-                      <BrowserLogo name={getBrowserLabel(click)} />
-                      <span className="truncate">{showBrowserVersion === click.id ? getBrowserVersion(click) : getBrowserLabel(click)}</span>
-                    </button>
-                  </div>
-                  <div className="flex justify-between py-1.5">
+                  <div className="flex min-w-0 items-center justify-between gap-2 py-1">
                     <span className="text-slate-600 dark:text-slate-300">Referrer:</span>
-                    <span className="max-w-[75%] break-all text-right text-slate-600 dark:text-slate-300">
+                    <span className="max-w-[78%] truncate text-right text-slate-600 dark:text-slate-300" title={click.referrer || 'Direct'}>
                       {click.referrer || 'Direct'}
                     </span>
                   </div>
-                  <button onClick={() => setShowGeoInfo(showGeoInfo === click.id ? null : click.id)} className="flex justify-between w-full text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white cursor-pointer transition py-1.5" title="More details">
-                    <span className="text-slate-600 dark:text-slate-300">Location:</span>
-                    <span className="flex items-center gap-1">
-                      <CountryFlag country={click.country} />
-                      {showGeoInfo === click.id && <span className="text-slate-800 dark:text-white/80">{getCountryLabel(click.country)}</span>}
-                    </span>
-                  </button>
                 </div>
               </div>
             )
@@ -316,13 +369,12 @@ export default function ClickLogs({ filter, isOwner }: ClickLogsProps) {
               <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-600 dark:text-slate-300">IP Address</th>
               <th className="px-4 py-2 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-600 dark:text-slate-300">Status</th>
               <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-600 dark:text-slate-300">Time</th>
-              {isOwner && <th className="px-4 py-2 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-600 dark:text-slate-300">Actions</th>}
             </tr>
           </thead>
           <tbody className="divide-y divide-[var(--surface-border)]">
             {clicks.length === 0 ? (
               <tr>
-                <td colSpan={isOwner ? 9 : 8} className="px-4 py-12 text-center">
+                <td colSpan={8} className="px-4 py-12 text-center">
                   <div className="flex flex-col items-center gap-1.5">
                     <MousePointerClick className="h-7 w-7 text-slate-400 dark:text-slate-500" strokeWidth={1.5} />
                     <p className="text-sm text-slate-600 dark:text-slate-300">No clicks match your filters</p>
@@ -352,7 +404,7 @@ export default function ClickLogs({ filter, isOwner }: ClickLogsProps) {
                   </td>
                   <td className="px-4 py-2 text-sm text-slate-700 dark:text-slate-300">
                     <button onClick={() => setShowDeviceInfo(showDeviceInfo === click.id ? null : click.id)} className="flex items-center gap-1 hover:text-[var(--primary-700)] dark:hover:text-[var(--primary-300)] cursor-pointer transition" title="Click for more details">
-                      {getDeviceIcon(click.deviceType)}
+                      {getDeviceIcon(click.deviceType, click.os, click.deviceBrand)}
                       <span className="truncate max-w-[140px]">{getDeviceLabel(click)}</span>
                     </button>
                   </td>
@@ -386,7 +438,22 @@ export default function ClickLogs({ filter, isOwner }: ClickLogsProps) {
                       <span className="text-slate-600 dark:text-slate-300">Direct</span>
                     )}
                   </td>
-                  <td className="px-4 py-2 text-sm font-mono text-slate-600 dark:text-slate-400">{click.ipAddress}</td>
+                  <td className="px-4 py-2 text-sm font-mono text-slate-600 dark:text-slate-400">
+                    {isOwner ? (
+                      <button
+                        type="button"
+                        onClick={() => setClickToDelete(click)}
+                        disabled={deletingClickId !== null}
+                        className="rounded-sm underline decoration-dotted underline-offset-2 transition hover:text-[#24651d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#359f25] disabled:cursor-not-allowed disabled:opacity-50 dark:hover:text-[#a2fa8e]"
+                        aria-label={`Delete click log from ${click.ipAddress || 'unknown IP'}`}
+                        title="Click the IP address to delete this click log"
+                      >
+                        {deletingClickId === click.id ? 'Deleting…' : click.ipAddress || 'Unknown'}
+                      </button>
+                    ) : (
+                      click.ipAddress || 'Unknown'
+                    )}
+                  </td>
                   <td className="px-4 py-2 text-center">
                     <div className="flex items-center justify-center">
                       {click.isUnique ? (
@@ -416,22 +483,6 @@ export default function ClickLogs({ filter, isOwner }: ClickLogsProps) {
                       })()}
                     </div>
                   </td>
-                  {isOwner && (
-                    <td className="px-4 py-2 text-center">
-                      <button
-                        type="button"
-                        onClick={() => deleteClick(click)}
-                        disabled={deletingClickId !== null}
-                        aria-label={`Delete click log from ${click.ipAddress || 'unknown IP'}`}
-                        title="Delete click log"
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-md text-green-600 transition hover:bg-green-50 disabled:cursor-not-allowed disabled:opacity-50 dark:text-green-400 dark:hover:bg-green-500/10"
-                      >
-                        <svg aria-hidden="true" viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">
-                          <path fillRule="evenodd" d="M10 1.75a8.25 8.25 0 1 0 0 16.5 8.25 8.25 0 0 0 0-16.5Zm3.22 6.03a.75.75 0 0 0-1.06-1.06L9 9.88 7.84 8.72a.75.75 0 0 0-1.06 1.06l1.69 1.69a.75.75 0 0 0 1.06 0l3.69-3.69Z" clipRule="evenodd" />
-                        </svg>
-                      </button>
-                    </td>
-                  )}
                 </tr>
               ))
             )}
@@ -440,6 +491,70 @@ export default function ClickLogs({ filter, isOwner }: ClickLogsProps) {
       </div>
 
       </div>
+      {clickToDelete && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-slate-950/60 p-4 backdrop-blur-[3px]"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget && !deletingClickId) setClickToDelete(null)
+          }}
+        >
+          <section
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="delete-click-title"
+            className="w-full max-w-sm overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl shadow-slate-950/20 dark:border-white/10 dark:bg-[#202b2f]"
+          >
+            <div className="flex items-center justify-between gap-4 px-5 pb-3 pt-4">
+              <h2 id="delete-click-title" className="text-sm font-semibold text-slate-900 dark:text-white">
+                Delete click log?
+              </h2>
+                <button
+                  type="button"
+                  onClick={() => setClickToDelete(null)}
+                  disabled={deletingClickId !== null}
+                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#359f25] disabled:opacity-50 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white"
+                  aria-label="Close confirmation"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+            </div>
+            <div className="mx-5 border-y border-slate-100 py-3 dark:border-white/10">
+              <div className="flex items-baseline justify-between gap-4">
+                <span className="text-xs text-slate-500 dark:text-slate-400">IP address</span>
+                <span className="break-all text-right font-mono text-xs font-medium text-slate-800 dark:text-slate-100">
+                  {clickToDelete.ipAddress || 'Unknown IP'}
+                </span>
+              </div>
+              <div className="mt-2 flex items-baseline justify-between gap-4">
+                <span className="shrink-0 text-xs text-slate-500 dark:text-slate-400">Campaign</span>
+                <span className="truncate text-right text-xs font-medium text-slate-800 dark:text-slate-100" title={clickToDelete.linkAccount.accountName}>
+                  {clickToDelete.linkAccount.accountName}
+                  <span className="ml-1 font-normal text-slate-500 dark:text-slate-400">/{clickToDelete.linkAccount.slug}</span>
+                </span>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 px-5 py-4">
+              <button
+                ref={cancelDeleteButtonRef}
+                type="button"
+                onClick={() => setClickToDelete(null)}
+                disabled={deletingClickId !== null}
+                className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-200 bg-white px-3.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#359f25] disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/15 dark:bg-[#263238] dark:text-slate-200 dark:hover:bg-[#303d42]"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={deleteClick}
+                disabled={deletingClickId !== null}
+                className="inline-flex h-9 items-center justify-center rounded-lg bg-slate-800 px-3.5 text-sm font-medium text-white transition hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#359f25] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
+              >
+                Delete
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
     </div>
   )
 }

@@ -80,7 +80,7 @@ export default function StatsCards({
           title="Unique Visitors"
           value={stats.uniqueClicks}
           icon={Users}
-          color="green"
+          color="blue"
           delay={200}
         />
         {showConversions ? (
@@ -94,8 +94,10 @@ export default function StatsCards({
             aria-label={`Toggle balance view. Current value: ${activeLabel}`}
           >
             <div className="flex items-center justify-between gap-2">
-              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">{activeLabel}</p>
-              <CircleDollarSign className="h-4 w-4 text-emerald-600 dark:text-emerald-300" />
+              <p className="text-[10px] font-semibold uppercase leading-[14px] tracking-[0.08em] text-slate-500 dark:text-slate-400 sm:text-xs sm:leading-5 sm:tracking-[0.12em]">{activeLabel}</p>
+              <span aria-hidden="true" className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl text-emerald-700 dark:text-emerald-200">
+                <CircleDollarSign className="h-[18px] w-[18px]" strokeWidth={1.8} />
+              </span>
             </div>
             <p className="mt-0.5 text-xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-2xl">{formatCurrency(activeValue)}</p>
           </motion.button>
