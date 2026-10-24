@@ -6,7 +6,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import PublicLayout from "@/components/layout/PublicLayout";
 import {
-  Star, Gauge, Zap, CreditCard, TrendingUp, Target, LineChart,
+  TrendingUp, Target, LineChart,
   ArrowRight, Layers, Headphones, Mail, MapPin, Check,
 } from "lucide-react";
 
@@ -87,29 +87,24 @@ export default function HomePage() {
 
       <main>
         {/* HERO */}
-        <section id="home" className="relative bg-[#263238] pt-32 pb-24 md:pt-44 md:pb-32 overflow-hidden">
+        <section id="home" className="relative bg-[#0f172a] pt-32 pb-24 md:pt-44 md:pb-32 overflow-hidden">
           <div
             className="home-hero-background pointer-events-none absolute inset-0 bg-cover"
             style={{
-              backgroundImage:
-                "linear-gradient(180deg, rgba(27, 38, 43, 0.38) 0%, rgba(27, 38, 43, 0.48) 58%, rgba(27, 38, 43, 0.7) 100%), url('/home-hero-background.jpg')",
+              backgroundImage: "url('/header_image.jpg')",
+              backgroundPosition: "center 44%",
             }}
             aria-hidden="true"
           />
           <div
-            className="absolute inset-0 pointer-events-none opacity-40"
+            className="pointer-events-none absolute inset-0"
             style={{
-              background:
-                "radial-gradient(700px 420px at 78% 15%, rgba(95,244,66,0.10), transparent 62%), radial-gradient(560px 380px at 12% 90%, rgba(34,211,238,0.06), transparent 62%)",
+              backgroundColor: "rgba(15, 23, 42, 0.28)",
             }}
-            aria-hidden="true"
-          />
-          <div
-            className="absolute inset-0 opacity-[0.05] pointer-events-none [background-image:linear-gradient(rgba(255,255,255,1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,1)_1px,transparent_1px)] [background-size:72px_72px] [mask-image:radial-gradient(ellipse_at_50%_0%,black_20%,transparent_72%)]"
             aria-hidden="true"
           />
 
-          <div className="relative mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
+          <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-left">
             <motion.h1
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
@@ -125,7 +120,7 @@ export default function HomePage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.1 }}
-              className="mx-auto max-w-2xl text-base md:text-lg leading-relaxed text-white/75 mb-10"
+              className="mb-10 max-w-2xl text-base leading-relaxed text-white/75 md:text-lg"
             >
               Discover our exclusive private network. Even if you are a publisher or
               advertiser we have solutions for everyone.
@@ -135,7 +130,7 @@ export default function HomePage() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.2 }}
-              className="flex flex-col sm:flex-row items-center justify-center gap-3"
+              className="flex flex-col items-start gap-3 sm:flex-row"
             >
               <Link
                 href="/signup"
@@ -160,10 +155,52 @@ export default function HomePage() {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:gap-8 lg:grid-cols-4">
               {[
-                { icon: Star, title: "Exclusive campaigns", body: "Our approach is to provide you only high quality and exclusive campaigns, here you will find a lot." },
-                { icon: Gauge, title: "In-house platform", body: "Adaptable to anything and being able to provide the most user-friendly experience through it." },
-                { icon: Zap, title: "Top verticals", body: "We strive to be the best so we are always adding campaigns from top-performing verticals." },
-                { icon: CreditCard, title: "Quick payments", body: "You have a wide selection of payment methods and you can qualify for faster payment terms." },
+                {
+                  icon: (
+                    <svg viewBox="0 0 48 48" fill="none" aria-hidden="true" className="h-7 w-7">
+                      <path d="M24 5.5 29.6 17l12.7 1.8-9.2 9 2.2 12.7L24 34.5l-11.3 6 2.2-12.7-9.2-9L18.4 17 24 5.5Z" stroke="currentColor" strokeWidth="2.5" strokeLinejoin="round" />
+                      <path d="m24 5.5 5.6 11.4 12.7 1.9-9.2 9 2.2 12.7L24 34.5V5.5Z" fill="#5ff442" fillOpacity=".35" />
+                    </svg>
+                  ),
+                  title: "Exclusive campaigns",
+                  body: "Our approach is to provide you only high quality and exclusive campaigns, here you will find a lot.",
+                },
+                {
+                  icon: (
+                    <svg viewBox="0 0 48 48" fill="none" aria-hidden="true" className="h-7 w-7">
+                      <rect x="6" y="7" width="36" height="34" rx="5" stroke="currentColor" strokeWidth="2.5" />
+                      <path d="M6 16h36" stroke="currentColor" strokeWidth="2.5" />
+                      <circle cx="12" cy="11.5" r="1" fill="#5ff442" />
+                      <path d="m13 32 7-7 5 4 10-9" stroke="#359f25" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M31 20h4v4" stroke="#359f25" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  ),
+                  title: "In-house platform",
+                  body: "Adaptable to anything and being able to provide the most user-friendly experience through it.",
+                },
+                {
+                  icon: (
+                    <svg viewBox="0 0 48 48" fill="none" aria-hidden="true" className="h-7 w-7">
+                      <path d="M8 39V27h8v12M20 39V19h8v20M32 39V9h8v30" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="m8 20 11-8 8 3 13-9" stroke="#359f25" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M34 6h6v6" stroke="#359f25" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  ),
+                  title: "Top verticals",
+                  body: "We strive to be the best so we are always adding campaigns from top-performing verticals.",
+                },
+                {
+                  icon: (
+                    <svg viewBox="0 0 48 48" fill="none" aria-hidden="true" className="h-7 w-7">
+                      <rect x="5.5" y="11" width="37" height="27" rx="4" stroke="currentColor" strokeWidth="2.5" />
+                      <path d="M6 19h36" stroke="currentColor" strokeWidth="2.5" />
+                      <path d="M12 29h10" stroke="#359f25" strokeWidth="2.5" strokeLinecap="round" />
+                      <circle cx="34" cy="29" r="3" fill="#5ff442" stroke="#359f25" strokeWidth="2" />
+                    </svg>
+                  ),
+                  title: "Quick payments",
+                  body: "You have a wide selection of payment methods and you can qualify for faster payment terms.",
+                },
               ].map((f, i) => (
                 <motion.div
                   key={f.title}
@@ -175,7 +212,7 @@ export default function HomePage() {
                   className="text-center"
                 >
                   <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-lg bg-white text-[#263238] shadow-sm">
-                    <f.icon className="h-6 w-6" aria-hidden="true" />
+                    {f.icon}
                   </div>
                   <h3 className="font-[Montserrat] text-base font-bold text-[#263238] mb-2">{f.title}</h3>
                   <p className="text-sm leading-relaxed text-[#455964]">{f.body}</p>

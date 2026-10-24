@@ -328,7 +328,7 @@ export async function GET(request: Request) {
           id: true,
           accountName: true,
           botClicks: true,
-          user: { select: { clickRate: true, commissionRate: true } },
+          user: { select: { role: true, clickRate: true, commissionRate: true } },
         },
       });
     } catch (error: any) {
@@ -343,7 +343,7 @@ export async function GET(request: Request) {
           accountName: true,
           botClicks: true,
           invoices: { select: { totalEarning: true } },
-          user: { select: { clickRate: true } },
+          user: { select: { role: true, clickRate: true } },
         },
       });
     }
@@ -468,7 +468,7 @@ export async function GET(request: Request) {
         link.id,
         {
           clickRate,
-          commissionRate: Number(link.user?.commissionRate ?? 20) || 20,
+          commissionRate: link.user?.role === 'ADMIN' ? 0 : Number(link.user?.commissionRate ?? 20),
         },
       ];
     }));
@@ -487,7 +487,7 @@ export async function GET(request: Request) {
       qualifiedClickMap.set(click.linkAccountId, (qualifiedClickMap.get(click.linkAccountId) || 0) + 1);
     }
     const revenueByLink = links.map((link) => {
-      const rates = linkRateById.get(link.id) || { clickRate: 0, commissionRate: 20 };
+      const rates = linkRateById.get(link.id) || { clickRate: 0, commissionRate: 0 };
       const current = (qualifiedClickMap.get(link.id) || 0) * rates.clickRate;
       const totalEarned = current;
       return { totalEarned, commission: totalEarned * (rates.commissionRate / 100) };

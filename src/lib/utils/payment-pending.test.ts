@@ -17,6 +17,15 @@ test('adds commission only to unpaid invoice totals', () => {
   assert.equal(calculateManagerPayoutTotal(invoices, 20), 120)
 })
 
+test('does not add commission when the rate is zero', () => {
+  const invoices = [
+    { totalEarning: 100, isPaid: false },
+    { totalEarning: 50, isPaid: true },
+  ]
+
+  assert.equal(calculatePendingAmount(invoices, 0), 100)
+})
+
 test('keeps base earnings and commission together for manager payout records', () => {
   const invoices = [
     { totalEarning: 200, isPaid: false },

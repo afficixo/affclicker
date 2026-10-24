@@ -62,6 +62,7 @@ export async function POST(request: Request) {
     email,
     password: hashedPassword,
     role: 'ADMIN',
+    commissionRate: 0,
     status: 'ACTIVE',
     ...(fullName ? { fullName } : {}),
   } as any)

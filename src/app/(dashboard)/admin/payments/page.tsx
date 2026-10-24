@@ -291,7 +291,7 @@ export default function PaymentsPage() {
         const unpaidInvoiceTotal = unpaid.reduce((sum, invoice) => sum + (Number(invoice.totalEarning) || 0), 0);
         const paidInvoiceTotal = paid.reduce((sum, invoice) => sum + (Number(invoice.totalEarning) || 0), 0);
         const invoiceTotal = unpaidInvoiceTotal;
-        const commissionRate = Number(link.commissionRate ?? 20) || 20;
+        const commissionRate = Number(link.commissionRate ?? 20);
         const unpaidAmount = unpaidInvoiceTotal;
         const pendingTotal = calculatePendingAmount(unpaid, commissionRate);
         const paidAmount = paidInvoiceTotal;

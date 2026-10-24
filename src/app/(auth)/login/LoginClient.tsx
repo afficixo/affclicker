@@ -133,7 +133,7 @@ export default function LoginClient() {
     <PublicLayout className="!bg-white">
       <main className="min-h-[250px] flex-1 bg-white px-4 pb-7 pt-24 md:pt-28">
         <div className="mx-auto w-full max-w-[610px]">
-          <h1 className="mb-2 text-center text-[2.25rem] font-medium leading-tight text-[#455964]">
+          <h1 className="mb-2 text-center text-[2.25rem] font-bold italic leading-tight tracking-[-0.04em] text-[#263238]">
             Affiliate Login
           </h1>
 

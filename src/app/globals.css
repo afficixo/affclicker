@@ -3248,6 +3248,10 @@ html:not(.dark) .auth-site {
   color: #f1f5f3 !important;
 }
 
+html:not(.dark) .public-site.legal-light-theme {
+  background: #fff !important;
+}
+
 html:not(.dark) .public-site [class~="text-white"],
 html:not(.dark) .public-site [class*="text-white/"],
 html:not(.dark) .auth-site [class~="text-white"],
@@ -3323,3 +3327,83 @@ html:not(.dark) .analytics-table-wrap tbody td span.text-slate-100 { color: #0f1
 html:not(.dark) .analytics-table-wrap tbody td span.text-slate-500 { color: #94a3b8; }
 html:not(.dark) .analytics-table-row:nth-child(odd) .analytics-account-cell { background: #f1f5f9; }
 html:not(.dark) .analytics-total-account { background: #ccfbf1; }
+
+.legal-document-title h1 {
+  color: #263238;
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.1;
+}
+
+.legal-document-content {
+  color: #455964;
+  font-size: 1rem;
+  line-height: 1.85;
+  overflow-wrap: anywhere;
+}
+
+.legal-document-content > p:first-of-type {
+  color: #37474f;
+  font-size: 1.0625rem;
+}
+
+.legal-document-content h4 {
+  margin-top: 2.25rem;
+  border-top: 1px solid #e2e8e4;
+  padding-top: 1.5rem;
+  color: #263238;
+  font-size: 1.2rem;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  line-height: 1.4;
+}
+
+.legal-document-content h5 {
+  margin-top: 1.5rem;
+  color: #34464e;
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.legal-document-content p {
+  margin-top: 1rem;
+}
+
+.legal-document-content ul {
+  margin-top: 1rem;
+  padding-left: 1.35rem;
+  list-style: disc;
+}
+
+.legal-document-content li {
+  margin-top: 0.65rem;
+  padding-left: 0.25rem;
+}
+
+.legal-document-content li::marker {
+  color: #438839;
+}
+
+.legal-document-content strong {
+  color: #263238;
+  font-weight: 600;
+}
+
+.legal-document-content a {
+  color: #347d2b;
+  text-decoration: underline;
+  text-decoration-color: rgb(52 125 43 / 45%);
+  text-underline-offset: 3px;
+}
+
+.legal-document-content a:hover {
+  color: #235d1e;
+  text-decoration-color: currentColor;
+}
+
+.legal-light-theme {
+  background: #f4f7f5 !important;
+  color: #263238 !important;
+}

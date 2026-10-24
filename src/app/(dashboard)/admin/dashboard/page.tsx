@@ -123,13 +123,13 @@ export default function DashboardPage() {
         const linksResponse = await fetch("/api/links", { credentials: "include" });
         const paymentLinks = linksResponse.ok ? await linksResponse.json() : [];
         const managerCommissionRate = Array.isArray(paymentLinks)
-          ? Number(paymentLinks.find((link: { isActive?: boolean }) => link.isActive)?.commissionRate ?? 20) || 20
+          ? Number(paymentLinks.find((link: { isActive?: boolean }) => link.isActive)?.commissionRate ?? 20)
           : 20;
         const paymentSummary = Array.isArray(paymentLinks)
           ? paymentLinks.filter((link) => link.isActive).reduce(
               (summary, link) => {
                 const current = Number(link.totalEarning) || 0;
-                const commissionRate = Number(link.commissionRate ?? 20) || 20;
+                const commissionRate = Number(link.commissionRate ?? 20);
                 return { totalEarned: summary.totalEarned + current, commission: summary.commission + current * (commissionRate / 100) };
               },
               { totalEarned: 0, commission: 0 },

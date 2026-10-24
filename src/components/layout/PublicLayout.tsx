@@ -82,8 +82,8 @@ export default function PublicLayout({
   return (
     <div className={`public-site relative min-h-screen w-full overflow-x-hidden ${className}`}>
       <div className="relative z-10 flex min-h-screen flex-col">
-        <header className={`fixed inset-x-0 top-0 z-40 border-b transition-colors ${open ? "border-white/10 bg-[#202b2f] shadow-lg shadow-black/20" : "border-white/[0.06] bg-[#272b2d] shadow-[0_2px_8px_rgba(0,0,0,0.18)]"}`}>
-          <nav className="relative z-10 mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 md:h-20">
+        <header className={`fixed inset-x-0 top-0 z-40 border-b backdrop-blur-md transition-colors ${open ? "border-white/10 bg-[#0f172a]/95 shadow-lg shadow-black/20" : "border-white/[0.08] bg-[#0f172a]/80 shadow-[0_2px_8px_rgba(0,0,0,0.18)]"}`}>
+          <nav className="relative z-10 mx-auto flex h-16 max-w-screen-2xl items-center justify-between px-4 sm:px-6 lg:px-8 md:h-20">
             <a
               href={isHomePage ? "#home" : "/#home"}
               onClick={isHomePage ? (e) => go(e, "#home") : undefined}
@@ -225,13 +225,30 @@ export default function PublicLayout({
 
         {children}
 
-        <footer className="mt-auto bg-[#e6ebed] py-6">
-          <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 sm:px-6 lg:flex-row lg:px-8">
-            <p className="text-sm text-[#455964]">© 2019 - 2026 Afficix - All rights reserved</p>
-            <div className="flex items-center gap-6 text-sm">
-              <Link href="/privacy-policy" prefetch={false} className="text-[#455964] hover:text-[#263238]">Privacy Policy</Link>
-              <Link href="/terms-of-service" prefetch={false} className="text-[#455964] hover:text-[#263238]">Terms &amp; Conditions</Link>
-            </div>
+        <footer className="mt-auto border-t border-white/10 bg-[#202b2f]">
+          <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-4 py-3 sm:px-6 md:flex-row lg:px-8">
+            <p className="text-center text-xs text-white/55 md:text-left">
+              <span className="font-semibold text-white/85">Afficix</span>
+              <span className="mx-2 text-[#5ff442]/70" aria-hidden="true">•</span>
+              © 2019–2026. All rights reserved.
+            </p>
+            <nav aria-label="Legal" className="flex items-center gap-1 text-xs">
+              <Link
+                href="/privacy-policy"
+                prefetch={false}
+                className="rounded-md px-2 py-1 text-white/65 transition-colors hover:text-[#8aff70] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5ff442]"
+              >
+                Privacy Policy
+              </Link>
+              <span className="h-4 w-px bg-white/15" aria-hidden="true" />
+              <Link
+                href="/terms-of-service"
+                prefetch={false}
+                className="rounded-md px-2 py-1 text-white/65 transition-colors hover:text-[#8aff70] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5ff442]"
+              >
+                Terms &amp; Conditions
+              </Link>
+            </nav>
           </div>
         </footer>
       </div>

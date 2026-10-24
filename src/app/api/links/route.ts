@@ -43,6 +43,7 @@ export async function GET(request: Request) {
       user: {
         select: {
           username: true,
+          role: true,
           clickRate: true,
           commissionRate: true,
           payoutMethod: true,
@@ -65,7 +66,7 @@ export async function GET(request: Request) {
         where: whereClause,
         include: {
           ...linkInclude,
-          user: { select: { username: true, clickRate: true, payoutMethod: true } },
+          user: { select: { username: true, role: true, clickRate: true, payoutMethod: true } },
         },
         orderBy: { createdAt: 'desc' },
       })
@@ -105,6 +106,9 @@ export async function GET(request: Request) {
       links.map((link) => {
         const managerClickRate = Number(link.user?.clickRate ?? 0) || 0
         const effectiveClickRate = managerClickRate > 0 ? managerClickRate : defaultOwnerClickRate
+        const commissionRate = link.user?.role === 'ADMIN'
+          ? 0
+          : Number(link.user?.commissionRate ?? 20)
         return {
           ...link,
           qualifiedClicks: qualifiedClickMap.get(link.id) || 0,
@@ -112,7 +116,7 @@ export async function GET(request: Request) {
           ...(canViewSubIdPayout
             ? { subIdPayout: subIdStatsMap.get(link.slug.trim().toLowerCase()) || 0 }
             : {}),
-          commissionRate: Number(link.user?.commissionRate ?? 20) || 20,
+          commissionRate,
           payoutMethod: link.payoutMethod || null,
           payoutAccount: link.payoutAccount || null,
           invoiceHistory: link.invoices,
