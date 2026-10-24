@@ -378,17 +378,17 @@ export default function PaymentsPage() {
 
   return (
     <div className="space-y-5 pb-8">
-      <div className="flex flex-col gap-4 border-b border-slate-200 pb-5 dark:border-white/10 sm:flex-row sm:items-end sm:justify-between">
-        <div className="flex shrink-0 items-center gap-3 self-start rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm dark:border-white/10 dark:bg-slate-900/60 sm:self-end">
-          <span className="hidden text-sm font-medium text-slate-700 dark:text-slate-300 sm:inline">1 USD = 118 BDT</span>
-          <div className="flex rounded-lg border border-slate-200 bg-slate-100 p-0.5 dark:border-white/10 dark:bg-slate-950/70" aria-label="Display currency">
+      <div className="flex justify-end border-b border-slate-200 pb-3 dark:border-white/10">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-medium tabular-nums text-slate-600 dark:text-slate-400">1 USD = ৳118 BDT</span>
+          <div role="group" className="flex rounded-md border border-slate-200 bg-slate-100 p-0.5 dark:border-white/10 dark:bg-slate-950/70" aria-label="Display currency">
             {(["USD", "BDT"] as const).map((option) => (
               <button
                 key={option}
                 type="button"
                 onClick={() => changeCurrency(option)}
                 aria-pressed={currency === option}
-                className={`rounded-md px-3 py-1.5 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 ${currency === option ? "bg-sky-700 text-white shadow-sm dark:bg-sky-300 dark:text-slate-950" : "text-slate-700 hover:bg-white hover:text-slate-950 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white"}`}
+                className={`rounded px-2.5 py-1 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 ${currency === option ? "bg-sky-700 text-white shadow-sm dark:bg-sky-300 dark:text-slate-950" : "text-slate-700 hover:bg-white hover:text-slate-950 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white"}`}
               >
                 {option}
               </button>

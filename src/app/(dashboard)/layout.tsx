@@ -4,7 +4,7 @@ import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ChevronLeft, ChevronRight, Menu, MessageCircle, Moon, Settings, Sun, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Clock3, Menu, MessageCircle, Moon, Settings, Sun, X } from 'lucide-react'
 import Sidebar from '@/components/layout/Sidebar'
 import { getDashboardBasePath } from '@/lib/auth/dashboard-path'
 
@@ -118,7 +118,7 @@ export default function DashboardLayout({
               alt="Afficix logo"
               width={2171}
               height={724}
-              className="h-10 w-32 object-contain"
+              className="h-12 w-36 shrink-0 object-contain"
               priority
             />
           )}
@@ -147,14 +147,15 @@ export default function DashboardLayout({
               <time
                 aria-label={`Current local time ${clockTime?.join(':')} on ${clockDate}`}
                 dateTime={now.toISOString()}
-                className="flex h-8 shrink-0 items-center rounded-lg border border-[#24651d]/25 bg-white px-2 shadow-sm shadow-slate-900/[0.06] ring-1 ring-inset ring-white sm:h-10 sm:gap-3 sm:px-3 dark:border-[#5ff442]/40 dark:bg-[#192326] dark:shadow-black/20 dark:ring-white/[0.06]"
+                className="flex h-8 shrink-0 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 shadow-sm shadow-slate-900/[0.06] ring-1 ring-inset ring-white sm:h-10 sm:gap-2.5 sm:px-3 dark:border-white/10 dark:bg-[#192326] dark:shadow-black/20 dark:ring-white/[0.06]"
               >
+                <Clock3 className="h-4 w-4 shrink-0 text-[#359f25] dark:text-[#a2fa8e]" aria-hidden="true" />
                 <span className="flex items-baseline font-mono leading-none tabular-nums">
-                  <span className="text-[16px] font-bold tracking-tight text-slate-900 sm:text-[20px] dark:text-white">{clockTime?.[0]}:{clockTime?.[1]}</span>
-                  <span className="ml-1 hidden text-[12px] font-semibold text-slate-600 sm:inline dark:text-slate-300">{clockTime?.[2]}</span>
+                  <span className="text-[16px] font-bold tracking-tight text-slate-900 sm:text-[19px] dark:text-white">{clockTime?.[0]}:{clockTime?.[1]}</span>
+                  <span className="text-[11px] font-semibold text-slate-500 sm:text-xs dark:text-slate-400">:{clockTime?.[2]}</span>
                 </span>
-                <span className="hidden h-5 w-px bg-[#24651d]/30 sm:block dark:bg-[#5ff442]/35" aria-hidden="true" />
-                <span className="hidden text-xs font-semibold tracking-wide text-slate-700 sm:inline dark:text-slate-200">{clockDate}</span>
+                <span className="hidden h-5 w-px bg-slate-200 sm:block dark:bg-white/15" aria-hidden="true" />
+                <span className="hidden text-xs font-medium text-slate-600 sm:inline dark:text-slate-300">{clockDate?.replace(' ', ', ')}</span>
               </time>
             )}
           </div>
