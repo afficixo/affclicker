@@ -38,7 +38,7 @@ export default function Header() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.16),transparent_24%),radial-gradient(circle_at_bottom_right,rgba(244,114,182,0.12),transparent_26%)]" />
       <div className="relative flex flex-wrap items-center justify-between gap-3 pl-12 md:pl-0">
         <div className="flex items-center gap-3 min-w-0">
-          <Logo variant="compact" size="sm" showAnimation={true} />
+          <Logo variant="compact" size="sm" />
           <span className="text-white/10 hidden sm:inline">|</span>
           <div className="hidden sm:block">
             <h2 className="text-base sm:text-lg font-semibold text-white truncate">
@@ -75,8 +75,8 @@ export default function Header() {
           <div className="relative">
             <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden bg-gradient-to-r from-cyan-500 via-indigo-500 to-fuchsia-500 shadow-[0_10px_24px_rgba(99,102,241,0.28)] flex-shrink-0 ring-1 ring-white/10">
               <Image
-                src="/afficixo-logo.png"
-                alt="Admin profile image"
+                src="/afficix_favicon.png"
+                alt="Afficix logo"
                 width={40}
                 height={40}
                 className="h-full w-full object-cover"

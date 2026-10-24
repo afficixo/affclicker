@@ -4,9 +4,9 @@ import PublicLayout from "@/components/layout/PublicLayout";
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://afficix.com'),
-  title: "Publisher Platform — Earn With High-Paying CPC Offers | Afficixo",
+  title: "Publisher Platform — Earn With High-Paying CPC Offers | Afficix",
   description:
-    "Join Afficixo publishers program and earn money from high-paying CPC affiliate offers. Discover campaigns, track clicks in real-time, and monetize your traffic with our transparent affiliate platform.",
+    "Join the Afficix publisher program to discover high-paying CPC offers, track clicks in real time, and monetize your traffic.",
   keywords: [
     "affiliate publishers",
     "publisher platform",
@@ -31,18 +31,18 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Publisher Platform — Earn With High-Paying CPC Offers",
     description:
-      "Join Afficixo publishers program. Discover high-paying CPC campaigns, track clicks in real-time, and monetize your traffic.",
+      "Join the Afficix publisher program. Discover high-paying CPC campaigns, track clicks in real time, and monetize your traffic.",
     type: "website",
     url: "https://afficix.com/publishers",
-    siteName: "Afficixo",
+    siteName: "Afficix",
     locale: "en_US",
     images: [
       {
-        url: "https://afficix.com/og.png",
-        secureUrl: "https://afficix.com/og.png",
-        width: 1200,
-        height: 630,
-        alt: "Afficixo Publisher Platform",
+        url: "https://afficix.com/afficix-preview.png",
+        secureUrl: "https://afficix.com/afficix-preview.png",
+        width: 768,
+        height: 768,
+        alt: "Afficix Publisher Platform",
         type: "image/png",
       },
     ],
@@ -52,7 +52,7 @@ export const metadata: Metadata = {
     title: "Publisher Platform — Earn With CPC Offers",
     description:
       "Join our publisher program, discover high-paying CPC offers, and start monetizing your traffic today.",
-    images: ["https://afficix.com/og.png"],
+    images: ["https://afficix.com/afficix-preview.png"],
     creator: "@afficixo",
     site: "@afficixo",
   },

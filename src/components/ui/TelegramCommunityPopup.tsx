@@ -40,7 +40,7 @@ export default function TelegramCommunityPopup({ onClose }: TelegramCommunityPop
 
       <div className="relative z-10">
         <h2 className="mb-1 text-center text-[18px] sm:text-[20px] font-semibold tracking-[-0.3px] text-slate-900 dark:text-white">
-          Join <span className="bg-[linear-gradient(135deg,#0088cc,#00b4ff)] bg-clip-text text-transparent">Afficixo</span> Community
+          Join <span className="bg-[linear-gradient(135deg,#0088cc,#00b4ff)] bg-clip-text text-transparent">Afficix</span> Community
         </h2>
 
         <p className="mb-3 text-center text-[13px] sm:text-[14px] leading-6 text-slate-600 dark:text-slate-400">

@@ -14,13 +14,13 @@ const structuredData = [
   {
     "@context": "https://schema.org",
     "@type": "Organization",
-    name: "Afficixo",
+    name: "Afficix",
     url: "https://afficix.com",
-    logo: "https://afficix.com/afficixo-logo.png",
+    logo: "https://afficix.com/afficixlogo.png",
     description:
-      "Afficixo is a modern pay-per-click affiliate marketplace built for publishers who want to monetize traffic through CPC offers.",
+      "Afficix is a CPC affiliate marketplace that helps publishers monetize traffic with pay-per-click offers.",
   },
-  { "@context": "https://schema.org", "@type": "WebSite", name: "Afficixo", url: "https://afficix.com" },
+  { "@context": "https://schema.org", "@type": "WebSite", name: "Afficix", url: "https://afficix.com" },
 ];
 
 const fadeUp = {

@@ -1,16 +1,16 @@
-# SEO Optimization Guide for www.weebly.pro
+# SEO Optimization Guide for Afficix
 
 ## Overview
-This document outlines the SEO optimizations implemented for Afficixo on the weebly.pro domain, focusing on the three main pages: Home, Login, and Signup.
+This document outlines the SEO metadata for Afficix on the `afficix.com` domain, focusing on the Home, Login, Signup, and Publishers pages.
 
 ## ✅ Completed Optimizations
 
 ### 1. **Metadata & Tags**
 - ✓ Updated title tags with primary keywords
-- ✓ Enhanced meta descriptions (150-160 characters)
+- ✓ Refined meta descriptions around CPC offers, click tracking, and publisher monetization
 - ✓ Added keyword optimization
 - ✓ Configured Open Graph (OG) tags for social sharing
-- ✓ Updated og.png image across all pages
+- ✓ Configured the Afficix social preview image across public pages
 - ✓ Added Twitter card metadata
 - ✓ Implemented canonical URLs (self-referencing)
 - ✓ Configured robots directives with Google Bot guidelines
@@ -22,13 +22,9 @@ This document outlines the SEO optimizations implemented for Afficixo on the wee
 - ✓ Theme color meta tag for browser UI
 
 ### 3. **Site Structure**
-- ✓ robots.txt updated to weebly.pro
-- ✓ Blocked admin/owner/dashboard routes from indexing
-- ✓ Blocked API and _next routes
-- ✓ Disallow: /admin, /owner, /dashboard, /_next, /api
-- ✓ sitemap.xml with weebly.pro domain
-- ✓ Image sitemap with OG image metadata
-- ✓ Priority levels set for important pages
+- ✓ Canonical URLs use `https://afficix.com`
+- `robots.txt` and a sitemap are not currently present in the project; add and verify these before submitting a sitemap to search engines.
+- Ensure private dashboard and API routes are excluded from indexing when adding robots directives.
 
 ### 4. **Structured Data (Schema.org)**
 - ✓ Organization schema on home page
@@ -39,22 +35,22 @@ This document outlines the SEO optimizations implemented for Afficixo on the wee
 ### 5. **Page-Specific Optimizations**
 
 #### Home Page (/)
-- Title: "Afficixo — Best CPC Affiliate Marketplace for Publishers"
+- Title: "Afficix — CPC Affiliate Marketplace for Publishers"
 - Primary Keywords: CPC affiliate marketplace, pay per click offers, publisher network
 - Priority: 1.00 (highest)
-- Canonical: https://www.weebly.pro/
+- Canonical: https://afficix.com/
 
 #### Login Page (/login)
-- Title: "Publisher Login — Afficixo"
-- Keywords: publisher login, Afficixo login, affiliate dashboard, offer management
+- Title: "Manager Login — Afficix"
+- Keywords: manager login, Afficix login, affiliate dashboard, offer management
 - Priority: 0.80
-- Canonical: https://www.weebly.pro/login
+- Canonical: https://afficix.com/login
 
 #### Signup Page (/signup)
-- Title: "Join Afficixo — Become a CPC Affiliate Publisher"
-- Keywords: join Afficixo, CPC affiliate publisher, publisher signup, traffic monetization
+- Title: "Join Afficix — Become a CPC Affiliate Publisher"
+- Keywords: join Afficix, CPC affiliate publisher, publisher signup, traffic monetization
 - Priority: 0.85
-- Canonical: https://www.weebly.pro/signup
+- Canonical: https://afficix.com/signup
 
 ## 🎯 SEO Strategy
 
@@ -141,7 +137,7 @@ Long-tail: best CPC marketplace for publishers, how to monetize traffic
 - Clear privacy/security information
 
 ## 🔐 Security & Trust Signals
-- ✓ HTTPS enabled (weebly.pro)
+- ✓ HTTPS enabled (afficix.com)
 - ✓ Sitemap included
 - ✓ robots.txt configured
 - ✓ OG images for social proof
@@ -164,5 +160,5 @@ Long-tail: best CPC marketplace for publishers, how to monetize traffic
 ---
 
 **Last Updated**: August 16, 2026
-**Domain**: https://www.weebly.pro
+**Domain**: https://afficix.com
 **Optimization Focus**: Home, Login, Signup Pages

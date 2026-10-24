@@ -4,11 +4,11 @@ import SignupClient from "./SignupClient"
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://afficix.com'),
-  title: 'Join Afficixo — Become a CPC Affiliate Publisher',
+  title: 'Join Afficix — Become a CPC Affiliate Publisher',
   description:
-    'Create your Afficixo publisher account and access CPC affiliate offers, tracking tools, campaign management, and traffic monetization features.',
+    'Create your Afficix publisher account to access CPC offers, track campaign performance, and monetize your traffic.',
   keywords: [
-    'join Afficixo',
+    'join Afficix',
     'CPC affiliate publisher',
     'publisher signup',
     'affiliate tracking tools',
@@ -18,30 +18,30 @@ export const metadata: Metadata = {
     canonical: 'https://afficix.com/signup',
   },
   openGraph: {
-    title: 'Join Afficixo — Become a CPC Affiliate Publisher',
+    title: 'Join Afficix — Become a CPC Affiliate Publisher',
     description:
-      'Create your Afficixo publisher account and access CPC affiliate offers, tracking tools, campaign management, and traffic monetization features.',
+      'Create your Afficix publisher account to access CPC offers, track campaign performance, and monetize your traffic.',
     type: 'website',
     url: 'https://afficix.com/signup',
-    siteName: 'Afficixo',
+    siteName: 'Afficix',
     images: [
       {
-        url: 'https://afficix.com/og.png',
-        secureUrl: 'https://afficix.com/og.png',
-        width: 1200,
-        height: 630,
-        alt: 'Afficixo Pay Per Click Affiliate Marketplace',
+        url: 'https://afficix.com/afficix-preview.png',
+        secureUrl: 'https://afficix.com/afficix-preview.png',
+        width: 768,
+        height: 768,
+        alt: 'Afficix Pay Per Click Affiliate Marketplace',
         type: 'image/png',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Join Afficixo — Become a CPC Affiliate Publisher',
+    title: 'Join Afficix — Become a CPC Affiliate Publisher',
     description:
-      'Create your Afficixo publisher account and access CPC affiliate offers, tracking tools, campaign management, and traffic monetization features.',
-    images: ['https://afficix.com/og-image.png'],
-    creator: 'Afficixo',
+      'Create your Afficix publisher account to access CPC offers, track campaign performance, and monetize your traffic.',
+    images: ['https://afficix.com/afficix-preview.png'],
+    creator: 'Afficix',
   },
 }
 

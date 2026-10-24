@@ -307,12 +307,12 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
   const toggleTheme = () => setIsDark(!isDark)
 
   const [stats, setStats] = useState<Stats | null>(null)
-  const [accountName, setAccountName] = useState('Afficixo')
+  const [accountName, setAccountName] = useState('Afficix')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
-  const [filterCountry, setFilterCountry] = useState('')
-  const [filterUnique, setFilterUnique] = useState<'all' | 'unique' | 'repeat'>('all')
+  const [filterCountry, setFilterCountry] = useState('US')
+  const [filterUnique, setFilterUnique] = useState<'all' | 'unique' | 'repeat'>('unique')
   const [earningCurrency, setEarningCurrency] = useState<'USD' | 'BDT'>('BDT')
   const [refreshKey, setRefreshKey] = useState(0)
   const [isRefreshing, setIsRefreshing] = useState(false)
@@ -356,7 +356,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
         if (!response.ok) throw new Error('Dashboard not found')
         const data = await response.json()
         setStats(data)
-        setAccountName(data.accountName || 'Afficixo')
+        setAccountName(data.accountName || 'Afficix')
         if (!paymentPromptShown.current && !data.payoutMethod) {
           paymentPromptShown.current = true
           setShowPaymentMethodPrompt(true)
@@ -472,7 +472,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.download = `afficixo-stats-${publicId}-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.csv`
+    link.download = `afficix-stats-${publicId}-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.csv`
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -613,9 +613,9 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
             url: `https://afficix.com/stats/${publicId}`,
             provider: {
               '@type': 'Organization',
-              name: 'Afficixo',
+              name: 'Afficix',
               url: 'https://afficix.com',
-              logo: 'https://afficix.com/afficixo-logo.png',
+              logo: 'https://afficix.com/afficixlogo.png',
             },
             dateModified: new Date().toISOString(),
             identifier: publicId,
@@ -636,12 +636,12 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
           {/* Header */}
           <div className="mb-4 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
             <div className="flex min-w-0 items-center gap-3 sm:gap-4">
-              <div className="relative h-10 w-28 shrink-0 overflow-hidden rounded-2xl border border-transparent bg-transparent sm:h-12 sm:w-32">
+              <div className="relative h-11 w-32 shrink-0 overflow-hidden rounded-2xl border border-transparent bg-transparent sm:h-[54px] sm:w-36">
                 <Image
-                  src="/afficixo-logo.png"
-                  alt="Afficixo logo"
-                  width={128}
-                  height={48}
+                  src="/afficixlogo.png"
+                  alt="Afficix logo"
+                  width={2171}
+                  height={724}
                   className="h-full w-full object-contain"
                   priority
                 />
@@ -653,7 +653,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                     : 'border-slate-200 bg-slate-50 text-slate-700'
                 }`}>
                   <span className="truncate">
-                    {accountName && accountName !== 'Afficixo' ? accountName : 'Public Analytics'}
+                    {accountName && accountName !== 'Afficix' ? accountName : 'Public Analytics'}
                   </span>
                 </span>
               </div>

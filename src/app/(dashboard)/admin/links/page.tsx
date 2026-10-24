@@ -120,6 +120,8 @@ const CopyIcon = ({ text, label = "Copy link" }: { text: string; label?: string 
 export default function LinksPage() {
   const router = useRouter();
   const [links, setLinks] = useState<LinkAccount[]>([]);
+  const [linksLoading, setLinksLoading] = useState(true);
+  const [linksError, setLinksError] = useState("");
   const [domains, setDomains] = useState<DomainOption[]>([]);
   const [offerGroups, setOfferGroups] = useState<string[]>([]);
   const [userRole, setUserRole] = useState<string | null>(null);
@@ -191,10 +193,20 @@ export default function LinksPage() {
         router.push("/login");
         return;
       }
+      if (!response.ok) {
+        throw new Error(`Unable to load links (HTTP ${response.status}).`);
+      }
       const data = await response.json();
+      if (!Array.isArray(data)) {
+        throw new Error("The server returned an invalid links response.");
+      }
       setLinks(coerceArray<LinkAccount>(data));
+      setLinksError("");
     } catch (error) {
       console.error("Failed to fetch links:", error);
+      setLinksError(error instanceof Error ? error.message : "Unable to load links. Please try again.");
+    } finally {
+      setLinksLoading(false);
     }
   }, [router]);
 
@@ -732,16 +744,30 @@ export default function LinksPage() {
             key={idx}
             className="rounded-xl border border-slate-800 bg-slate-900/60 p-4"
           >
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-xs font-medium text-slate-400">{stat.label}</p>
-                <p className="mt-1 text-xl font-bold text-white">{stat.value}</p>
-                <p className="mt-0.5 text-[10px] text-slate-500">{stat.sub}</p>
+            {linksLoading ? (
+              <div role="status" aria-label={`Loading ${stat.label}`} className="motion-safe:animate-pulse">
+                <div className="flex items-start justify-between">
+                  <div className="w-full">
+                    <div className="h-3 w-20 rounded bg-slate-700" />
+                    <div className="mt-2 h-6 w-12 rounded bg-slate-700" />
+                    <div className="mt-2 h-2.5 w-24 rounded bg-slate-800" />
+                  </div>
+                  <div className="h-7 w-7 rounded-md bg-slate-800" />
+                </div>
+                <span className="sr-only">Loading link statistics</span>
               </div>
-              <div className={`rounded-md ${stat.bg} p-1.5`}>
-                <stat.icon className={`h-4 w-4 ${stat.color}`} />
+            ) : (
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-xs font-medium text-slate-400">{stat.label}</p>
+                  <p className="mt-1 text-xl font-bold text-white">{stat.value}</p>
+                  <p className="mt-0.5 text-[10px] text-slate-500">{stat.sub}</p>
+                </div>
+                <div className={`rounded-md ${stat.bg} p-1.5`}>
+                  <stat.icon className={`h-4 w-4 ${stat.color}`} />
+                </div>
               </div>
-            </div>
+            )}
           </div>
         ))}
       </div>
@@ -1009,6 +1035,18 @@ export default function LinksPage() {
       </div>
 
       {/* ===== MESSAGES ===== */}
+      {linksError && (
+        <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+          <span>{linksError}</span>
+          <button
+            type="button"
+            onClick={() => void fetchLinks()}
+            className="rounded-md border border-red-400/30 px-3 py-1.5 text-xs font-medium text-red-100 transition hover:bg-red-500/15"
+          >
+            Try again
+          </button>
+        </div>
+      )}
       {(actionError || actionMessage) && (
         <div
           className={`relative z-10 rounded-lg px-4 py-3 text-sm ${
@@ -1055,7 +1093,27 @@ export default function LinksPage() {
       )}
 
       {/* ===== LINK LIST ===== */}
-      {filteredLinks.length === 0 ? (
+      {linksLoading ? (
+        <div role="status" aria-label="Loading links" className="space-y-3 motion-safe:animate-pulse">
+          {[...Array(3)].map((_, index) => (
+            <div key={index} className="rounded-xl border border-slate-800 bg-slate-900/60 p-4">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex-1">
+                  <div className="h-4 w-40 max-w-full rounded bg-slate-700" />
+                  <div className="mt-3 h-3 w-64 max-w-full rounded bg-slate-800" />
+                </div>
+                <div className="h-8 w-20 rounded bg-slate-800" />
+              </div>
+              <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {[...Array(4)].map((__, statIndex) => (
+                  <div key={statIndex} className="h-10 rounded bg-slate-800/80" />
+                ))}
+              </div>
+            </div>
+          ))}
+          <span className="sr-only">Loading links</span>
+        </div>
+      ) : linksError && links.length === 0 ? null : filteredLinks.length === 0 ? (
         <div className="rounded-xl border border-dashed border-slate-700 bg-slate-900/40 p-10 text-center">
           <p className="text-4xl">📭</p>
           <h3 className="mt-2 text-lg font-semibold text-white">No links found</h3>

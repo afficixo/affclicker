@@ -11,10 +11,11 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
+  applicationName: 'Afficix',
   metadataBase: new URL('https://afficix.com'),
-  title: 'Afficixo — Best CPC Affiliate Marketplace for Publishers',
+  title: 'Afficix — CPC Affiliate Marketplace for Publishers',
   description:
-    'Afficixo is the premier pay-per-click affiliate marketplace where publishers find high-paying CPC offers, promote campaigns, generate valid clicks, track traffic, and earn from quality visitors worldwide. Join 10,000+ publishers earning with our platform.',
+    'Afficix is a CPC affiliate marketplace for publishers. Discover high-paying pay-per-click offers, track valid clicks, and monetize your traffic worldwide.',
   keywords: [
     'CPC affiliate marketplace',
     'pay per click offers',
@@ -24,7 +25,7 @@ export const metadata: Metadata = {
     'traffic monetization',
     'affiliate marketing platform',
     'earn per click',
-    'Afficixo',
+    'Afficix',
     'CPC advertising network',
     'affiliate links',
     'campaign management',
@@ -35,9 +36,9 @@ export const metadata: Metadata = {
     'publisher platform',
     'affiliate offers',
   ],
-  authors: [{ name: 'Afficixo', url: 'https://afficix.com' }],
-  creator: 'Afficixo',
-  publisher: 'Afficixo',
+  authors: [{ name: 'Afficix', url: 'https://afficix.com' }],
+  creator: 'Afficix',
+  publisher: 'Afficix',
   category: 'Business',
   referrer: 'strict-origin-when-cross-origin',
   formatDetection: {
@@ -47,8 +48,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'Afficixo',
-    startupImage: '/web-app-manifest-512x512.png',
+    title: 'Afficix',
   },
   alternates: {
     canonical: 'https://afficix.com',
@@ -67,39 +67,37 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: '/favicon.ico', sizes: 'any' },
-      { url: '/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
-      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/afficix_favicon.png', type: 'image/png' },
     ],
-    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
-    shortcut: '/favicon.ico',
+    apple: [{ url: '/afficix_favicon.png', type: 'image/png' }],
+    shortcut: '/afficix_favicon.png',
   },
   manifest: '/site.webmanifest',
   openGraph: {
-    title: 'Afficixo — Pay Per Click Affiliate Marketplace',
+    title: 'Afficix — Pay Per Click Affiliate Marketplace',
     description:
-      'Join Afficixo and discover CPC affiliate offers, promote campaigns, track your traffic, and earn from valid clicks.',
+      'Discover CPC affiliate offers on Afficix. Promote campaigns, track traffic, and earn from valid clicks.',
     type: 'website',
     url: 'https://afficix.com',
-    siteName: 'Afficixo',
+    siteName: 'Afficix',
     locale: 'en_US',
     images: [
       {
-        url: 'https://afficix.com/og.png',
-        secureUrl: 'https://afficix.com/og.png',
-        width: 1200,
-        height: 630,
-        alt: 'Afficixo Pay Per Click Affiliate Marketplace',
+        url: '/afficix-preview.png',
+        secureUrl: 'https://afficix.com/afficix-preview.png',
+        width: 768,
+        height: 768,
+        alt: 'Afficix Pay Per Click Affiliate Marketplace',
         type: 'image/png',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Afficixo — CPC Affiliate Marketplace',
+    title: 'Afficix — CPC Affiliate Marketplace',
     description:
-      'Discover CPC offers, promote campaigns, track valid clicks, and monetize your traffic with Afficixo.',
-    images: ['https://afficix.com/og.png'],
+      'Discover CPC offers, promote campaigns, track valid clicks, and monetize your traffic with Afficix.',
+    images: ['/afficix-preview.png'],
     site: '@afficixo',
     creator: '@afficixo',
   },

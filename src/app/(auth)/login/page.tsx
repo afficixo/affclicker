@@ -4,12 +4,12 @@ import LoginClient from "./LoginClient";
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://afficix.com'),
-  title: 'Manager Login — Afficixo',
+  title: 'Manager Login — Afficix',
   description:
-    'Log in to your Afficixo publisher account to manage offers, affiliate links, traffic, clicks, analytics, and earnings.',
+    'Log in to your Afficix publisher account to manage CPC offers, tracking links, traffic analytics, and earnings.',
   keywords: [
     'manager login',
-    'Afficixo login',
+    'Afficix login',
     'affiliate dashboard',
     'offer management login',
     'click tracking login',
@@ -18,30 +18,30 @@ export const metadata: Metadata = {
     canonical: 'https://afficix.com/login',
   },
   openGraph: {
-    title: 'Manager Login — Afficixo',
+    title: 'Manager Login — Afficix',
     description:
-      'Log in to your Afficixo publisher account to manage offers, affiliate links, traffic, clicks, analytics, and earnings.',
+      'Log in to your Afficix publisher account to manage CPC offers, tracking links, traffic analytics, and earnings.',
     type: 'website',
     url: 'https://afficix.com/login',
-    siteName: 'Afficixo',
+    siteName: 'Afficix',
     images: [
       {
-        url: 'https://afficix.com/og.png',
-        secureUrl: 'https://afficix.com/og.png',
-        width: 1200,
-        height: 630,
-        alt: 'Afficixo Pay Per Click Affiliate Marketplace',
+        url: 'https://afficix.com/afficix-preview.png',
+        secureUrl: 'https://afficix.com/afficix-preview.png',
+        width: 768,
+        height: 768,
+        alt: 'Afficix Pay Per Click Affiliate Marketplace',
         type: 'image/png',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Manager Login — Afficixo',
+    title: 'Manager Login — Afficix',
     description:
-      'Log in to your Afficixo publisher account to manage offers, affiliate links, traffic, clicks, analytics, and earnings.',
-    images: ['https://afficix.com/og-image.png'],
-    creator: 'Afficixo',
+      'Log in to your Afficix publisher account to manage CPC offers, tracking links, traffic analytics, and earnings.',
+    images: ['https://afficix.com/afficix-preview.png'],
+    creator: 'Afficix',
   },
 };
 

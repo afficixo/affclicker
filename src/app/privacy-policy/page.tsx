@@ -1,8 +1,8 @@
 import PublicLayout from '@/components/layout/PublicLayout'
 
 export const metadata = {
-  title: "Privacy Policy | Afficixo",
-  description: "Read Afficixo's privacy policy for data usage, cookies, and user protection.",
+  title: "Privacy Policy | Afficix",
+  description: "Read Afficix's privacy policy for data usage, cookies, and user protection.",
 }
 
 export default function PrivacyPolicyPage() {
@@ -12,9 +12,9 @@ export default function PrivacyPolicyPage() {
         <div className="rounded-[2rem] border border-white/10 bg-slate-950/40 backdrop-blur-xl shadow-[0_40px_120px_-40px_rgba(15,23,42,0.8)]">
           <div className="border-b border-white/10 px-6 py-10 sm:px-10">
             <p className="text-sm uppercase tracking-[0.24em] text-cyan-300">Privacy Policy</p>
-            <h1 className="mt-4 text-4xl font-semibold tracking-tight text-white sm:text-5xl">Afficixo Privacy Policy</h1>
+            <h1 className="mt-4 text-4xl font-semibold tracking-tight text-white sm:text-5xl">Afficix Privacy Policy</h1>
             <p className="mt-4 max-w-3xl text-base leading-7 text-slate-300 sm:text-lg">
-              This Privacy Policy explains how Afficixo collects, uses, and protects information when you visit our site and use our services.
+              This Privacy Policy explains how Afficix collects, uses, and protects information when you visit our site and use our services.
             </p>
           </div>
 

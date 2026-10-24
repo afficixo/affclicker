@@ -438,7 +438,7 @@ export default function PublishersClient() {
     {
       name: "Sarah Johnson",
       role: "Digital Marketer",
-      quote: "Afficixo has transformed how I monetize my website traffic. The analytics are incredible.",
+      quote: "Afficix has transformed how I monetize my website traffic. The analytics are incredible.",
       gradient: "from-blue-500/20 to-cyan-500/20",
     },
     {
@@ -450,7 +450,7 @@ export default function PublishersClient() {
     {
       name: "Emma Rodriguez",
       role: "Social Media Manager",
-      quote: "Weekly payouts and dedicated support make Afficixo my go-to affiliate platform.",
+      quote: "Weekly payouts and dedicated support make Afficix my go-to affiliate platform.",
       gradient: "from-amber-500/20 to-orange-500/20",
     },
   ];
@@ -503,7 +503,7 @@ export default function PublishersClient() {
             </h1>
 
             <p className="text-lg md:text-xl text-slate-400 max-w-3xl mx-auto leading-relaxed font-light">
-              Join Afficixo and access high-converting CPC campaigns, advanced click tracking,
+              Join Afficix and access high-converting CPC campaigns, advanced click tracking,
               real-time analytics, and the tools you need to turn your traffic into reliable revenue.
             </p>
 
@@ -641,7 +641,7 @@ export default function PublishersClient() {
         <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-16 md:pb-24">
           <SectionHeading
             title="What Our Publishers Say"
-            subtitle="Real stories from publishers who are growing their earnings with Afficixo"
+            subtitle="Real stories from publishers who are growing their earnings with Afficix"
           />
 
           <motion.div

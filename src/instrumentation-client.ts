@@ -36,6 +36,8 @@ function stopLoading() {
   publishLoadingState()
 }
 
+window.addEventListener('app:route-committed', stopLoading)
+
 publishLoadingState()
 
 if (isLoading && !documentLoaded) {

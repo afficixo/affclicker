@@ -90,12 +90,12 @@ export default function PublicLayout({
               className="flex shrink-0 items-center"
             >
               <Image
-                src="/afficixo-logo.png"
-                alt="Afficixo"
-                width={2172}
+                src="/afficixlogo.png"
+                alt="Afficix"
+                width={2171}
                 height={724}
-                sizes="108px"
-                className="h-9 w-[108px] object-contain"
+                sizes="120px"
+                className="h-10 w-[120px] object-contain"
                 priority
               />
             </a>
@@ -227,7 +227,7 @@ export default function PublicLayout({
 
         <footer className="mt-auto bg-[#e6ebed] py-6">
           <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 sm:px-6 lg:flex-row lg:px-8">
-            <p className="text-sm text-[#455964]">© 2019 - 2026 Afficixo LLC - All rights reserved</p>
+            <p className="text-sm text-[#455964]">© 2019 - 2026 Afficix - All rights reserved</p>
             <div className="flex items-center gap-6 text-sm">
               <Link href="/privacy-policy" prefetch={false} className="text-[#455964] hover:text-[#263238]">Privacy Policy</Link>
               <Link href="/terms-of-service" prefetch={false} className="text-[#455964] hover:text-[#263238]">Terms &amp; Conditions</Link>

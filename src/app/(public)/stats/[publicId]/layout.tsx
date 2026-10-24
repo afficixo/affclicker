@@ -8,7 +8,7 @@ export async function generateMetadata({
   await params
 
   return {
-    title: 'Afficixo Stats',
+    title: 'Afficix Stats',
     appleWebApp: false,
     manifest: null,
   }

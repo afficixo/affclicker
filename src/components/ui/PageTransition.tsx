@@ -1,16 +1,24 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { createPortal } from 'react-dom'
 import { shouldShowPageLoader } from '@/lib/ui/page-load-routes'
 
 export default function PageTransition({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const previousPathname = useRef(pathname)
   const [isLoading, setIsLoading] = useState(false)
   const [loaderRegion, setLoaderRegion] = useState<HTMLElement | null>(null)
   const isLoaderPage = shouldShowPageLoader(pathname)
   const showLoader = isLoaderPage && isLoading
+
+  useEffect(() => {
+    if (previousPathname.current === pathname) return
+
+    previousPathname.current = pathname
+    window.dispatchEvent(new Event('app:route-committed'))
+  }, [pathname])
 
   useEffect(() => {
     const syncLoadingState = () => {
