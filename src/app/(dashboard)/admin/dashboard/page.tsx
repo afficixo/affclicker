@@ -237,7 +237,7 @@ export default function DashboardPage() {
         </section>
 
         <div className="overflow-x-auto">
-          <ClickLogs filter={logFilter} isOwner={userRole === "OWNER"} />
+          <ClickLogs filter={logFilter} canDelete={userRole === "OWNER" || userRole === "ADMIN"} />
         </div>
 
       </div>

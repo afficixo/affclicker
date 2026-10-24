@@ -45,10 +45,10 @@ interface Click {
 
 interface ClickLogsProps {
   filter: string
-  isOwner: boolean
+  canDelete: boolean
 }
 
-export default function ClickLogs({ filter, isOwner }: ClickLogsProps) {
+export default function ClickLogs({ filter, canDelete }: ClickLogsProps) {
   const router = useRouter()
   const [clicks, setClicks] = useState<Click[]>([])
   const [total, setTotal] = useState(0)
@@ -118,7 +118,7 @@ export default function ClickLogs({ filter, isOwner }: ClickLogsProps) {
   }, [clickToDelete, deletingClickId])
 
   const deleteClick = async () => {
-    if (!isOwner || deletingClickId || !clickToDelete) return
+    if (!canDelete || deletingClickId || !clickToDelete) return
     const click = clickToDelete
 
     setClickToDelete(null)
@@ -325,7 +325,7 @@ export default function ClickLogs({ filter, isOwner }: ClickLogsProps) {
                 <div className="mt-1 space-y-0 divide-y divide-[var(--surface-border)] text-[11px] text-slate-700 dark:text-slate-300">
                   <div className="flex items-center justify-between gap-2 py-1">
                     <span className="text-slate-600 dark:text-slate-300">IP:</span>
-                    {isOwner ? (
+                    {canDelete ? (
                       <button
                         type="button"
                         onClick={() => setClickToDelete(click)}
@@ -439,7 +439,7 @@ export default function ClickLogs({ filter, isOwner }: ClickLogsProps) {
                     )}
                   </td>
                   <td className="px-4 py-2 text-sm font-mono text-slate-600 dark:text-slate-400">
-                    {isOwner ? (
+                    {canDelete ? (
                       <button
                         type="button"
                         onClick={() => setClickToDelete(click)}

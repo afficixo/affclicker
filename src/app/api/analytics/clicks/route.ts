@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import type { Prisma } from '@prisma/client';
-import { getUserFromToken, getTokenFromCookie, isOwner, getOwnerUserId } from '@/lib/auth';
+import { getUserFromToken, getTokenFromCookie, isAdminOrOwner, getOwnerUserId } from '@/lib/auth';
 import { getCorsHeaders } from '@/config/cors';
 import { getLinkAccountVisibilityWhereClause } from '@/lib/utils/link-account-access';
 
@@ -256,9 +256,9 @@ export async function DELETE(request: Request) {
       );
     }
 
-    if (!isOwner(user)) {
+    if (!isAdminOrOwner(user)) {
       return NextResponse.json(
-        { error: 'Only the owner can delete click logs' },
+        { error: 'Only admins and the owner can delete click logs' },
         { status: 403, headers: getCorsHeaders(origin) }
       );
     }
