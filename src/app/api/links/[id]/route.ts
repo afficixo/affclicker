@@ -3,7 +3,6 @@ import { prisma } from '@/lib/db/prisma'
 import { getUserFromToken, getTokenFromCookie, isAdmin, isOwner, isManager, getOwnerUserId } from '@/lib/auth'
 import { getCorsHeaders } from '@/config/cors'
 import { isDesktopDeviceType } from '@/lib/utils/visitor-profile'
-import { calculateReferralCommission, DEFAULT_REFERRAL_COMMISSION_RATE } from '@/lib/referrals'
 
 const normalizeSlug = (value: unknown) => {
   return typeof value === 'string'
@@ -228,6 +227,7 @@ export async function POST(
 
     const link = await prisma.linkAccount.findUnique({
       where: { id },
+      include: { user: { select: { role: true } } },
     })
 
     if (!link || (!isAdmin(user) && !isOwner(user) && !isManager(user) && link.userId !== user.id)) {
@@ -240,10 +240,23 @@ export async function POST(
 
     const body = await request.json()
     if (body.action === 'mark-paid') {
-      if (!isAdmin(user) && !isOwner(user)) {
+      if (!isAdmin(user) && !isOwner(user) && !isManager(user)) {
         return NextResponse.json(
-          { error: 'Only an administrator can record publisher payments' },
+          { error: 'Payment access required' },
           { status: 403, headers: getCorsHeaders(origin) }
+        )
+      }
+      const managerIsPayingOwnAccount = isManager(user) && link.userId === user.id
+      if (isManager(user) && !managerIsPayingOwnAccount) {
+        return NextResponse.json(
+          { error: 'Managers can only record payments for their own link accounts' },
+          { status: 403, headers: getCorsHeaders(origin) },
+        )
+      }
+      if (!isManager(user) && link.user.role === 'MANAGER') {
+        return NextResponse.json(
+          { error: 'Manager payments must be recorded by the manager after the owner payout' },
+          { status: 409, headers: getCorsHeaders(origin) },
         )
       }
       const paymentReference = typeof body.paymentReference === 'string' ? body.paymentReference.trim() : ''
@@ -252,46 +265,55 @@ export async function POST(
         where: {
           linkAccountId: id,
           isPaid: false,
-          managerPayouts: { none: {} },
+          ...(managerIsPayingOwnAccount
+            ? { managerPayouts: { some: { payout: { isPaid: true } } } }
+            : { managerPayouts: { none: {} } }),
           ...(invoiceNumber ? { invoiceNumber } : {}),
         },
         orderBy: { createdAt: 'desc' },
       })
-      if (!invoice) return NextResponse.json({ error: 'No unpaid invoice found' }, { status: 404, headers: getCorsHeaders(origin) })
+      if (!invoice) {
+        if (managerIsPayingOwnAccount) {
+          const unpaidInvoice = await prisma.invoice.findFirst({
+            where: {
+              linkAccountId: id,
+              isPaid: false,
+              ...(invoiceNumber ? { invoiceNumber } : {}),
+            },
+            select: { id: true },
+          })
+          if (unpaidInvoice) {
+            return NextResponse.json(
+              { error: 'The owner must record the manager payout before you can record this link-account payment' },
+              { status: 409, headers: getCorsHeaders(origin) },
+            )
+          }
+        }
+        return NextResponse.json({ error: 'No unpaid invoice found' }, { status: 404, headers: getCorsHeaders(origin) })
+      }
       if (!paymentReference) {
         const payoutMethod = invoice.payoutMethod || link.payoutMethod
         return NextResponse.json({ error: payoutMethod === 'BKASH' ? 'bKash transaction ID is required' : payoutMethod === 'BINANCE' ? 'Binance order ID is required' : 'Payment reference is required' }, { status: 400, headers: getCorsHeaders(origin) })
       }
       const paidAt = new Date()
-      await prisma.$transaction(async (transaction) => {
+      const markedPaid = await prisma.$transaction(async (transaction) => {
         const updated = await transaction.invoice.updateMany({
-          where: { id: invoice.id, isPaid: false },
+          where: {
+            id: invoice.id,
+            isPaid: false,
+            ...(managerIsPayingOwnAccount
+              ? { managerPayouts: { some: { payout: { isPaid: true } } } }
+              : { managerPayouts: { none: {} } }),
+          },
           data: { isPaid: true, paidAt, paymentReference },
         })
-        if (updated.count === 0) return
+        if (updated.count !== 1) return false
 
-        const publisher = await transaction.user.findUnique({
-          where: { id: link.userId },
-          select: { id: true, role: true, referredById: true },
-        })
-        if (publisher?.role === 'MANAGER' && publisher.referredById) {
-          const referrer = await transaction.user.findUnique({
-            where: { id: publisher.referredById },
-            select: { referralCommissionRate: true },
-          })
-          const commissionRate = referrer?.referralCommissionRate ?? DEFAULT_REFERRAL_COMMISSION_RATE
-          await transaction.referralCommission.create({
-            data: {
-              referrerId: publisher.referredById,
-              referredUserId: publisher.id,
-              invoiceId: invoice.id,
-              publisherPayoutAmount: invoice.totalEarning,
-              commissionRate,
-              amount: calculateReferralCommission(invoice.totalEarning, commissionRate),
-            },
-          })
-        }
+        return true
       })
+      if (!markedPaid) {
+        return NextResponse.json({ error: 'Invoice has already been paid' }, { status: 409, headers: getCorsHeaders(origin) })
+      }
       return NextResponse.json({ success: true, invoiceNumber: invoice.invoiceNumber }, { headers: getCorsHeaders(origin) })
     }
 

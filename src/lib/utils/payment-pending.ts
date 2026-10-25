@@ -3,6 +3,23 @@ export type PaymentInvoiceLike = {
   isPaid?: boolean | null
 }
 
+export type ManagerPayoutStatus = 'PAID' | 'PENDING' | null
+
+export type ManagerInvoicePaymentState =
+  | 'PAID'
+  | 'MANAGER_PAYOUT_DUE'
+  | 'MANAGER_PAYOUT_PENDING'
+  | 'MANAGER_PAYMENT_DUE'
+
+export function getManagerInvoicePaymentState(
+  invoice: { isPaid: boolean; managerPayoutStatus: ManagerPayoutStatus },
+): ManagerInvoicePaymentState {
+  if (invoice.isPaid) return 'PAID'
+  if (invoice.managerPayoutStatus === 'PAID') return 'MANAGER_PAYMENT_DUE'
+  if (invoice.managerPayoutStatus === 'PENDING') return 'MANAGER_PAYOUT_PENDING'
+  return 'MANAGER_PAYOUT_DUE'
+}
+
 export function calculateManagerPayoutTotal(
   invoices: PaymentInvoiceLike[],
   commissionRate: number,

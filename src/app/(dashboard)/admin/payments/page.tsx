@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Check, CheckCircle, ChevronDown, CircleDollarSign, Copy, CreditCard, Eye, EyeOff, Info, Pencil, Search, UserRound, WalletCards, X } from "lucide-react";
 import { coerceArray } from "@/lib/utils/array-response";
-import { calculatePendingAmount } from "@/lib/utils/payment-pending";
+import { calculatePendingAmount, getManagerInvoicePaymentState, type ManagerPayoutStatus } from "@/lib/utils/payment-pending";
 
 interface PaymentLink {
   id: string;
@@ -33,6 +33,7 @@ interface PaymentLink {
     isPaid: boolean;
     createdAt: string;
     paidAt: string | null;
+    managerPayoutStatus?: ManagerPayoutStatus;
   }>;
 }
 
@@ -702,28 +703,21 @@ export default function PaymentsPage() {
               const hasPaidInvoice = paidAmount > 0;
               const hasPendingBalance = invoiceTotal > 0;
               const requiresManagerPayout = link.user?.role === "MANAGER";
+              const managerInvoiceStates = (link.invoiceHistory || invoices)
+                .filter((invoice) => !invoice.isPaid)
+                .map((invoice) => getManagerInvoicePaymentState({
+                  isPaid: invoice.isPaid,
+                  managerPayoutStatus: invoice.managerPayoutStatus ?? null,
+                }));
+              const hasManagerPayoutDue = managerInvoiceStates.includes("MANAGER_PAYOUT_DUE");
+              const hasManagerPaymentDue = managerInvoiceStates.includes("MANAGER_PAYMENT_DUE");
+              const hasManagerPayoutPending = managerInvoiceStates.includes("MANAGER_PAYOUT_PENDING");
               const linkManager = requiresManagerPayout && userRole === "OWNER"
                 ? managerPayments.find((manager) => manager.id === link.userId)
                 : undefined;
               const managerPayoutMethod = linkManager?.payoutMethod || (linkManager?.bkashNumber ? "BKASH" : null);
               const managerPayoutAccount = linkManager?.payoutAccount || linkManager?.bkashNumber || null;
               const canRecordLinkedManagerPayout = Boolean(managerPayoutMethod && managerPayoutAccount);
-              const openLinkedManagerPayout = () => {
-                if (!linkManager || !managerPayoutMethod || !managerPayoutAccount) return;
-                setPaymentLink({
-                  id: linkManager.id,
-                  userId: linkManager.id,
-                  accountName: linkManager.fullName || linkManager.username,
-                  slug: "",
-                  isActive: true,
-                  totalEarning: 0,
-                  qualifiedClicks: 0,
-                  payoutMethod: managerPayoutMethod,
-                  payoutAccount: managerPayoutAccount,
-                  selectedManagerId: linkManager.id,
-                });
-                setPaymentReference("");
-              };
               return (
                 <div key={link.id} className="grid min-w-0 gap-2.5 rounded-2xl border border-l-[3px] border-teal-200/80 border-l-teal-600 bg-white p-2.5 shadow-sm shadow-slate-900/[0.04] transition duration-200 hover:-translate-y-px hover:border-teal-300 hover:shadow-md sm:gap-3 sm:p-4 lg:grid-cols-[minmax(180px,1.1fr)_minmax(300px,1.8fr)_minmax(190px,1.2fr)] lg:items-center lg:gap-4 dark:border-teal-300/10 dark:border-l-teal-400 dark:bg-[#202b2f] dark:hover:border-teal-300/20 dark:shadow-black/10">
                   <div className="min-w-0">
@@ -757,8 +751,15 @@ export default function PaymentsPage() {
                   </div>
                   <div className="flex min-w-0 flex-wrap items-center gap-2 pt-1 lg:col-start-3 lg:row-start-2 lg:pt-0">
                     {!hasUnpaidInvoice && <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${hasPaidInvoice ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-300/10 dark:text-emerald-200" : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"}`}>{hasPaidInvoice ? "Paid" : "Not invoiced"}</span>}
-                    {hasUnpaidInvoice && requiresManagerPayout && userRole === "OWNER" && canRecordLinkedManagerPayout && <button type="button" onClick={openLinkedManagerPayout} disabled={payingLinkId === linkManager?.id} title="Record the combined payout for this manager's outstanding invoices and referral commissions" aria-label={`Mark manager payout as paid for ${linkManager?.fullName || linkManager?.username || link.accountName}`} className="inline-flex min-h-8 items-center justify-center gap-1.5 rounded-md border border-teal-200 bg-teal-50 px-2.5 py-1 text-xs font-semibold text-teal-800 transition-colors hover:border-teal-300 hover:bg-teal-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 dark:border-teal-400/20 dark:bg-teal-400/[0.08] dark:text-teal-200 dark:hover:border-teal-300/30 dark:hover:bg-teal-400/[0.14] dark:focus-visible:ring-offset-[#202b2f] sm:min-h-9 sm:px-3 sm:py-1.5">Mark paid</button>}
-                    {hasUnpaidInvoice && requiresManagerPayout && (userRole !== "OWNER" || !canRecordLinkedManagerPayout) && <span className="inline-flex items-center rounded-lg bg-sky-100/80 px-2.5 py-2 text-xs font-medium text-sky-800 dark:bg-sky-400/[0.08] dark:text-sky-200">{userRole === "OWNER" ? "Add manager payout details" : "Owner payout required"}</span>}
+                    {requiresManagerPayout && userRole === "OWNER" && hasManagerPayoutDue && canRecordLinkedManagerPayout && <span className="inline-flex items-center rounded-lg bg-amber-100/80 px-2.5 py-2 text-xs font-medium text-amber-800 dark:bg-amber-400/[0.08] dark:text-amber-200">Manager payout due · see Manager balances</span>}
+                    {requiresManagerPayout && userRole === "OWNER" && hasManagerPayoutDue && !canRecordLinkedManagerPayout && <span className="inline-flex items-center rounded-lg bg-sky-100/80 px-2.5 py-2 text-xs font-medium text-sky-800 dark:bg-sky-400/[0.08] dark:text-sky-200">Add manager payout details</span>}
+                    {requiresManagerPayout && userRole === "OWNER" && hasManagerPaymentDue && <span className="inline-flex items-center rounded-lg bg-emerald-100/80 px-2.5 py-2 text-xs font-medium text-emerald-800 dark:bg-emerald-400/[0.08] dark:text-emerald-200">Paid to manager · awaiting account payment</span>}
+                    {requiresManagerPayout && userRole === "OWNER" && hasManagerPayoutPending && <span className="inline-flex items-center rounded-lg bg-sky-100/80 px-2.5 py-2 text-xs font-medium text-sky-800 dark:bg-sky-400/[0.08] dark:text-sky-200">Manager payout pending</span>}
+                    {requiresManagerPayout && userRole === "MANAGER" && hasManagerPaymentDue && <button type="button" onClick={() => { setPaymentLink(link); setPaymentReference(""); }} disabled={payingLinkId === link.id} className="inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-lg bg-gradient-to-r from-emerald-700 to-teal-700 px-3.5 py-2 text-xs font-bold text-white shadow-sm shadow-emerald-950/20 transition hover:-translate-y-0.5 hover:from-emerald-600 hover:to-teal-600 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 dark:from-emerald-500 dark:to-teal-500 dark:text-slate-950 dark:hover:from-emerald-400 dark:hover:to-teal-400" aria-label={`Mark invoice for ${link.accountName} as paid`} title="Record link-account payment">
+                      <CheckCircle className="h-3 w-3" />
+                      {payingLinkId === link.id ? "Saving" : "Mark paid"}
+                    </button>}
+                    {requiresManagerPayout && userRole === "MANAGER" && hasUnpaidInvoice && !hasManagerPaymentDue && <span className="inline-flex items-center rounded-lg bg-sky-100/80 px-2.5 py-2 text-xs font-medium text-sky-800 dark:bg-sky-400/[0.08] dark:text-sky-200">Owner payout required</span>}
                     {hasUnpaidInvoice && !requiresManagerPayout && userRole !== "MANAGER" && <button type="button" onClick={() => { setPaymentLink(link); setPaymentReference(""); }} disabled={payingLinkId === link.id} className="inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-lg bg-gradient-to-r from-emerald-700 to-teal-700 px-3.5 py-2 text-xs font-bold text-white shadow-sm shadow-emerald-950/20 transition hover:-translate-y-0.5 hover:from-emerald-600 hover:to-teal-600 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 dark:from-emerald-500 dark:to-teal-500 dark:text-slate-950 dark:hover:from-emerald-400 dark:hover:to-teal-400" aria-label={`Mark invoice for ${link.accountName} as paid`} title="Mark invoice as paid">
                       <CheckCircle className="h-3 w-3" />
                       {payingLinkId === link.id ? "Saving" : "Mark paid"}

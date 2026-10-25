@@ -83,16 +83,6 @@ export async function POST(
         select: { id: true, payoutNumber: true, totalEarning: true, invoiceCount: true },
       })
 
-      if (invoices.length > 0) {
-        const markedPaid = await transaction.invoice.updateMany({
-          where: { id: { in: invoices.map((invoice) => invoice.id) }, isPaid: false },
-          data: { isPaid: true, paidAt },
-        })
-        if (markedPaid.count !== invoices.length) {
-          throw new Error('Publisher invoices changed while recording the payout')
-        }
-      }
-
       if (pendingReferralCommissions.length > 0) {
         const settled = await transaction.referralCommission.updateMany({
           where: {
