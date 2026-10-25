@@ -1,7 +1,7 @@
 const { spawn } = require('node:child_process');
 
-const maxAttempts = 6;
-const retryDelaysMs = [10000, 20000, 40000, 60000, 90000];
+const maxAttempts = 10;
+const retryDelaysMs = [15000, 30000, 60000, 90000, 120000, 120000, 120000, 120000, 120000];
 const prismaCli = require.resolve('prisma/build/index.js');
 
 function getMigrationDatabaseUrl() {
@@ -27,15 +27,40 @@ function getMigrationDatabaseUrl() {
   return databaseUrl;
 }
 
+function getMigrationEnvironment() {
+  const migrationDatabaseUrl = getMigrationDatabaseUrl();
+  return {
+    ...process.env,
+    ...(migrationDatabaseUrl ? { DATABASE_URL: migrationDatabaseUrl } : {}),
+  };
+}
+
+function checkMigrationStatus() {
+  return new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, [prismaCli, 'migrate', 'status'], {
+      stdio: ['ignore', 'pipe', 'pipe'],
+      env: getMigrationEnvironment(),
+    });
+    let output = '';
+
+    child.stdout.on('data', (chunk) => {
+      output += chunk;
+    });
+    child.stderr.on('data', (chunk) => {
+      output += chunk;
+    });
+    child.on('error', reject);
+    child.on('exit', (code, signal) => {
+      resolve({ code: code ?? (signal ? 1 : 0), output });
+    });
+  });
+}
+
 function runMigration() {
   return new Promise((resolve, reject) => {
-    const migrationDatabaseUrl = getMigrationDatabaseUrl();
     const child = spawn(process.execPath, [prismaCli, 'migrate', 'deploy'], {
       stdio: 'inherit',
-      env: {
-        ...process.env,
-        ...(migrationDatabaseUrl ? { DATABASE_URL: migrationDatabaseUrl } : {}),
-      },
+      env: getMigrationEnvironment(),
     });
 
     child.on('error', reject);
@@ -50,6 +75,13 @@ function delay(milliseconds) {
 }
 
 async function main() {
+  const status = await checkMigrationStatus();
+  process.stdout.write(status.output);
+  if (status.code === 0 && status.output.includes('Database schema is up to date!')) {
+    console.log('No pending database migrations; skipping migrate deploy.');
+    return;
+  }
+
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     const exitCode = await runMigration();
 
@@ -58,8 +90,10 @@ async function main() {
     }
 
     if (attempt < maxAttempts) {
-      const waitMs = retryDelaysMs[attempt - 1];
-      console.warn(`Prisma migration failed; retrying in ${waitMs / 1000}s (attempt ${attempt + 1}/${maxAttempts}).`);
+      const baseDelayMs = retryDelaysMs[attempt - 1];
+      const jitterMs = Math.floor(Math.random() * Math.min(15000, baseDelayMs * 0.2));
+      const waitMs = baseDelayMs + jitterMs;
+      console.warn(`Prisma migration failed; retrying in ${(waitMs / 1000).toFixed(1)}s (attempt ${attempt + 1}/${maxAttempts}).`);
       await delay(waitMs);
     } else {
       process.exitCode = exitCode;
