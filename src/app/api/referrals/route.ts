@@ -3,6 +3,7 @@ import { getTokenFromCookie, getUserFromToken, isManager } from '@/lib/auth'
 import { getCorsHeaders } from '@/config/cors'
 import { prisma } from '@/lib/db/prisma'
 import { DEFAULT_REFERRAL_COMMISSION_RATE } from '@/lib/referrals'
+import { calculatePaidManagerPayoutAmount } from '@/lib/utils/payment-pending'
 
 export async function GET(request: Request) {
   const origin = request.headers.get('origin') || null
@@ -38,6 +39,10 @@ export async function GET(request: Request) {
           },
           orderBy: { createdAt: 'desc' },
         },
+        managerPayouts: {
+          where: { isPaid: true },
+          select: { totalEarning: true, isPaid: true },
+        },
       },
     })
     if (!publisher) {
@@ -65,6 +70,7 @@ export async function GET(request: Request) {
         pendingAmount,
         paidAmount,
         totalAmount: pendingAmount + paidAmount,
+        managerPaidOutAmount: calculatePaidManagerPayoutAmount(publisher.managerPayouts),
       },
     }, { headers: getCorsHeaders(origin) })
   } catch (error) {

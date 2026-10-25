@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Check, CheckCircle, ChevronDown, CircleDollarSign, Copy, CreditCard, Eye, EyeOff, Info, Pencil, Search, UserRound, WalletCards, X } from "lucide-react";
 import { coerceArray } from "@/lib/utils/array-response";
-import { calculatePendingAmount, getManagerInvoicePaymentState, type ManagerPayoutStatus } from "@/lib/utils/payment-pending";
+import { calculateManagerOwnerPendingAmount, calculatePendingAmount, getManagerInvoicePaymentState, type ManagerPayoutStatus } from "@/lib/utils/payment-pending";
 
 interface PaymentLink {
   id: string;
@@ -104,6 +104,8 @@ export default function PaymentsPage() {
   const [isEditingPaymentMethod, setIsEditingPaymentMethod] = useState(false);
   const [bindingMessage, setBindingMessage] = useState("");
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [managerPaidOutAmount, setManagerPaidOutAmount] = useState(0);
+  const [managerPaidOutError, setManagerPaidOutError] = useState("");
   const [managerPayments, setManagerPayments] = useState<ManagerPayment[]>([]);
   const [showManagerPayments, setShowManagerPayments] = useState(false);
   const [managerPaymentFilter, setManagerPaymentFilter] = useState<"all" | "unpaid">("all");
@@ -166,6 +168,16 @@ export default function PaymentsPage() {
 
       if (data.role === "OWNER") {
         await fetchManagerPayments();
+      } else if (data.role === "MANAGER") {
+        try {
+          const payoutResponse = await fetch("/api/referrals", { credentials: "include" });
+          if (!payoutResponse.ok) throw new Error("Unable to load manager payout totals");
+          const payoutData = await payoutResponse.json();
+          setManagerPaidOutAmount(Number(payoutData.summary?.managerPaidOutAmount) || 0);
+          setManagerPaidOutError("");
+        } catch (payoutError) {
+          setManagerPaidOutError(payoutError instanceof Error ? payoutError.message : "Unable to load manager payout totals");
+        }
       }
     };
 
@@ -365,9 +377,13 @@ export default function PaymentsPage() {
   );
   const pendingSummary = userRole === "OWNER"
     ? activeManagerPaymentRows.reduce((sum, row) => sum + row.pending, 0)
+    : userRole === "MANAGER"
+      ? paymentRows.reduce((sum, row) => sum + calculateManagerOwnerPendingAmount(row.invoices, Number(row.link.commissionRate ?? 20)), 0)
     : totals.invoices;
   const paidOutSummary = userRole === "OWNER"
     ? activeManagerPaymentRows.reduce((sum, row) => sum + row.paid, 0)
+    : userRole === "MANAGER"
+      ? managerPaidOutAmount
     : totals.paid;
   const managerCommissionRates = [...new Set(paymentRows.map((row) => Number(row.link.commissionRate ?? 20)).filter((rate) => Number.isFinite(rate)))];
   const displayedCommissionRates = managerCommissionRates.length > 0 ? managerCommissionRates : [20];
@@ -415,8 +431,8 @@ export default function PaymentsPage() {
         {[
           { label: "Earning", value: totals.current, icon: WalletCards, tone: "text-slate-950 dark:text-white", iconTone: "bg-sky-100 text-sky-700 dark:bg-sky-400/10 dark:text-sky-300", stripe: "bg-sky-500 dark:bg-sky-400", surface: "bg-gradient-to-br from-white to-sky-50/90 dark:from-[#202b2f] dark:to-sky-950/30" },
           { label: "Commission", value: commission, icon: CircleDollarSign, tone: "text-slate-950 dark:text-white", iconTone: "bg-violet-100 text-violet-700 dark:bg-violet-400/10 dark:text-violet-300", stripe: "bg-violet-500 dark:bg-violet-400", surface: "bg-gradient-to-br from-white to-violet-50/90 dark:from-[#202b2f] dark:to-violet-950/30" },
-          { label: "Pending", value: pendingSummary, icon: CreditCard, tone: "text-amber-950 dark:text-amber-50", iconTone: "bg-amber-200/80 text-amber-900 dark:bg-amber-400/15 dark:text-amber-200", stripe: "bg-amber-600 dark:bg-amber-400", surface: "bg-gradient-to-br from-amber-50 via-amber-50/80 to-orange-100/90 dark:from-[#202b2f] dark:via-amber-950/30 dark:to-orange-950/35" },
-          { label: "Paid out", value: paidOutSummary, icon: CircleDollarSign, tone: "text-slate-950 dark:text-white", iconTone: "bg-emerald-100 text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-300", stripe: "bg-emerald-500 dark:bg-emerald-400", surface: "bg-gradient-to-br from-white to-emerald-50/90 dark:from-[#202b2f] dark:to-emerald-950/30" },
+          { label: userRole === "MANAGER" ? "Pending from owner" : "Pending", value: pendingSummary, icon: CreditCard, tone: "text-amber-950 dark:text-amber-50", iconTone: "bg-amber-200/80 text-amber-900 dark:bg-amber-400/15 dark:text-amber-200", stripe: "bg-amber-600 dark:bg-amber-400", surface: "bg-gradient-to-br from-amber-50 via-amber-50/80 to-orange-100/90 dark:from-[#202b2f] dark:via-amber-950/30 dark:to-orange-950/35" },
+          { label: userRole === "MANAGER" ? "Paid by owner" : "Paid out", value: paidOutSummary, icon: CircleDollarSign, tone: "text-slate-950 dark:text-white", iconTone: "bg-emerald-100 text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-300", stripe: "bg-emerald-500 dark:bg-emerald-400", surface: "bg-gradient-to-br from-white to-emerald-50/90 dark:from-[#202b2f] dark:to-emerald-950/30" },
         ].map((card, index) => (
           <motion.div
             key={card.label}
@@ -437,7 +453,7 @@ export default function PaymentsPage() {
           >
             <span className={`absolute inset-x-0 top-0 h-1 ${card.stripe}`} aria-hidden="true" />
             <div className="flex items-center justify-between gap-2">
-              <span className="min-w-0 truncate text-xs font-semibold text-slate-600 dark:text-slate-300">{card.label}</span>
+              <span className="min-w-0 truncate text-xs font-semibold text-slate-600 dark:text-slate-300" title={card.label === "Pending from owner" ? "Manager payouts the owner has not recorded as paid" : card.label}>{card.label}</span>
               {card.label === "Commission" && userRole === "MANAGER" && (
                 <span className="shrink-0 rounded-full bg-violet-100 px-2 py-1 text-xs font-semibold tabular-nums text-violet-900 dark:bg-violet-300/15 dark:text-violet-100">
                   {displayedCommissionRates.map((rate) => `${rate.toFixed(2)}%`).join(", ")}
@@ -453,6 +469,9 @@ export default function PaymentsPage() {
           </motion.div>
         ))}
       </div>
+      {managerPaidOutError && userRole === "MANAGER" && (
+        <p role="alert" className="rounded-lg bg-rose-50 px-3 py-2 text-xs font-medium text-rose-700 dark:bg-rose-400/[0.08] dark:text-rose-200">{managerPaidOutError}</p>
+      )}
       {userRole === "OWNER" ? (
         <section id="manager-payments" className="scroll-mt-4 overflow-hidden rounded-2xl bg-white/75 shadow-sm shadow-slate-900/[0.04] dark:bg-[#202b2f]/80">
           <div className="flex flex-col gap-2 bg-emerald-50/60 p-3 dark:bg-emerald-400/[0.035] sm:flex-row sm:items-center sm:justify-between sm:px-4 sm:py-3">

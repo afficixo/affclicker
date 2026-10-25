@@ -11,6 +11,25 @@ export type ManagerInvoicePaymentState =
   | 'MANAGER_PAYOUT_PENDING'
   | 'MANAGER_PAYMENT_DUE'
 
+export function calculateManagerOwnerPendingAmount(
+  invoices: Array<PaymentInvoiceLike & { managerPayoutStatus?: ManagerPayoutStatus }>,
+  commissionRate: number,
+): number {
+  const unpaidByOwner = invoices.filter(
+    (invoice) => !invoice.isPaid && invoice.managerPayoutStatus !== 'PAID',
+  )
+
+  return calculatePendingAmount(unpaidByOwner, commissionRate)
+}
+
+export function calculatePaidManagerPayoutAmount(
+  payouts: Array<{ totalEarning?: number | string | null; isPaid?: boolean | null }>,
+): number {
+  return payouts
+    .filter((payout) => payout.isPaid)
+    .reduce((total, payout) => total + Number(payout.totalEarning || 0), 0)
+}
+
 export function getManagerInvoicePaymentState(
   invoice: { isPaid: boolean; managerPayoutStatus: ManagerPayoutStatus },
 ): ManagerInvoicePaymentState {
