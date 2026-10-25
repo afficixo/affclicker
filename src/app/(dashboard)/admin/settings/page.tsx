@@ -28,6 +28,7 @@ interface ManagerOption {
   fullName: string | null;
   clickRate: number;
   commissionRate: number;
+  referralCommissionRate: number;
   status?: "PENDING" | "ACTIVE" | "DISABLED" | "REJECTED";
 }
 
@@ -37,7 +38,7 @@ export default function SettingsPage() {
   const [userInfo, setUserInfo] = useState<{ username?: string; email?: string; role?: string } | null>(null);
   const [clickRate, setClickRate] = useState("0");
   const [managers, setManagers] = useState<ManagerOption[]>([]);
-  const [managerDrafts, setManagerDrafts] = useState<Record<string, { clickRate: string; commissionRate: string }>>({});
+  const [managerDrafts, setManagerDrafts] = useState<Record<string, { clickRate: string; commissionRate: string; referralCommissionRate: string }>>({});
   const [showClickRateForm, setShowClickRateForm] = useState(false);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [googleResetReady, setGoogleResetReady] = useState(false);
@@ -120,6 +121,7 @@ export default function SettingsPage() {
               fullName: manager.fullName || null,
               clickRate: Number(manager.clickRate ?? 0),
               commissionRate: Number(manager.commissionRate ?? 20),
+              referralCommissionRate: Number(manager.referralCommissionRate ?? 5),
               status: manager.status || "ACTIVE",
             }))
         : [];
@@ -127,13 +129,14 @@ export default function SettingsPage() {
       setManagerDrafts(Object.fromEntries(managerOptions.map((manager: ManagerOption) => [manager.id, {
         clickRate: String(manager.clickRate),
         commissionRate: String(manager.commissionRate),
+        referralCommissionRate: String(manager.referralCommissionRate),
       }])));
     };
 
     void fetchManagers();
   }, [userInfo?.role]);
 
-  const updateManagerDraft = (managerId: string, field: "clickRate" | "commissionRate", value: string) => {
+  const updateManagerDraft = (managerId: string, field: "clickRate" | "commissionRate" | "referralCommissionRate", value: string) => {
     setManagerDrafts((current) => ({
       ...current,
       [managerId]: { ...current[managerId], [field]: value },
@@ -185,6 +188,37 @@ export default function SettingsPage() {
       setFeedback({ type: "success", message: data.message || "Manager commission rate updated successfully." });
     } catch (error) {
       setFeedback({ type: "error", message: error instanceof Error ? error.message : "Unable to update manager commission rate" });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleManagerReferralCommissionSubmit = async (event: FormEvent<HTMLFormElement>, managerId: string) => {
+    event.preventDefault();
+    const draft = managerDrafts[managerId];
+    if (!draft) return;
+    setIsSubmitting(true);
+    setFeedback(null);
+    try {
+      const response = await fetch("/api/settings", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "update-manager-referral-commission-rate",
+          managerId,
+          referralCommissionRate: Number(draft.referralCommissionRate),
+        }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "Unable to update referral commission rate");
+      setManagers((current) => current.map((manager) => manager.id === managerId
+        ? { ...manager, referralCommissionRate: Number(data.referralCommissionRate) }
+        : manager));
+      updateManagerDraft(managerId, "referralCommissionRate", String(data.referralCommissionRate));
+      setFeedback({ type: "success", message: data.message || "Referral commission rate updated successfully." });
+    } catch (error) {
+      setFeedback({ type: "error", message: error instanceof Error ? error.message : "Unable to update referral commission rate" });
     } finally {
       setIsSubmitting(false);
     }
@@ -394,28 +428,33 @@ export default function SettingsPage() {
                     <div className="flex items-center justify-between gap-3">
                       <div>
                         <h3 className="text-sm font-semibold text-white">Manager controls</h3>
-                        <p className="mt-0.5 text-xs text-slate-400">Set account-level click rates and commission shares.</p>
+                        <p className="mt-0.5 text-xs text-slate-400">Set rates per account. Referral rate changes apply to future commissions.</p>
                       </div>
                       <span className="text-[11px] text-slate-500">{managers.length} active account{managers.length === 1 ? "" : "s"}</span>
                     </div>
 
                     {managers.length > 0 ? (
                       <div className="overflow-x-auto rounded-lg border border-slate-700 shadow-inner shadow-black/10">
-                        <div className="min-w-[760px]">
-                          <div className="grid grid-cols-[minmax(220px,1fr)_220px_220px] gap-3 border-b border-slate-700 bg-slate-800/80 px-3 py-2.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                        <div className="min-w-[1000px]">
+                          <div className="grid grid-cols-[minmax(220px,1fr)_220px_220px_240px] gap-3 border-b border-slate-700 bg-slate-800/80 px-3 py-2.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
                             <span>Account</span>
                             <span>Click rate per unique referrer</span>
                             <span>Commission share</span>
+                            <span>Referral reward</span>
                           </div>
                           {managers.map((manager) => {
-                            const draft = managerDrafts[manager.id] || { clickRate: String(manager.clickRate), commissionRate: String(manager.commissionRate) };
+                            const draft = managerDrafts[manager.id] || {
+                              clickRate: String(manager.clickRate),
+                              commissionRate: String(manager.commissionRate),
+                              referralCommissionRate: String(manager.referralCommissionRate),
+                            };
                             return (
-                              <div key={manager.id} className="grid grid-cols-[minmax(220px,1fr)_220px_220px] items-center gap-3 border-b border-slate-700/80 px-3 py-3.5 last:border-b-0 hover:bg-cyan-500/[0.04]">
+                              <div key={manager.id} className="grid grid-cols-[minmax(220px,1fr)_220px_220px_240px] items-center gap-3 border-b border-slate-700/80 px-3 py-3.5 last:border-b-0 hover:bg-cyan-500/[0.04]">
                                 <div className="flex min-w-0 items-center gap-2.5">
                                   <User className="h-4 w-4 shrink-0 text-cyan-300" />
                                   <div className="min-w-0">
                                     <p className="truncate text-sm font-medium text-white">{manager.fullName || manager.username}</p>
-                                    <p className="truncate text-xs text-slate-400">@{manager.username} · current ${manager.clickRate.toFixed(3)} / {manager.commissionRate}% share</p>
+                                    <p className="truncate text-xs text-slate-400">@{manager.username} · ${manager.clickRate.toFixed(3)} click / {manager.commissionRate}% share / {manager.referralCommissionRate}% referral</p>
                                   </div>
                                 </div>
                                 <form onSubmit={(event) => void handleManagerClickRateSubmit(event, manager.id)} className="flex items-end gap-2">
@@ -431,6 +470,13 @@ export default function SettingsPage() {
                                     <input aria-label={`Commission rate for ${manager.username}`} type="number" min="0" max="100" step="0.01" value={draft.commissionRate} onChange={(event) => updateManagerDraft(manager.id, "commissionRate", event.target.value)} required className="mt-1 w-full rounded-md border border-slate-700 bg-slate-800 px-2 py-1.5 text-xs tabular-nums text-white focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500" />
                                   </label>
                                   <button type="submit" disabled={isSubmitting} aria-label={`Save commission for ${manager.username}`} title="Save commission share" className="inline-flex items-center gap-1 rounded-md bg-cyan-600 px-2.5 py-1.5 text-[10px] font-medium text-white hover:bg-cyan-500 disabled:cursor-not-allowed disabled:opacity-60"><Save className="h-3 w-3" />Save share</button>
+                                </form>
+                                <form onSubmit={(event) => void handleManagerReferralCommissionSubmit(event, manager.id)} className="flex items-end gap-2">
+                                  <label className="min-w-0 flex-1 text-[10px] font-medium text-slate-500">
+                                    Referral share (%)
+                                    <input aria-label={`Referral commission rate for ${manager.username}`} type="number" min="0" max="100" step="0.01" value={draft.referralCommissionRate} onChange={(event) => updateManagerDraft(manager.id, "referralCommissionRate", event.target.value)} required className="mt-1 w-full rounded-md border border-slate-700 bg-slate-800 px-2 py-1.5 text-xs tabular-nums text-white focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500" />
+                                  </label>
+                                  <button type="submit" disabled={isSubmitting} aria-label={`Save referral commission for ${manager.username}`} title="Save referral commission rate" className="inline-flex items-center gap-1 rounded-md bg-cyan-600 px-2.5 py-1.5 text-[10px] font-medium text-white hover:bg-cyan-500 disabled:cursor-not-allowed disabled:opacity-60"><Save className="h-3 w-3" />Save rate</button>
                                 </form>
                               </div>
                             );

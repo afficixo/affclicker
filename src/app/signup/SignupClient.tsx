@@ -37,6 +37,7 @@ export default function SignupClient() {
   const [username, setUsername] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [referralCode, setReferralCode] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [captchaAnswer, setCaptchaAnswer] = useState("")
@@ -60,6 +61,10 @@ export default function SignupClient() {
   useEffect(() => {
     generateCaptcha()
   }, [generateCaptcha])
+
+  useEffect(() => {
+    setReferralCode(new URLSearchParams(window.location.search).get("ref")?.trim() ?? "")
+  }, [])
 
   useEffect(() => {
     setError("")
@@ -106,6 +111,7 @@ export default function SignupClient() {
           username,
           email,
           password,
+          referralCode,
           captchaPrompt,
           captchaAnswer: answer,
         }),
@@ -158,6 +164,11 @@ export default function SignupClient() {
             <p className="mx-auto mt-3 max-w-xl text-base leading-6 text-[#6b7c87]">
               Create your publisher account to get started. Your manager account will be reviewed by the owner.
             </p>
+            {referralCode && (
+              <p className="mx-auto mt-3 max-w-xl text-sm font-medium text-[#0e7a4d]">
+                You were invited by a publisher. Your account will be linked to their referral.
+              </p>
+            )}
           </header>
 
           <form

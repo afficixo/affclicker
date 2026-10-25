@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
+import crypto from 'crypto'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db/prisma'
 import { createUserSafe } from '@/lib/db/user'
@@ -49,6 +50,7 @@ export async function POST(request: Request) {
     const username = typeof body?.username === 'string' ? body.username.trim() : ''
     const email = typeof body?.email === 'string' ? body.email.trim() : ''
     const password = typeof body?.password === 'string' ? body.password.trim() : ''
+    const referralCode = typeof body?.referralCode === 'string' ? body.referralCode.trim().toUpperCase() : ''
     const captchaPrompt = typeof body?.captchaPrompt === 'string' ? body.captchaPrompt.trim() : ''
     const captchaAnswer = typeof body?.captchaAnswer === 'number' ? body.captchaAnswer : Number(body?.captchaAnswer)
 
@@ -81,6 +83,26 @@ export async function POST(request: Request) {
       )
     }
 
+    let referrer: { id: string } | null = null
+    if (referralCode) {
+      if (!/^[A-Z0-9]{1,32}$/.test(referralCode)) {
+        return NextResponse.json(
+          { error: 'This referral link is invalid.' },
+          { status: 400, headers: getCorsHeaders(origin) }
+        )
+      }
+      referrer = await prisma.user.findFirst({
+        where: { referralCode, role: 'MANAGER' },
+        select: { id: true },
+      })
+      if (!referrer) {
+        return NextResponse.json(
+          { error: 'This referral link is invalid.' },
+          { status: 400, headers: getCorsHeaders(origin) }
+        )
+      }
+    }
+
     const existingUsers = await prisma.user.findMany({
       where: {
         OR: [
@@ -105,18 +127,20 @@ export async function POST(request: Request) {
       ? Number((await prisma.user.findUnique({ where: { id: ownerUserId }, select: { clickRate: true } }))?.clickRate ?? 0) || 0
       : 0
 
-    let createData = {
+    const createData: Prisma.UserUncheckedCreateInput = {
       username,
       email,
       password: hashedPassword,
       role: 'MANAGER',
       status: 'PENDING',
       clickRate: defaultClickRate,
+      referralCode: crypto.randomBytes(8).toString('hex').toUpperCase(),
+      ...(referrer ? { referredById: referrer.id } : {}),
       ...(fullName ? { fullName } : {}),
       ...(address ? { address } : {}),
       ...(contractNumber ? { contractNumber } : {}),
       ...(telegramUsername ? { telegramUsername } : {}),
-    } as Prisma.UserCreateInput
+    }
 
     const user = await createUserSafe(createData)
 

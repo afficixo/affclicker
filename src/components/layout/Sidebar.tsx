@@ -209,7 +209,12 @@ export default function Sidebar({ collapsed, mobileOpen, onMobileOpenChange }: S
     },
     {
       label: 'Finance',
-      items: [{ href: `${dashboardBasePath}/payments`, label: 'Payments', icon: WalletCards }],
+      items: [
+        { href: `${dashboardBasePath}/payments`, label: 'Payments', icon: WalletCards },
+        ...(userRole === 'MANAGER'
+          ? [{ href: `${dashboardBasePath}/referrals`, label: 'Referrals', icon: UsersRound }]
+          : []),
+      ],
     },
     {
       label: 'System',

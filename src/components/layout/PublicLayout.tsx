@@ -26,6 +26,19 @@ export default function PublicLayout({
   const [open, setOpen] = useState(false);
   const isHomePage = pathname === "/";
   const [active, setActive] = useState<string | null>(isHomePage ? "#home" : null);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    if (!isHomePage) {
+      setIsScrolled(true);
+      return;
+    }
+
+    const updateScrolledState = () => setIsScrolled(window.scrollY > 20);
+    updateScrolledState();
+    window.addEventListener("scroll", updateScrolledState, { passive: true });
+    return () => window.removeEventListener("scroll", updateScrolledState);
+  }, [isHomePage]);
 
   useEffect(() => {
     if (!open) return;
@@ -82,7 +95,13 @@ export default function PublicLayout({
   return (
     <div className={`public-site relative min-h-screen w-full overflow-x-hidden ${className}`}>
       <div className="relative z-10 flex min-h-screen flex-col">
-        <header className={`fixed inset-x-0 top-0 z-40 border-b backdrop-blur-md transition-colors ${open ? "border-white/10 bg-[#0f172a]/95 shadow-lg shadow-black/20" : "border-white/[0.08] bg-[#0f172a]/80 shadow-[0_2px_8px_rgba(0,0,0,0.18)]"}`}>
+        <header
+          className={`fixed inset-x-0 top-0 z-40 border-b transition-colors ${
+            open || !isHomePage || isScrolled
+              ? "border-white/[0.08] bg-[#0f172a]/90 shadow-[0_2px_8px_rgba(0,0,0,0.18)] backdrop-blur-md"
+              : "border-transparent bg-transparent shadow-none"
+          }`}
+        >
           <nav className="relative z-10 mx-auto flex h-16 max-w-screen-2xl items-center justify-between px-4 sm:px-6 lg:px-8 md:h-20">
             <a
               href={isHomePage ? "#home" : "/#home"}

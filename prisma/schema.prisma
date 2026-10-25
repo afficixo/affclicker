@@ -20,6 +20,7 @@ model User {
   bkashNumber      String?
   clickRate        Float?      @default(0)
   commissionRate   Float?      @default(20)
+  referralCommissionRate Float  @default(5)
   canUseSecretRedirect Boolean  @default(true)
   payoutMethod     String?
   payoutAccount    String?
@@ -28,6 +29,8 @@ model User {
   botFallbackUrl   String?
   role             UserRole    @default(ADMIN)
   status           UserStatus  @default(PENDING)
+  referralCode     String?     @unique
+  referredById     String?
   createdAt        DateTime    @default(now())
   updatedAt        DateTime    @updatedAt
   lastLogin        DateTime?
@@ -38,6 +41,10 @@ model User {
   landingPageTemplates    LandingPageTemplate[] @relation("TemplateCreatedBy")
   landingPages           LandingPage[] @relation("LandingPagesCreatedBy")
   managerPayouts         ManagerPayout[]
+  referredBy             User?                  @relation("UserReferrals", fields: [referredById], references: [id], onDelete: SetNull)
+  referrals              User[]                 @relation("UserReferrals")
+  referralCommissionsEarned ReferralCommission[] @relation("ReferralCommissionReferrer")
+  referralCommissionsGenerated ReferralCommission[] @relation("ReferralCommissionReferred")
   postbackConfigs         PostbackConfig[]
   conversionLeads         ConversionLead[]
   telegramNotification    TelegramNotification?
@@ -377,6 +384,7 @@ model Invoice {
   paidAt               DateTime?
   createdAt            DateTime    @default(now())
   managerPayouts       ManagerPayoutInvoice[]
+  referralCommission   ReferralCommission?
 
   @@index([linkAccountId, createdAt])
   @@map("invoices")
@@ -396,6 +404,8 @@ model ManagerPayout {
   paidAt           DateTime?
   createdAt        DateTime             @default(now())
   invoices         ManagerPayoutInvoice[]
+  sourceReferralCommissions ReferralCommission[] @relation("ReferralCommissionSourcePayout")
+  paidReferralCommissions   ReferralCommission[] @relation("ReferralCommissionPaidPayout")
 
   @@index([managerId, createdAt])
   @@map("manager_payouts")
@@ -410,6 +420,29 @@ model ManagerPayoutInvoice {
   @@id([payoutId, invoiceId])
   @@unique([invoiceId])
   @@map("manager_payout_invoices")
+}
+
+model ReferralCommission {
+  id                    String         @id @default(cuid())
+  referrerId            String
+  referrer              User           @relation("ReferralCommissionReferrer", fields: [referrerId], references: [id], onDelete: Cascade)
+  referredUserId        String
+  referredUser          User           @relation("ReferralCommissionReferred", fields: [referredUserId], references: [id], onDelete: Cascade)
+  invoiceId             String         @unique
+  invoice               Invoice        @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  sourcePayoutId        String?
+  sourcePayout          ManagerPayout? @relation("ReferralCommissionSourcePayout", fields: [sourcePayoutId], references: [id], onDelete: SetNull)
+  paidWithPayoutId      String?
+  paidWithPayout        ManagerPayout? @relation("ReferralCommissionPaidPayout", fields: [paidWithPayoutId], references: [id], onDelete: SetNull)
+  publisherPayoutAmount Float
+  commissionRate        Float          @default(5)
+  amount                Float
+  paidAt                DateTime?
+  createdAt             DateTime       @default(now())
+
+  @@index([referrerId, paidAt])
+  @@index([referredUserId, createdAt])
+  @@map("referral_commissions")
 }
 
 enum PostbackProvider {

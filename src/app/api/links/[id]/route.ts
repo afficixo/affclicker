@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db/prisma'
 import { getUserFromToken, getTokenFromCookie, isAdmin, isOwner, isManager, getOwnerUserId } from '@/lib/auth'
 import { getCorsHeaders } from '@/config/cors'
 import { isDesktopDeviceType } from '@/lib/utils/visitor-profile'
+import { calculateReferralCommission, DEFAULT_REFERRAL_COMMISSION_RATE } from '@/lib/referrals'
 
 const normalizeSlug = (value: unknown) => {
   return typeof value === 'string'
@@ -239,10 +240,21 @@ export async function POST(
 
     const body = await request.json()
     if (body.action === 'mark-paid') {
+      if (!isAdmin(user) && !isOwner(user)) {
+        return NextResponse.json(
+          { error: 'Only an administrator can record publisher payments' },
+          { status: 403, headers: getCorsHeaders(origin) }
+        )
+      }
       const paymentReference = typeof body.paymentReference === 'string' ? body.paymentReference.trim() : ''
       const invoiceNumber = typeof body.invoiceNumber === 'string' ? body.invoiceNumber.trim() : ''
       const invoice = await prisma.invoice.findFirst({
-        where: { linkAccountId: id, isPaid: false, ...(invoiceNumber ? { invoiceNumber } : {}) },
+        where: {
+          linkAccountId: id,
+          isPaid: false,
+          managerPayouts: { none: {} },
+          ...(invoiceNumber ? { invoiceNumber } : {}),
+        },
         orderBy: { createdAt: 'desc' },
       })
       if (!invoice) return NextResponse.json({ error: 'No unpaid invoice found' }, { status: 404, headers: getCorsHeaders(origin) })
@@ -250,7 +262,36 @@ export async function POST(
         const payoutMethod = invoice.payoutMethod || link.payoutMethod
         return NextResponse.json({ error: payoutMethod === 'BKASH' ? 'bKash transaction ID is required' : payoutMethod === 'BINANCE' ? 'Binance order ID is required' : 'Payment reference is required' }, { status: 400, headers: getCorsHeaders(origin) })
       }
-      await prisma.invoice.update({ where: { id: invoice.id }, data: { isPaid: true, paidAt: new Date(), paymentReference } })
+      const paidAt = new Date()
+      await prisma.$transaction(async (transaction) => {
+        const updated = await transaction.invoice.updateMany({
+          where: { id: invoice.id, isPaid: false },
+          data: { isPaid: true, paidAt, paymentReference },
+        })
+        if (updated.count === 0) return
+
+        const publisher = await transaction.user.findUnique({
+          where: { id: link.userId },
+          select: { id: true, role: true, referredById: true },
+        })
+        if (publisher?.role === 'MANAGER' && publisher.referredById) {
+          const referrer = await transaction.user.findUnique({
+            where: { id: publisher.referredById },
+            select: { referralCommissionRate: true },
+          })
+          const commissionRate = referrer?.referralCommissionRate ?? DEFAULT_REFERRAL_COMMISSION_RATE
+          await transaction.referralCommission.create({
+            data: {
+              referrerId: publisher.referredById,
+              referredUserId: publisher.id,
+              invoiceId: invoice.id,
+              publisherPayoutAmount: invoice.totalEarning,
+              commissionRate,
+              amount: calculateReferralCommission(invoice.totalEarning, commissionRate),
+            },
+          })
+        }
+      })
       return NextResponse.json({ success: true, invoiceNumber: invoice.invoiceNumber }, { headers: getCorsHeaders(origin) })
     }
 

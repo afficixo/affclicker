@@ -2,7 +2,7 @@ import { prisma } from './prisma'
 import { Prisma } from '@prisma/client'
 import { generateFixedPrefix } from '@/lib/utils/slug'
 
-export async function createUserSafe(initialData: Prisma.UserCreateInput) {
+export async function createUserSafe(initialData: Prisma.UserUncheckedCreateInput) {
   let data: Record<string, any> = { ...initialData } as Record<string, any>
   // Cache of existing columns for the `users` table to avoid repeated information_schema queries.
   // This prevents Prisma from generating SQL that references missing columns.

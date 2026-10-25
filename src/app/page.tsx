@@ -91,7 +91,7 @@ export default function HomePage() {
           <div
             className="home-hero-background pointer-events-none absolute inset-0 bg-cover"
             style={{
-              backgroundImage: "url('/header_image.jpg')",
+              backgroundImage: "url('/header_image.png')",
               backgroundPosition: "center 44%",
             }}
             aria-hidden="true"

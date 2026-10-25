@@ -23,7 +23,6 @@ export default function DashboardLayout({
   const clockTime = now?.toLocaleTimeString('en-GB', {
     hour: '2-digit',
     minute: '2-digit',
-    second: '2-digit',
     hourCycle: 'h23',
   }).split(':')
   const clockDate = now?.toLocaleDateString('en-GB', {
@@ -35,7 +34,7 @@ export default function DashboardLayout({
   useEffect(() => {
     const updateTime = () => setNow(new Date())
     updateTime()
-    const timer = window.setInterval(updateTime, 1000)
+    const timer = window.setInterval(updateTime, 60_000)
     return () => window.clearInterval(timer)
   }, [])
 
@@ -145,17 +144,16 @@ export default function DashboardLayout({
             />
             {now && (
               <time
-                aria-label={`Current local time ${clockTime?.join(':')} on ${clockDate}`}
+                aria-label={`Local time ${clockTime?.join(':')} on ${clockDate}`}
                 dateTime={now.toISOString()}
-                className="flex h-8 shrink-0 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 shadow-sm shadow-slate-900/[0.06] ring-1 ring-inset ring-white sm:h-10 sm:gap-2.5 sm:px-3 dark:border-white/10 dark:bg-[#192326] dark:shadow-black/20 dark:ring-white/[0.06]"
+                className="flex h-8 shrink-0 items-center gap-1.5 px-1.5 text-slate-700 sm:h-9 sm:gap-2 dark:text-slate-200"
               >
-                <Clock3 className="h-4 w-4 shrink-0 text-[#359f25] dark:text-[#a2fa8e]" aria-hidden="true" />
-                <span className="flex items-baseline font-mono leading-none tabular-nums">
-                  <span className="text-[16px] font-bold tracking-tight text-slate-900 sm:text-[19px] dark:text-white">{clockTime?.[0]}:{clockTime?.[1]}</span>
-                  <span className="text-[11px] font-semibold text-slate-500 sm:text-xs dark:text-slate-400">:{clockTime?.[2]}</span>
+                <Clock3 className="h-4 w-4 shrink-0 text-slate-500 dark:text-slate-400" aria-hidden="true" />
+                <span className="font-mono text-sm font-semibold leading-none tabular-nums tracking-tight sm:text-[15px]">
+                  {clockTime?.join(':')}
                 </span>
-                <span className="hidden h-5 w-px bg-slate-200 sm:block dark:bg-white/15" aria-hidden="true" />
-                <span className="hidden text-xs font-medium text-slate-600 sm:inline dark:text-slate-300">{clockDate?.replace(' ', ', ')}</span>
+                <span className="hidden h-3.5 w-px bg-slate-200 md:block dark:bg-white/15" aria-hidden="true" />
+                <span className="hidden text-xs text-slate-500 md:inline dark:text-slate-400">{clockDate?.replace(' ', ', ')}</span>
               </time>
             )}
           </div>

@@ -66,7 +66,8 @@ export async function proxy(request: NextRequest) {
     path.startsWith('/owner/media/') ||
     path === '/owner/support' ||
     path === '/publisher/dashboard' ||
-    path === '/publisher/help'
+    path === '/publisher/help' ||
+    path === '/publisher/referrals'
 
   if (dashboardAlias && !hasDedicatedRoute) {
     const rewrittenUrl = request.nextUrl.clone()

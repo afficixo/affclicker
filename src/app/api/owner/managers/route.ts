@@ -38,6 +38,7 @@ export async function GET(request: Request) {
       payoutAccount: true,
       clickRate: true,
       commissionRate: true,
+      referralCommissionRate: true,
       role: true,
       status: true,
       createdAt: true,
@@ -46,6 +47,9 @@ export async function GET(request: Request) {
       managerPayouts: {
         orderBy: { createdAt: 'desc' },
         select: { payoutNumber: true, totalEarning: true, payoutMethod: true, paymentReference: true, isPaid: true, paidAt: true, createdAt: true },
+      },
+      referralCommissionsEarned: {
+        select: { amount: true, paidAt: true },
       },
     }
 
