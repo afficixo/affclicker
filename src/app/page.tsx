@@ -87,22 +87,15 @@ export default function HomePage() {
 
       <main>
         {/* HERO */}
-        <section id="home" className="relative bg-[#0f172a] pt-32 pb-24 md:pt-44 md:pb-32 overflow-hidden">
+        <section id="home" className="relative overflow-hidden bg-[#0f172a] pt-32 pb-24 md:pt-44 md:pb-32">
           <div
             className="home-hero-background pointer-events-none absolute inset-0 bg-cover"
             style={{
               backgroundImage: "url('/header_image.png')",
-              backgroundPosition: "center 44%",
             }}
             aria-hidden="true"
           />
-          <div
-            className="pointer-events-none absolute inset-0"
-            style={{
-              backgroundColor: "rgba(15, 23, 42, 0.28)",
-            }}
-            aria-hidden="true"
-          />
+          <div className="home-hero-overlay pointer-events-none absolute inset-0" aria-hidden="true" />
 
           <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-left">
             <motion.h1

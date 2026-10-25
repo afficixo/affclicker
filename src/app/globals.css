@@ -100,6 +100,10 @@ html:not(.dark) {
   background-position: center 44%;
 }
 
+.home-hero-overlay {
+  background-color: rgba(15, 23, 42, 0.28);
+}
+
 .page-load-overlay {
   position: absolute;
   inset: 0;
@@ -186,7 +190,7 @@ html:not(.dark) {
 
 @media (max-width: 639px) {
   .home-hero-background {
-    background-position: 54% center;
+    background-position: center 44%;
   }
 }
 
