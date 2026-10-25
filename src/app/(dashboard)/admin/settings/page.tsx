@@ -1,20 +1,15 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
+import Image from "next/image";
 import {
   User,
-  Key,
-  LogOut,
-  AlertTriangle,
-  Trash2,
-  RefreshCw,
   CheckCircle2,
   XCircle,
-  ShieldCheck,
   Mail,
   CircleDollarSign,
   Save,
+  Copy,
 } from "lucide-react";
 
 interface FeedbackState {
@@ -33,20 +28,29 @@ interface ManagerOption {
 }
 
 export default function SettingsPage() {
-  const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [userInfo, setUserInfo] = useState<{ username?: string; email?: string; role?: string } | null>(null);
+  const [userInfo, setUserInfo] = useState<{
+    username?: string;
+    email?: string;
+    fullName?: string | null;
+    role?: string;
+    status?: string;
+    id?: string;
+    createdAt?: string;
+    lastLogin?: string | null;
+    googleProfilePicture?: string | null;
+    googleEmailVerified?: boolean;
+    googleEmailVerifiedAt?: string | null;
+  } | null>(null);
   const [clickRate, setClickRate] = useState("0");
   const [managers, setManagers] = useState<ManagerOption[]>([]);
   const [managerDrafts, setManagerDrafts] = useState<Record<string, { clickRate: string; commissionRate: string; referralCommissionRate: string }>>({});
   const [showClickRateForm, setShowClickRateForm] = useState(false);
-  const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [googleResetReady, setGoogleResetReady] = useState(false);
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [emailDraft, setEmailDraft] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<FeedbackState | null>(null);
-  const [showDangerZone, setShowDangerZone] = useState(false);
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
     newPassword: "",
@@ -59,7 +63,19 @@ export default function SettingsPage() {
         const response = await fetch("/api/auth/me", { credentials: "include" });
         if (response.ok) {
           const data = await response.json();
-          setUserInfo({ username: data.username || "admin", email: data.email || "", role: data.role });
+          setUserInfo({
+            username: data.username || "admin",
+            email: data.email || "",
+            fullName: data.fullName || null,
+            role: data.role,
+            status: data.status,
+            id: data.id,
+            createdAt: data.createdAt,
+            lastLogin: data.lastLogin || null,
+            googleProfilePicture: data.googleProfilePicture || null,
+            googleEmailVerified: data.googleEmailVerified === true,
+            googleEmailVerifiedAt: data.googleEmailVerifiedAt || null,
+          });
           setEmailDraft(data.email || "");
           setClickRate(String(data.clickRate ?? 0));
         } else {
@@ -70,6 +86,18 @@ export default function SettingsPage() {
         setUserInfo({ username: "admin", email: "" });
         setEmailDraft("");
       } finally {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("google_verified") === "1") {
+          setFeedback({ type: "success", message: "Your Google account is verified and connected." });
+        } else if (params.get("google_verify_error") === "account_mismatch") {
+          setFeedback({ type: "error", message: "Choose the Google account that matches your profile email." });
+        } else if (params.get("google_verify_error") === "email_unverified") {
+          setFeedback({ type: "error", message: "Google did not confirm that this email address is verified." });
+        } else if (params.get("google_verify_error") === "setup_required") {
+          setFeedback({ type: "error", message: "Google verification is not set up in the database yet. Apply the pending database migration and try again." });
+        } else if (params.get("google_verify_error") === "cancelled") {
+          setFeedback({ type: "error", message: "Google email verification was cancelled." });
+        }
         setLoading(false);
       }
     };
@@ -77,7 +105,6 @@ export default function SettingsPage() {
     fetchAccount();
     if (new URLSearchParams(window.location.search).get("google_reset") === "1") {
       setGoogleResetReady(true);
-      setShowPasswordForm(true);
     }
 
   }, []);
@@ -224,15 +251,6 @@ export default function SettingsPage() {
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
-      router.push("/login");
-    } catch {
-      router.push("/login");
-    }
-  };
-
   const handlePasswordSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsSubmitting(true);
@@ -259,7 +277,6 @@ export default function SettingsPage() {
       setFeedback({ type: "success", message: data.message || "Password updated successfully." });
       setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
       setGoogleResetReady(false);
-      setShowPasswordForm(false);
     } catch (error) {
       setFeedback({
         type: "error",
@@ -270,48 +287,36 @@ export default function SettingsPage() {
     }
   };
 
-  const handleDangerAction = async (action: "delete-data" | "reset-analytics") => {
-    const confirmMessage =
-      action === "delete-data"
-        ? "This will permanently remove all workspace data for this account. Continue?"
-        : "This will reset all analytics for your workspace. Continue?";
-
-    if (!window.confirm(confirmMessage)) return;
-
-    setIsSubmitting(true);
-    setFeedback(null);
-
-    try {
-      const response = await fetch("/api/settings", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action }),
-      });
-
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        throw new Error(data.error || "Unable to complete that action");
-      }
-
-      setFeedback({ type: "success", message: data.message || "Action completed." });
-    } catch (error) {
-      setFeedback({
-        type: "error",
-        message: error instanceof Error ? error.message : "Unable to complete that action",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   if (loading) {
     return null;
   }
 
+  const profileInitials = (userInfo?.fullName || userInfo?.username || "A")
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("") || "A";
+  const displayName = userInfo?.fullName || userInfo?.username || "Admin";
+  const memberSince = userInfo?.createdAt
+    ? new Date(userInfo.createdAt).toLocaleDateString(undefined, { month: "long", year: "numeric" })
+    : "Unavailable";
+  const lastLogin = userInfo?.lastLogin
+    ? new Date(userInfo.lastLogin).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })
+    : "Not available";
+
+  const handleCopyAccountId = async () => {
+    if (!userInfo?.id) return;
+    try {
+      await navigator.clipboard.writeText(userInfo.id);
+      setFeedback({ type: "success", message: "Account ID copied to clipboard." });
+    } catch {
+      setFeedback({ type: "error", message: "Unable to copy the account ID. Please select and copy it manually." });
+    }
+  };
+
   return (
-    <div className="space-y-6 pb-8 md:space-y-8">
-      {/* Feedback */}
+    <div className="mx-auto max-w-5xl space-y-6 pb-8 md:space-y-8">
       {feedback && (
         <div
           className={`flex items-center justify-between rounded-lg border px-4 py-3 text-sm ${
@@ -334,109 +339,171 @@ export default function SettingsPage() {
         </div>
       )}
 
-      {/* Main Grid */}
-      <div className="space-y-6">
-        {/* Account */}
-          <div className="rounded-xl border border-slate-200 bg-white/90 p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/60 dark:shadow-none">
-            <div className="mb-4 flex items-center gap-2">
-              <User className="h-4 w-4 text-indigo-500" />
-              <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Account</h3>
+      <div className="space-y-4">
+          <div className="relative isolate overflow-hidden bg-gradient-to-r from-slate-50 via-white to-indigo-50/60 px-4 py-4 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-950/20 sm:px-5 sm:py-5">
+            <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(99,102,241,0.08),transparent_58%)] dark:bg-[radial-gradient(ellipse_at_top,rgba(99,102,241,0.12),transparent_58%)]" />
             </div>
-
-            <div className="space-y-4">
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-800/50">
-                  <p className="text-xs text-slate-500 dark:text-slate-400">Username</p>
-                  <p className="mt-1 text-sm font-medium text-slate-900 dark:text-white">
-                    {userInfo?.username || "admin"}
-                  </p>
+            <div className="relative z-10 flex flex-col items-center gap-3 text-center sm:flex-row sm:gap-4 sm:text-left">
+            <div className="relative h-16 w-16 shrink-0 rounded-full bg-white/90 p-1 ring-1 ring-white/80 shadow-md shadow-indigo-900/10 backdrop-blur-sm dark:bg-slate-800/90 dark:ring-white/10 dark:shadow-black/30">
+              {userInfo?.googleProfilePicture ? (
+                <Image
+                  src={userInfo.googleProfilePicture}
+                  alt={`${userInfo.username || "Google"} profile`}
+                  width={64}
+                  height={64}
+                  unoptimized
+                  className="h-full w-full rounded-full bg-slate-100 object-cover dark:bg-slate-800"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center rounded-full bg-slate-100 text-lg font-semibold tracking-wide text-slate-700 dark:bg-slate-800 dark:text-slate-100">
+                  {profileInitials}
                 </div>
-                <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-800/50">
-                  <p className="text-xs text-slate-500 dark:text-slate-400">Email</p>
-                  <p className="mt-1 text-sm font-medium text-slate-900 dark:text-white">
-                    {userInfo?.email || "No email added yet"}
-                  </p>
+              )}
+              <div aria-label="Google account" className="absolute -bottom-0.5 -right-0.5 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-white shadow-sm dark:border-slate-900">
+                <span className="bg-gradient-to-br from-blue-600 via-red-500 to-yellow-500 bg-clip-text text-sm font-bold text-transparent">G</span>
+              </div>
+            </div>
+            <div className="min-w-0 flex-1">
+            <p className="text-xl font-semibold tracking-tight text-slate-900 dark:text-white">{displayName}</p>
+            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">@{userInfo?.username || "admin"}{userInfo?.role ? ` · ${userInfo.role.toLowerCase()}` : ""}</p>
+            <div className="mt-1.5 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 sm:justify-start">
+              <span className="inline-flex max-w-full items-center gap-1.5 truncate text-xs text-slate-600 dark:text-slate-300">
+                <Mail className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                {userInfo?.email || "No email added yet"}
+              </span>
+              {userInfo?.googleEmailVerified ? (
+                <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700 dark:text-emerald-300">
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  Verified
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => window.location.assign(`/api/auth/google/start?redirect=${encodeURIComponent(window.location.pathname)}&purpose=email-verification`)}
+                  disabled={!userInfo?.email}
+                  className="inline-flex items-center gap-1 text-[11px] font-medium text-indigo-700 underline-offset-2 hover:underline disabled:cursor-not-allowed disabled:opacity-50 dark:text-indigo-300"
+                >
+                  {userInfo?.email ? "Verify with Google" : "Add an email first"}
+                </button>
+              )}
+            </div>
+            </div>
+            </div>
+          </div>
+
+          <section aria-labelledby="profile-details-heading" className="px-2 py-3 sm:px-5">
+            <div className="mb-2">
+              <div>
+                <h3 id="profile-details-heading" className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">Account details</h3>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-x-5 sm:grid-cols-3">
+              <div className="min-w-0 border-b border-slate-200/80 py-2.5 dark:border-slate-800">
+                <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-slate-400">Full name</p>
+                <p className="mt-1 truncate text-xs font-semibold text-slate-800 dark:text-slate-100">{userInfo?.fullName || "Not provided"}</p>
+              </div>
+              <div className="min-w-0 border-b border-slate-200/80 py-2.5 dark:border-slate-800">
+                <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-slate-400">Access role</p>
+                <p className="mt-1 text-xs font-semibold capitalize text-slate-800 dark:text-slate-100">{(userInfo?.role || "Member").toLowerCase()}</p>
+              </div>
+              <div className="min-w-0 border-b border-slate-200/80 py-2.5 dark:border-slate-800">
+                <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-slate-400">Account status</p>
+                <p className="mt-1 text-xs font-semibold capitalize text-slate-800 dark:text-slate-100">{(userInfo?.status || "Unknown").toLowerCase()}</p>
+              </div>
+              <div className="min-w-0 border-b border-slate-200/80 py-2.5 dark:border-slate-800">
+                <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-slate-400">Member since</p>
+                <p className="mt-1 text-xs font-semibold text-slate-800 dark:text-slate-100">{memberSince}</p>
+              </div>
+              <div className="min-w-0 border-b border-slate-200/80 py-2.5 dark:border-slate-800">
+                <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-slate-400">Account ID</p>
+                <div className="mt-1 flex items-center gap-1">
+                  <p className="min-w-0 truncate font-mono text-[11px] font-medium text-slate-700 dark:text-slate-200" title={userInfo?.id}>{userInfo?.id || "Unavailable"}</p>
+                  <button type="button" onClick={() => void handleCopyAccountId()} disabled={!userInfo?.id} aria-label="Copy account ID" title="Copy account ID" className="shrink-0 rounded p-1 text-slate-400 transition hover:text-indigo-600 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:text-indigo-300">
+                    <Copy className="h-3 w-3" />
+                  </button>
                 </div>
               </div>
+              <div className="min-w-0 border-b border-slate-200/80 py-2.5 dark:border-slate-800">
+                <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-slate-400">Last sign-in</p>
+                <p className="mt-1 truncate text-xs font-semibold text-slate-800 dark:text-slate-100">{lastLogin}</p>
+              </div>
+              <div className="col-span-2 flex min-w-0 items-center justify-between gap-3 border-b border-slate-200/80 py-2.5 dark:border-slate-800 sm:col-span-3">
+                  <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-slate-400">Google email verification</p>
+                  <p className={`text-xs font-semibold ${userInfo?.googleEmailVerified ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"}`}>
+                    {userInfo?.googleEmailVerified ? "Verified" : "Not verified"}
+                  </p>
+              </div>
+            </div>
+          </section>
 
-              <div className="flex flex-wrap gap-2.5">
-                <button
-                  onClick={() => setShowPasswordForm((prev) => !prev)}
-                  className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-3 text-xs font-semibold text-indigo-700 shadow-sm transition-colors hover:border-indigo-300 hover:bg-indigo-100 dark:border-indigo-500/25 dark:bg-indigo-500/10 dark:text-indigo-300 dark:hover:border-indigo-400/40 dark:hover:bg-indigo-500/20"
-                >
-                  <Key className="h-3.5 w-3.5" />
-                  {showPasswordForm ? "Hide" : "Change password"}
-                </button>
-                <button
-                  onClick={() => window.location.assign(`/api/auth/google/start?redirect=${encodeURIComponent(window.location.pathname)}&purpose=password-reset`)}
-                  className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-cyan-200 bg-cyan-50 px-3 text-xs font-semibold text-cyan-700 shadow-sm transition-colors hover:border-cyan-300 hover:bg-cyan-100 dark:border-cyan-500/25 dark:bg-cyan-500/10 dark:text-cyan-300 dark:hover:border-cyan-400/40 dark:hover:bg-cyan-500/20"
-                >
-                  <ShieldCheck className="h-3.5 w-3.5" />
-                  Forget Password? Reset Now
-                </button>
+          <div className="px-2 pt-1 sm:px-5">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">Account settings</h3>
+              <div className="flex items-center gap-2" role="group" aria-label="Account settings actions">
                 {userInfo?.role !== "MANAGER" && (
                   <button
+                    type="button"
+                    aria-label={userInfo?.email ? "Update email" : "Add email"}
+                    title={userInfo?.email ? "Update email" : "Add email"}
+                    aria-expanded={showEmailForm}
                     onClick={() => {
                       setShowEmailForm((prev) => !prev);
                       if (!showEmailForm) setEmailDraft(userInfo?.email || "");
                     }}
-                    className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-sky-200 bg-sky-50 px-3 text-xs font-semibold text-sky-700 shadow-sm transition-colors hover:border-sky-300 hover:bg-sky-100 dark:border-sky-500/25 dark:bg-sky-500/10 dark:text-sky-300 dark:hover:border-sky-400/40 dark:hover:bg-sky-500/20"
+                    className={`inline-flex h-9 w-9 items-center justify-center rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900 ${
+                      showEmailForm
+                        ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300"
+                        : "text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+                    }`}
                   >
-                    <Mail className="h-3.5 w-3.5" />
-                    {userInfo?.email ? "Update email" : "Add email"}
+                    <Mail className="h-4 w-4" aria-hidden="true" />
                   </button>
                 )}
                 {(userInfo?.role === "OWNER" || userInfo?.role === "ADMIN") && (
                   <button
+                    type="button"
+                    aria-label={`Edit USA click rate, currently $${Number(clickRate).toFixed(3)}`}
+                    title={`USA click rate: $${Number(clickRate).toFixed(3)}`}
+                    aria-expanded={showClickRateForm}
                     onClick={() => setShowClickRateForm((prev) => !prev)}
-                    className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 text-xs font-semibold text-emerald-700 shadow-sm transition-colors hover:border-emerald-300 hover:bg-emerald-100 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300 dark:hover:border-emerald-400/30 dark:hover:bg-emerald-500/20"
+                    className={`inline-flex h-9 w-9 items-center justify-center rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900 ${
+                      showClickRateForm
+                        ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300"
+                        : "text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+                    }`}
                   >
-                    <CircleDollarSign className="h-3.5 w-3.5" />
-                    USA click rate: ${Number(clickRate).toFixed(3)}
+                    <CircleDollarSign className="h-4 w-4" aria-hidden="true" />
                   </button>
                 )}
-                {userInfo?.role !== "MANAGER" && (
-                  <button
-                    onClick={() => setShowDangerZone((prev) => !prev)}
-                    className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 text-xs font-semibold text-amber-700 shadow-sm transition-colors hover:border-amber-300 hover:bg-amber-100 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300 dark:hover:border-amber-400/30 dark:hover:bg-amber-500/20"
-                  >
-                    <AlertTriangle className="h-3.5 w-3.5" />
-                    {showDangerZone ? "Hide danger zone" : "Danger zone"}
-                  </button>
-                )}
-                <button
-                  onClick={handleLogout}
-                  className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 text-xs font-semibold text-red-600 shadow-sm transition-colors hover:border-red-300 hover:bg-red-100 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-400 dark:hover:border-red-400/30 dark:hover:bg-red-500/20"
-                >
-                  <LogOut className="h-3.5 w-3.5" />
-                  Logout
-                </button>
               </div>
+            </div>
 
+            <div className="space-y-3">
               {/* Email Form */}
               {showClickRateForm && (userInfo?.role === "OWNER" || userInfo?.role === "ADMIN") && (
                 <div className="mt-3 space-y-3">
-                <form onSubmit={handleClickRateSubmit} className="space-y-3 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4">
+                <form onSubmit={handleClickRateSubmit} className="space-y-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
                   <div>
-                    <label className="mb-1 block text-xs font-medium text-slate-400">{userInfo.role === "ADMIN" ? "Your default USA click rate per unique referrer click" : "Default USA click rate per unique referrer click"}</label>
-                    <input type="number" min="0" step="0.001" value={clickRate} onChange={(event) => setClickRate(event.target.value)} required className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500" />
+                    <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">{userInfo.role === "ADMIN" ? "Your default USA click rate per unique referrer click" : "Default USA click rate per unique referrer click"}</label>
+                    <input type="number" min="0" step="0.001" value={clickRate} onChange={(event) => setClickRate(event.target.value)} required className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/15 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-indigo-400" />
                   </div>
-                  <button type="submit" disabled={isSubmitting} className="rounded-lg bg-emerald-600 px-4 py-2 text-xs font-medium text-white hover:bg-emerald-500 disabled:opacity-60">{isSubmitting ? "Saving..." : "Save default click rate"}</button>
+                  <button type="submit" disabled={isSubmitting} className="rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-indigo-50 shadow-sm transition hover:bg-indigo-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 dark:focus-visible:ring-offset-slate-900">{isSubmitting ? "Saving..." : "Save default click rate"}</button>
                 </form>
                 {userInfo.role === "OWNER" && (
-                  <div className="space-y-3 rounded-lg border border-cyan-500/20 bg-cyan-500/5 p-4">
+                  <div className="space-y-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
                     <div className="flex items-center justify-between gap-3">
                       <div>
-                        <h3 className="text-sm font-semibold text-white">Manager controls</h3>
-                        <p className="mt-0.5 text-xs text-slate-400">Set rates per account. Referral rate changes apply to future commissions.</p>
+                        <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Manager controls</h3>
+                        <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400">Set rates per account. Referral rate changes apply to future commissions.</p>
                       </div>
-                      <span className="text-[11px] text-slate-500">{managers.length} active account{managers.length === 1 ? "" : "s"}</span>
+                      <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300">{managers.length} active account{managers.length === 1 ? "" : "s"}</span>
                     </div>
 
                     {managers.length > 0 ? (
-                      <div className="overflow-x-auto rounded-lg border border-slate-700 shadow-inner shadow-black/10">
+                      <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-700">
                         <div className="min-w-[1000px]">
-                          <div className="grid grid-cols-[minmax(220px,1fr)_220px_220px_240px] gap-3 border-b border-slate-700 bg-slate-800/80 px-3 py-2.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                          <div className="grid grid-cols-[minmax(220px,1fr)_220px_220px_240px] gap-3 border-b border-slate-200 bg-slate-50 px-3 py-2.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-400">
                             <span>Account</span>
                             <span>Click rate per unique referrer</span>
                             <span>Commission share</span>
@@ -449,34 +516,34 @@ export default function SettingsPage() {
                               referralCommissionRate: String(manager.referralCommissionRate),
                             };
                             return (
-                              <div key={manager.id} className="grid grid-cols-[minmax(220px,1fr)_220px_220px_240px] items-center gap-3 border-b border-slate-700/80 px-3 py-3.5 last:border-b-0 hover:bg-cyan-500/[0.04]">
+                              <div key={manager.id} className="grid grid-cols-[minmax(220px,1fr)_220px_220px_240px] items-center gap-3 border-b border-slate-100 px-3 py-3.5 last:border-b-0 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/50">
                                 <div className="flex min-w-0 items-center gap-2.5">
-                                  <User className="h-4 w-4 shrink-0 text-cyan-300" />
+                                  <User className="h-4 w-4 shrink-0 text-indigo-500 dark:text-indigo-400" />
                                   <div className="min-w-0">
-                                    <p className="truncate text-sm font-medium text-white">{manager.fullName || manager.username}</p>
-                                    <p className="truncate text-xs text-slate-400">@{manager.username} · ${manager.clickRate.toFixed(3)} click / {manager.commissionRate}% share / {manager.referralCommissionRate}% referral</p>
+                                    <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">{manager.fullName || manager.username}</p>
+                                    <p className="truncate text-xs text-slate-600 dark:text-slate-400">@{manager.username} · ${manager.clickRate.toFixed(3)} click / {manager.commissionRate}% share / {manager.referralCommissionRate}% referral</p>
                                   </div>
                                 </div>
                                 <form onSubmit={(event) => void handleManagerClickRateSubmit(event, manager.id)} className="flex items-end gap-2">
-                                  <label className="min-w-0 flex-1 text-[10px] font-medium text-slate-500">
+                                  <label className="min-w-0 flex-1 text-[10px] font-medium text-slate-600 dark:text-slate-400">
                                     USD per click
-                                    <input aria-label={`Click rate for ${manager.username}`} type="number" min="0" step="0.001" value={draft.clickRate} onChange={(event) => updateManagerDraft(manager.id, "clickRate", event.target.value)} required className="mt-1 w-full rounded-md border border-slate-700 bg-slate-800 px-2 py-1.5 text-xs tabular-nums text-white focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500" />
+                                    <input aria-label={`Click rate for ${manager.username}`} type="number" min="0" step="0.001" value={draft.clickRate} onChange={(event) => updateManagerDraft(manager.id, "clickRate", event.target.value)} required className="mt-1 w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs tabular-nums text-slate-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/15 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-indigo-400" />
                                   </label>
-                                  <button type="submit" disabled={isSubmitting} aria-label={`Save click rate for ${manager.username}`} title="Save click rate" className="inline-flex items-center gap-1 rounded-md bg-cyan-600 px-2.5 py-1.5 text-[10px] font-medium text-white hover:bg-cyan-500 disabled:cursor-not-allowed disabled:opacity-60"><Save className="h-3 w-3" />Save rate</button>
+                                  <button type="submit" disabled={isSubmitting} aria-label={`Save click rate for ${manager.username}`} title="Save click rate" className="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-2.5 py-1.5 text-[10px] font-medium text-indigo-50 shadow-sm hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"><Save className="h-3 w-3" />Save rate</button>
                                 </form>
                                 <form onSubmit={(event) => void handleManagerCommissionSubmit(event, manager.id)} className="flex items-end gap-2">
-                                  <label className="min-w-0 flex-1 text-[10px] font-medium text-slate-500">
+                                  <label className="min-w-0 flex-1 text-[10px] font-medium text-slate-600 dark:text-slate-400">
                                     Share (%)
-                                    <input aria-label={`Commission rate for ${manager.username}`} type="number" min="0" max="100" step="0.01" value={draft.commissionRate} onChange={(event) => updateManagerDraft(manager.id, "commissionRate", event.target.value)} required className="mt-1 w-full rounded-md border border-slate-700 bg-slate-800 px-2 py-1.5 text-xs tabular-nums text-white focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500" />
+                                    <input aria-label={`Commission rate for ${manager.username}`} type="number" min="0" max="100" step="0.01" value={draft.commissionRate} onChange={(event) => updateManagerDraft(manager.id, "commissionRate", event.target.value)} required className="mt-1 w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs tabular-nums text-slate-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/15 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-indigo-400" />
                                   </label>
-                                  <button type="submit" disabled={isSubmitting} aria-label={`Save commission for ${manager.username}`} title="Save commission share" className="inline-flex items-center gap-1 rounded-md bg-cyan-600 px-2.5 py-1.5 text-[10px] font-medium text-white hover:bg-cyan-500 disabled:cursor-not-allowed disabled:opacity-60"><Save className="h-3 w-3" />Save share</button>
+                                  <button type="submit" disabled={isSubmitting} aria-label={`Save commission for ${manager.username}`} title="Save commission share" className="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-2.5 py-1.5 text-[10px] font-medium text-indigo-50 shadow-sm hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"><Save className="h-3 w-3" />Save share</button>
                                 </form>
                                 <form onSubmit={(event) => void handleManagerReferralCommissionSubmit(event, manager.id)} className="flex items-end gap-2">
-                                  <label className="min-w-0 flex-1 text-[10px] font-medium text-slate-500">
+                                  <label className="min-w-0 flex-1 text-[10px] font-medium text-slate-600 dark:text-slate-400">
                                     Referral share (%)
-                                    <input aria-label={`Referral commission rate for ${manager.username}`} type="number" min="0" max="100" step="0.01" value={draft.referralCommissionRate} onChange={(event) => updateManagerDraft(manager.id, "referralCommissionRate", event.target.value)} required className="mt-1 w-full rounded-md border border-slate-700 bg-slate-800 px-2 py-1.5 text-xs tabular-nums text-white focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500" />
+                                    <input aria-label={`Referral commission rate for ${manager.username}`} type="number" min="0" max="100" step="0.01" value={draft.referralCommissionRate} onChange={(event) => updateManagerDraft(manager.id, "referralCommissionRate", event.target.value)} required className="mt-1 w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs tabular-nums text-slate-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/15 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-indigo-400" />
                                   </label>
-                                  <button type="submit" disabled={isSubmitting} aria-label={`Save referral commission for ${manager.username}`} title="Save referral commission rate" className="inline-flex items-center gap-1 rounded-md bg-cyan-600 px-2.5 py-1.5 text-[10px] font-medium text-white hover:bg-cyan-500 disabled:cursor-not-allowed disabled:opacity-60"><Save className="h-3 w-3" />Save rate</button>
+                                  <button type="submit" disabled={isSubmitting} aria-label={`Save referral commission for ${manager.username}`} title="Save referral commission rate" className="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-2.5 py-1.5 text-[10px] font-medium text-indigo-50 shadow-sm hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"><Save className="h-3 w-3" />Save rate</button>
                                 </form>
                               </div>
                             );
@@ -484,8 +551,8 @@ export default function SettingsPage() {
                         </div>
                       </div>
                     ) : (
-                      <div className="rounded-lg border border-dashed border-slate-700 px-4 py-5 text-center">
-                        <p className="text-xs font-medium text-slate-400">No active manager accounts</p>
+                      <div className="rounded-lg border border-dashed border-slate-300 px-4 py-5 text-center dark:border-slate-700">
+                        <p className="text-xs font-medium text-slate-700 dark:text-slate-300">No active manager accounts</p>
                         <p className="mt-1 text-[11px] text-slate-500">Approved manager accounts will appear here when they are available.</p>
                       </div>
                     )}
@@ -514,7 +581,13 @@ export default function SettingsPage() {
                         throw new Error(data.error || "Unable to update email");
                       }
 
-                      setUserInfo((prev) => (prev ? { ...prev, email: emailDraft.trim() } : prev));
+                      setUserInfo((prev) => (prev ? {
+                        ...prev,
+                        email: emailDraft.trim(),
+                        ...(emailDraft.trim().toLowerCase() !== (prev.email || "").toLowerCase()
+                          ? { googleProfilePicture: null, googleEmailVerified: false, googleEmailVerifiedAt: null }
+                          : {}),
+                      } : prev));
                       setFeedback({ type: "success", message: data.message || "Email updated successfully." });
                       setShowEmailForm(false);
                     } catch (error) {
@@ -526,17 +599,17 @@ export default function SettingsPage() {
                       setIsSubmitting(false);
                     }
                   }}
-                  className="mt-3 space-y-3 rounded-lg border border-slate-800 bg-slate-800/30 p-4"
+                  className="mt-3 space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-800/30"
                 >
                   <div>
-                    <label className="mb-1 block text-xs font-medium text-slate-400">Email address</label>
+                    <label className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">Email address</label>
                     <input
                       type="email"
                       value={emailDraft}
                       onChange={(event) => setEmailDraft(event.target.value)}
                       placeholder="you@example.com"
                       required
-                      className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/15 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500"
                     />
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -550,7 +623,7 @@ export default function SettingsPage() {
                     <button
                       type="button"
                       onClick={() => setShowEmailForm(false)}
-                      className="rounded-lg border border-slate-700 px-4 py-2 text-xs font-medium text-slate-300 hover:bg-slate-800"
+                      className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
                     >
                       Cancel
                     </button>
@@ -558,34 +631,38 @@ export default function SettingsPage() {
                 </form>
               )}
 
-              {/* Password Form */}
-              {showPasswordForm && (
-                <form
-                  onSubmit={handlePasswordSubmit}
-                  className="mt-3 space-y-3 rounded-lg border border-slate-800 bg-slate-800/30 p-4"
-                >
+              <form
+                onSubmit={handlePasswordSubmit}
+                className="space-y-4 border-t border-slate-200 pt-4 dark:border-slate-800"
+              >
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+                    <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-200">Change password</h4>
+                  </div>
                   {googleResetReady && (
-                    <div className="rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-3 py-2 text-xs text-cyan-200">
+                    <div className="rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-3 py-2 text-xs text-cyan-700 dark:text-cyan-200">
                       Google verified your account. Choose a new password below.
                     </div>
                   )}
-                  <div className="grid gap-3 md:grid-cols-2">
-                    {!googleResetReady && <div>
-                      <label className="mb-1 block text-xs font-medium text-slate-400">
-                        Current password
-                      </label>
-                      <input
-                        type="password"
-                        value={passwordForm.currentPassword}
-                        onChange={(e) =>
-                          setPasswordForm((prev) => ({ ...prev, currentPassword: e.target.value }))
-                        }
-                        required
-                        className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                      />
-                    </div>}
+                  <div className="space-y-3">
+                    {!googleResetReady && (
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400">
+                          Current password
+                        </label>
+                        <input
+                          type="password"
+                          value={passwordForm.currentPassword}
+                          onChange={(e) =>
+                            setPasswordForm((prev) => ({ ...prev, currentPassword: e.target.value }))
+                          }
+                          required
+                          className="w-full rounded-none border-0 border-b border-slate-300 bg-transparent px-0 py-2 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-0 dark:border-slate-700 dark:text-slate-100 dark:focus:border-indigo-400"
+                        />
+                      </div>
+                    )}
                     <div>
-                      <label className="mb-1 block text-xs font-medium text-slate-400">
+                      <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400">
                         New password
                       </label>
                       <input
@@ -596,73 +673,46 @@ export default function SettingsPage() {
                         }
                         required
                         minLength={8}
-                        className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                        className="w-full rounded-none border-0 border-b border-slate-300 bg-transparent px-0 py-2 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-0 dark:border-slate-700 dark:text-slate-100 dark:focus:border-indigo-400"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400">
+                        Repeat password
+                      </label>
+                      <input
+                        type="password"
+                        value={passwordForm.confirmPassword}
+                        onChange={(e) =>
+                          setPasswordForm((prev) => ({ ...prev, confirmPassword: e.target.value }))
+                        }
+                        required
+                        minLength={8}
+                        className="w-full rounded-none border-0 border-b border-slate-300 bg-transparent px-0 py-2 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-0 dark:border-slate-700 dark:text-slate-100 dark:focus:border-indigo-400"
                       />
                     </div>
                   </div>
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-slate-400">
-                      Confirm new password
-                    </label>
-                    <input
-                      type="password"
-                      value={passwordForm.confirmPassword}
-                      onChange={(e) =>
-                        setPasswordForm((prev) => ({ ...prev, confirmPassword: e.target.value }))
-                      }
-                      required
-                      minLength={8}
-                      className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                    />
-                  </div>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="rounded-lg bg-indigo-600 px-4 py-2 text-xs font-medium text-white hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 text-sm font-semibold text-indigo-50 shadow-sm transition hover:bg-indigo-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 dark:focus-visible:ring-offset-slate-950"
                     >
-                      {isSubmitting ? "Updating…" : "Save password"}
+                      {isSubmitting ? "Changing…" : "Change"}
                     </button>
                     <button
                       type="button"
-                      onClick={() => setShowPasswordForm(false)}
-                      className="rounded-lg border border-slate-700 px-4 py-2 text-xs font-medium text-slate-300 hover:bg-slate-800"
+                      title="Reset your password using your Google account"
+                      onClick={() => window.location.assign(`/api/auth/google/start?redirect=${encodeURIComponent(window.location.pathname)}&purpose=password-reset`)}
+                      className="inline-flex min-h-10 items-center justify-center rounded-lg px-3 text-sm font-medium text-indigo-600 transition hover:bg-indigo-50 hover:text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 dark:text-indigo-400 dark:hover:bg-indigo-500/10 dark:hover:text-indigo-300 dark:focus-visible:ring-offset-slate-900"
                     >
-                      Cancel
+                      Forgot password?
                     </button>
                   </div>
-                </form>
-              )}
-            </div>
-          </div>
+              </form>
 
-        {showDangerZone && userInfo?.role !== "MANAGER" && (
-          <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-5">
-            <div className="mb-4 flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4 text-red-400" />
-              <h3 className="text-sm font-semibold text-red-300">Danger zone</h3>
-            </div>
-            <p className="mb-4 text-sm text-slate-400">These actions are irreversible. Please review them before proceeding.</p>
-            <div className="flex flex-wrap gap-3">
-              <button
-                onClick={() => handleDangerAction("delete-data")}
-                disabled={isSubmitting}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-3 py-2 text-xs font-medium text-white hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-                Delete all data
-              </button>
-              <button
-                onClick={() => handleDangerAction("reset-analytics")}
-                disabled={isSubmitting}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-medium text-red-400 hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                <RefreshCw className="h-3.5 w-3.5" />
-                Reset analytics
-              </button>
             </div>
           </div>
-        )}
       </div>
     </div>
   );

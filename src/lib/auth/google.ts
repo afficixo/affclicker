@@ -31,6 +31,17 @@ export function getGoogleOAuthConfig() {
   }
 }
 
+export function getGoogleOAuthRedirectUri(requestUrl?: string): string {
+  if (requestUrl) {
+    const requestOrigin = new URL(requestUrl)
+    if (['localhost', '127.0.0.1', '[::1]'].includes(requestOrigin.hostname)) {
+      return new URL('/api/auth/google/callback', requestOrigin).toString()
+    }
+  }
+
+  return GOOGLE_REDIRECT_URI || ''
+}
+
 export function buildGoogleAuthUrl(redirectUri: string, state: string): string {
   const params = new URLSearchParams({
     client_id: GOOGLE_CLIENT_ID || '',
@@ -78,7 +89,12 @@ export async function getGoogleUserInfo(accessToken: string) {
     throw new Error(`Google userinfo request failed: ${errorText}`)
   }
 
-  return response.json() as Promise<{ email?: string; name?: string }>
+  return response.json() as Promise<{
+    email?: string
+    email_verified?: boolean
+    name?: string
+    picture?: string
+  }>
 }
 
 export async function findGoogleUserByEmail(email: string) {

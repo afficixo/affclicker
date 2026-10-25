@@ -5,15 +5,6 @@ import { getTokenFromCookie, getUserFromToken, getOwnerUserId, isAdmin, isOwner,
 import { getLinkAccountVisibilityWhereClause } from '@/lib/utils/link-account-access'
 import { prisma } from '@/lib/db/prisma'
 
-const ADMIN_USERNAME = process.env.ADMIN_USERNAME?.trim() || 'admin'
-const ADMIN_PASSWORD: string = (() => {
-  const password = process.env.ADMIN_PASSWORD?.trim()
-  if (!password) {
-    throw new Error('ADMIN_PASSWORD environment variable is required for security')
-  }
-  return password
-})()
-
 export async function POST(request: Request) {
   const origin = request.headers.get('origin') || null
   const cookieHeader = request.headers.get('cookie') || ''
@@ -174,45 +165,6 @@ export async function POST(request: Request) {
         )
       }
 
-      if (action === 'update-manager-referral-commission-rate') {
-        if (!isOwner(user)) {
-          return NextResponse.json(
-            { error: 'Only an owner can update a manager referral commission rate.' },
-            { status: 403, headers: getCorsHeaders(origin) }
-          )
-        }
-
-        const managerId = typeof body?.managerId === 'string' ? body.managerId.trim() : ''
-        const referralCommissionRate = Number(body?.referralCommissionRate)
-        if (!managerId || !Number.isFinite(referralCommissionRate) || referralCommissionRate < 0 || referralCommissionRate > 100) {
-          return NextResponse.json(
-            { error: 'Manager and a referral commission rate between 0 and 100 are required.' },
-            { status: 400, headers: getCorsHeaders(origin) }
-          )
-        }
-
-        const manager = await prisma.user.findUnique({
-          where: { id: managerId },
-          select: { id: true, role: true },
-        })
-        if (!manager || manager.role !== 'MANAGER') {
-          return NextResponse.json(
-            { error: 'Manager account not found.' },
-            { status: 404, headers: getCorsHeaders(origin) }
-          )
-        }
-
-        await prisma.user.update({
-          where: { id: managerId },
-          data: { referralCommissionRate, updatedAt: new Date() },
-        })
-
-        return NextResponse.json(
-          { success: true, managerId, referralCommissionRate, message: 'Manager referral commission rate updated successfully.' },
-          { headers: getCorsHeaders(origin) }
-        )
-      }
-
       const managerId = typeof body?.managerId === 'string' ? body.managerId.trim() : ''
       const commissionRate = Number(body?.commissionRate)
       if (!managerId || !Number.isFinite(commissionRate) || commissionRate < 0 || commissionRate > 100) {
@@ -240,6 +192,45 @@ export async function POST(request: Request) {
 
       return NextResponse.json(
         { success: true, managerId, commissionRate, message: 'Manager commission rate updated successfully.' },
+        { headers: getCorsHeaders(origin) }
+      )
+    }
+
+    if (action === 'update-manager-referral-commission-rate') {
+      if (!isOwner(user)) {
+        return NextResponse.json(
+          { error: 'Only an owner can update a manager referral commission rate.' },
+          { status: 403, headers: getCorsHeaders(origin) }
+        )
+      }
+
+      const managerId = typeof body?.managerId === 'string' ? body.managerId.trim() : ''
+      const referralCommissionRate = Number(body?.referralCommissionRate)
+      if (!managerId || !Number.isFinite(referralCommissionRate) || referralCommissionRate < 0 || referralCommissionRate > 100) {
+        return NextResponse.json(
+          { error: 'Manager and a referral commission rate between 0 and 100 are required.' },
+          { status: 400, headers: getCorsHeaders(origin) }
+        )
+      }
+
+      const manager = await prisma.user.findUnique({
+        where: { id: managerId },
+        select: { id: true, role: true },
+      })
+      if (!manager || manager.role !== 'MANAGER') {
+        return NextResponse.json(
+          { error: 'Manager account not found.' },
+          { status: 404, headers: getCorsHeaders(origin) }
+        )
+      }
+
+      await prisma.user.update({
+        where: { id: managerId },
+        data: { referralCommissionRate, updatedAt: new Date() },
+      })
+
+      return NextResponse.json(
+        { success: true, managerId, referralCommissionRate, message: 'Manager referral commission rate updated successfully.' },
         { headers: getCorsHeaders(origin) }
       )
     }
@@ -375,9 +366,18 @@ export async function POST(request: Request) {
         )
       }
 
+      const emailChanged = email.toLowerCase() !== (user.email || '').toLowerCase()
       await prisma.user.update({
         where: { id: user.id },
-        data: { email, updatedAt: new Date() },
+        data: {
+          email,
+          ...(emailChanged ? {
+            googleProfilePicture: null,
+            googleEmailVerified: false,
+            googleEmailVerifiedAt: null,
+          } : {}),
+          updatedAt: new Date(),
+        },
       })
 
       return NextResponse.json(

@@ -281,6 +281,12 @@ type AuthUser = {
   username: string
   role: UserRole
   email?: string
+  fullName?: string | null
+  createdAt?: Date
+  lastLogin?: Date | null
+  googleProfilePicture?: string | null
+  googleEmailVerified?: boolean
+  googleEmailVerifiedAt?: Date | null
   status?: AccountStatus | null
   bkashNumber?: string | null
   clickRate?: number | null
@@ -308,6 +314,12 @@ export async function getUserFromToken(token: string): Promise<AuthUser | null> 
           id: true,
           username: true,
           email: true,
+          fullName: true,
+          createdAt: true,
+          lastLogin: true,
+          googleProfilePicture: true,
+          googleEmailVerified: true,
+          googleEmailVerifiedAt: true,
           role: true,
           status: true,
         },
@@ -332,6 +344,12 @@ export async function getUserFromToken(token: string): Promise<AuthUser | null> 
         id: true,
         username: true,
         email: true,
+        fullName: true,
+        createdAt: true,
+        lastLogin: true,
+        googleProfilePicture: true,
+        googleEmailVerified: true,
+        googleEmailVerifiedAt: true,
         role: true,
         bkashNumber: true,
         clickRate: true,
@@ -348,8 +366,17 @@ export async function getUserFromToken(token: string): Promise<AuthUser | null> 
     const missingColumn = String(error?.meta?.column || '') + ' ' + String(error?.message || '')
     const isMissingCommissionRate = missingColumn.includes('commissionRate')
     const isMissingBotFallbackUrl = missingColumn.includes('botFallbackUrl')
+    const isMissingGoogleProfilePicture = missingColumn.includes('googleProfilePicture')
+    const isMissingGoogleEmailVerified = missingColumn.includes('googleEmailVerified')
+    const isMissingGoogleEmailVerifiedAt = missingColumn.includes('googleEmailVerifiedAt')
+    const isMissingFullName = missingColumn.includes('fullName')
+    const isMissingCreatedAt = missingColumn.includes('createdAt')
 
-    if (error?.code !== 'P2022' || (!isMissingCommissionRate && !isMissingBotFallbackUrl)) {
+    if (
+      error?.code !== 'P2022' ||
+      (!isMissingCommissionRate && !isMissingBotFallbackUrl && !isMissingGoogleProfilePicture &&
+        !isMissingGoogleEmailVerified && !isMissingGoogleEmailVerifiedAt && !isMissingFullName && !isMissingCreatedAt)
+    ) {
       throw error
     }
 
@@ -359,6 +386,11 @@ export async function getUserFromToken(token: string): Promise<AuthUser | null> 
         id: true,
         username: true,
         email: true,
+        ...(isMissingFullName ? {} : { fullName: true }),
+        ...(isMissingCreatedAt ? {} : { createdAt: true }),
+        ...(isMissingGoogleProfilePicture ? {} : { googleProfilePicture: true }),
+        ...(isMissingGoogleEmailVerified ? {} : { googleEmailVerified: true }),
+        ...(isMissingGoogleEmailVerifiedAt ? {} : { googleEmailVerifiedAt: true }),
         role: true,
         bkashNumber: true,
         clickRate: true,

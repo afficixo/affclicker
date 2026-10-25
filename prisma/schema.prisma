@@ -12,6 +12,9 @@ model User {
   username         String      @unique
   slugPrefix      String?     @unique
   email            String      @unique
+  googleProfilePicture String?
+  googleEmailVerified Boolean  @default(false)
+  googleEmailVerifiedAt DateTime?
   fullName         String?
   address           String?
   source           String?
