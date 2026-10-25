@@ -101,7 +101,7 @@ function ActionButtons({
           type="button"
           disabled={isActionLoading}
           onClick={() => updateStatus(manager.id, 'ACTIVE')}
-          className={`inline-flex min-w-0 w-full items-center justify-center gap-1.5 border border-[#359f25]/35 bg-[#efffec] font-semibold text-[#24651d] transition hover:border-[#359f25]/60 hover:bg-[#d9ffd0] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#359f25] disabled:cursor-wait disabled:opacity-60 dark:border-[#5ff442]/30 dark:bg-[#5ff442]/10 dark:text-[#a2fa8e] dark:hover:border-[#8aff70]/40 dark:hover:bg-[#5ff442]/15 dark:focus-visible:ring-[#8aff70] ${buttonBase}`}
+          className={`inline-flex min-w-0 w-full items-center justify-center gap-1.5 border border-[#bfd5c4] bg-[#e9f3ec] font-semibold text-[#25583b] transition hover:border-[#9fbea8] hover:bg-[#deebe1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4b8060] disabled:cursor-wait disabled:opacity-60 dark:border-emerald-300/25 dark:bg-emerald-400/10 dark:text-emerald-200 dark:hover:border-emerald-200/40 dark:hover:bg-emerald-400/15 dark:focus-visible:ring-emerald-300 ${buttonBase}`}
         >
           {isActionLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
           Approve
@@ -110,7 +110,7 @@ function ActionButtons({
           type="button"
           disabled={isActionLoading}
           onClick={() => updateStatus(manager.id, 'REJECTED')}
-          className={`inline-flex min-w-0 w-full items-center justify-center gap-1.5 border border-rose-700/30 bg-rose-50 font-semibold text-rose-900 transition hover:border-rose-700/50 hover:bg-rose-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-600 disabled:cursor-wait disabled:opacity-60 dark:border-rose-300/25 dark:bg-rose-300/10 dark:text-rose-100 dark:hover:border-rose-200/40 dark:hover:bg-rose-300/15 dark:focus-visible:ring-rose-300 ${buttonBase}`}
+          className={`inline-flex min-w-0 w-full items-center justify-center gap-1.5 border border-[#e3c3c7] bg-[#f8eded] font-semibold text-[#80343d] transition hover:border-[#d4a7ad] hover:bg-[#f2dfe1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#aa5360] disabled:cursor-wait disabled:opacity-60 dark:border-rose-300/25 dark:bg-rose-300/10 dark:text-rose-200 dark:hover:border-rose-200/40 dark:hover:bg-rose-300/15 dark:focus-visible:ring-rose-300 ${buttonBase}`}
         >
           {isActionLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <AlertTriangle className="h-3.5 w-3.5" />}
           Reject
@@ -141,7 +141,7 @@ function ActionButtons({
           type="button"
           disabled={isActionLoading}
           onClick={() => updateStatus(manager.id, 'ACTIVE')}
-          className={`inline-flex min-w-0 w-full items-center justify-center gap-1.5 border border-[#359f25]/35 bg-[#efffec] font-semibold text-[#24651d] transition hover:border-[#359f25]/60 hover:bg-[#d9ffd0] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#359f25] disabled:cursor-wait disabled:opacity-60 dark:border-[#5ff442]/30 dark:bg-[#5ff442]/10 dark:text-[#a2fa8e] dark:hover:border-[#8aff70]/40 dark:hover:bg-[#5ff442]/15 dark:focus-visible:ring-[#8aff70] ${buttonBase}`}
+          className={`inline-flex min-w-0 w-full items-center justify-center gap-1.5 border border-[#bfd5c4] bg-[#e9f3ec] font-semibold text-[#25583b] transition hover:border-[#9fbea8] hover:bg-[#deebe1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4b8060] disabled:cursor-wait disabled:opacity-60 dark:border-emerald-300/25 dark:bg-emerald-400/10 dark:text-emerald-200 dark:hover:border-emerald-200/40 dark:hover:bg-emerald-400/15 dark:focus-visible:ring-emerald-300 ${buttonBase}`}
         >
           {isActionLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
           Approve
@@ -177,7 +177,7 @@ function ActionButtons({
           type="button"
           disabled={isActionLoading}
           onClick={() => updateStatus(manager.id, 'REJECTED')}
-          className={`inline-flex min-w-0 w-full items-center justify-center gap-1.5 border border-rose-700/30 bg-rose-50 font-semibold text-rose-900 transition hover:border-rose-700/50 hover:bg-rose-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-600 disabled:cursor-wait disabled:opacity-60 dark:border-rose-300/25 dark:bg-rose-300/10 dark:text-rose-100 dark:hover:border-rose-200/40 dark:hover:bg-rose-300/15 dark:focus-visible:ring-rose-300 ${buttonBase}`}
+          className={`inline-flex min-w-0 w-full items-center justify-center gap-1.5 border border-[#e3c3c7] bg-[#f8eded] font-semibold text-[#80343d] transition hover:border-[#d4a7ad] hover:bg-[#f2dfe1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#aa5360] disabled:cursor-wait disabled:opacity-60 dark:border-rose-300/25 dark:bg-rose-300/10 dark:text-rose-200 dark:hover:border-rose-200/40 dark:hover:bg-rose-300/15 dark:focus-visible:ring-rose-300 ${buttonBase}`}
         >
           {isActionLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <AlertTriangle className="h-3.5 w-3.5" />}
           Reject

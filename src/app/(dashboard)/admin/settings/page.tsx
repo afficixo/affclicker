@@ -8,23 +8,12 @@ import {
   XCircle,
   Mail,
   CircleDollarSign,
-  Save,
   Copy,
 } from "lucide-react";
 
 interface FeedbackState {
   type: "success" | "error";
   message: string;
-}
-
-interface ManagerOption {
-  id: string;
-  username: string;
-  fullName: string | null;
-  clickRate: number;
-  commissionRate: number;
-  referralCommissionRate: number;
-  status?: "PENDING" | "ACTIVE" | "DISABLED" | "REJECTED";
 }
 
 export default function SettingsPage() {
@@ -43,8 +32,6 @@ export default function SettingsPage() {
     googleEmailVerifiedAt?: string | null;
   } | null>(null);
   const [clickRate, setClickRate] = useState("0");
-  const [managers, setManagers] = useState<ManagerOption[]>([]);
-  const [managerDrafts, setManagerDrafts] = useState<Record<string, { clickRate: string; commissionRate: string; referralCommissionRate: string }>>({});
   const [showClickRateForm, setShowClickRateForm] = useState(false);
   const [googleResetReady, setGoogleResetReady] = useState(false);
   const [showEmailForm, setShowEmailForm] = useState(false);
@@ -127,125 +114,6 @@ export default function SettingsPage() {
       setShowClickRateForm(false);
     } catch (error) {
       setFeedback({ type: "error", message: error instanceof Error ? error.message : "Unable to update USA click rate" });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  useEffect(() => {
-    if (userInfo?.role !== "OWNER") return;
-
-    const fetchManagers = async () => {
-      const response = await fetch("/api/owner/managers", { credentials: "include" });
-      if (!response.ok) return;
-      const data = await response.json();
-      const managerOptions = Array.isArray(data.managers)
-        ? data.managers
-            .filter((manager: ManagerOption) => manager.status === "ACTIVE" || !manager.status)
-            .map((manager: ManagerOption) => ({
-              id: manager.id,
-              username: manager.username,
-              fullName: manager.fullName || null,
-              clickRate: Number(manager.clickRate ?? 0),
-              commissionRate: Number(manager.commissionRate ?? 20),
-              referralCommissionRate: Number(manager.referralCommissionRate ?? 5),
-              status: manager.status || "ACTIVE",
-            }))
-        : [];
-      setManagers(managerOptions);
-      setManagerDrafts(Object.fromEntries(managerOptions.map((manager: ManagerOption) => [manager.id, {
-        clickRate: String(manager.clickRate),
-        commissionRate: String(manager.commissionRate),
-        referralCommissionRate: String(manager.referralCommissionRate),
-      }])));
-    };
-
-    void fetchManagers();
-  }, [userInfo?.role]);
-
-  const updateManagerDraft = (managerId: string, field: "clickRate" | "commissionRate" | "referralCommissionRate", value: string) => {
-    setManagerDrafts((current) => ({
-      ...current,
-      [managerId]: { ...current[managerId], [field]: value },
-    }));
-  };
-
-  const handleManagerClickRateSubmit = async (event: FormEvent<HTMLFormElement>, managerId: string) => {
-    event.preventDefault();
-    const draft = managerDrafts[managerId];
-    if (!draft) return;
-    setIsSubmitting(true);
-    setFeedback(null);
-    try {
-      const response = await fetch("/api/settings", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "update-manager-click-rate", managerId, clickRate: Number(draft.clickRate) }),
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.error || "Unable to update manager click rate");
-      setManagers((current) => current.map((manager) => manager.id === managerId ? { ...manager, clickRate: Number(data.clickRate) } : manager));
-      updateManagerDraft(managerId, "clickRate", String(data.clickRate));
-      setFeedback({ type: "success", message: data.message || "Manager click rate updated successfully." });
-    } catch (error) {
-      setFeedback({ type: "error", message: error instanceof Error ? error.message : "Unable to update manager click rate" });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleManagerCommissionSubmit = async (event: FormEvent<HTMLFormElement>, managerId: string) => {
-    event.preventDefault();
-    const draft = managerDrafts[managerId];
-    if (!draft) return;
-    setIsSubmitting(true);
-    setFeedback(null);
-    try {
-      const response = await fetch("/api/settings", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "update-manager-commission-rate", managerId, commissionRate: Number(draft.commissionRate) }),
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.error || "Unable to update manager commission rate");
-      setManagers((current) => current.map((manager) => manager.id === managerId ? { ...manager, commissionRate: Number(data.commissionRate) } : manager));
-      updateManagerDraft(managerId, "commissionRate", String(data.commissionRate));
-      setFeedback({ type: "success", message: data.message || "Manager commission rate updated successfully." });
-    } catch (error) {
-      setFeedback({ type: "error", message: error instanceof Error ? error.message : "Unable to update manager commission rate" });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleManagerReferralCommissionSubmit = async (event: FormEvent<HTMLFormElement>, managerId: string) => {
-    event.preventDefault();
-    const draft = managerDrafts[managerId];
-    if (!draft) return;
-    setIsSubmitting(true);
-    setFeedback(null);
-    try {
-      const response = await fetch("/api/settings", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "update-manager-referral-commission-rate",
-          managerId,
-          referralCommissionRate: Number(draft.referralCommissionRate),
-        }),
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.error || "Unable to update referral commission rate");
-      setManagers((current) => current.map((manager) => manager.id === managerId
-        ? { ...manager, referralCommissionRate: Number(data.referralCommissionRate) }
-        : manager));
-      updateManagerDraft(managerId, "referralCommissionRate", String(data.referralCommissionRate));
-      setFeedback({ type: "success", message: data.message || "Referral commission rate updated successfully." });
-    } catch (error) {
-      setFeedback({ type: "error", message: error instanceof Error ? error.message : "Unable to update referral commission rate" });
     } finally {
       setIsSubmitting(false);
     }
@@ -483,81 +351,13 @@ export default function SettingsPage() {
               {/* Email Form */}
               {showClickRateForm && (userInfo?.role === "OWNER" || userInfo?.role === "ADMIN") && (
                 <div className="mt-3 space-y-3">
-                <form onSubmit={handleClickRateSubmit} className="space-y-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">{userInfo.role === "ADMIN" ? "Your default USA click rate per unique referrer click" : "Default USA click rate per unique referrer click"}</label>
-                    <input type="number" min="0" step="0.001" value={clickRate} onChange={(event) => setClickRate(event.target.value)} required className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/15 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-indigo-400" />
-                  </div>
-                  <button type="submit" disabled={isSubmitting} className="rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-indigo-50 shadow-sm transition hover:bg-indigo-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 dark:focus-visible:ring-offset-slate-900">{isSubmitting ? "Saving..." : "Save default click rate"}</button>
-                </form>
-                {userInfo.role === "OWNER" && (
-                  <div className="space-y-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Manager controls</h3>
-                        <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400">Set rates per account. Referral rate changes apply to future commissions.</p>
-                      </div>
-                      <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300">{managers.length} active account{managers.length === 1 ? "" : "s"}</span>
+                  <form onSubmit={handleClickRateSubmit} className="space-y-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">{userInfo.role === "ADMIN" ? "Your default USA click rate per unique referrer click" : "Default USA click rate per unique referrer click"}</label>
+                      <input type="number" min="0" step="0.001" value={clickRate} onChange={(event) => setClickRate(event.target.value)} required className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/15 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-indigo-400" />
                     </div>
-
-                    {managers.length > 0 ? (
-                      <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-700">
-                        <div className="min-w-[1000px]">
-                          <div className="grid grid-cols-[minmax(220px,1fr)_220px_220px_240px] gap-3 border-b border-slate-200 bg-slate-50 px-3 py-2.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-400">
-                            <span>Account</span>
-                            <span>Click rate per unique referrer</span>
-                            <span>Commission share</span>
-                            <span>Referral reward</span>
-                          </div>
-                          {managers.map((manager) => {
-                            const draft = managerDrafts[manager.id] || {
-                              clickRate: String(manager.clickRate),
-                              commissionRate: String(manager.commissionRate),
-                              referralCommissionRate: String(manager.referralCommissionRate),
-                            };
-                            return (
-                              <div key={manager.id} className="grid grid-cols-[minmax(220px,1fr)_220px_220px_240px] items-center gap-3 border-b border-slate-100 px-3 py-3.5 last:border-b-0 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/50">
-                                <div className="flex min-w-0 items-center gap-2.5">
-                                  <User className="h-4 w-4 shrink-0 text-indigo-500 dark:text-indigo-400" />
-                                  <div className="min-w-0">
-                                    <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">{manager.fullName || manager.username}</p>
-                                    <p className="truncate text-xs text-slate-600 dark:text-slate-400">@{manager.username} · ${manager.clickRate.toFixed(3)} click / {manager.commissionRate}% share / {manager.referralCommissionRate}% referral</p>
-                                  </div>
-                                </div>
-                                <form onSubmit={(event) => void handleManagerClickRateSubmit(event, manager.id)} className="flex items-end gap-2">
-                                  <label className="min-w-0 flex-1 text-[10px] font-medium text-slate-600 dark:text-slate-400">
-                                    USD per click
-                                    <input aria-label={`Click rate for ${manager.username}`} type="number" min="0" step="0.001" value={draft.clickRate} onChange={(event) => updateManagerDraft(manager.id, "clickRate", event.target.value)} required className="mt-1 w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs tabular-nums text-slate-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/15 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-indigo-400" />
-                                  </label>
-                                  <button type="submit" disabled={isSubmitting} aria-label={`Save click rate for ${manager.username}`} title="Save click rate" className="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-2.5 py-1.5 text-[10px] font-medium text-indigo-50 shadow-sm hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"><Save className="h-3 w-3" />Save rate</button>
-                                </form>
-                                <form onSubmit={(event) => void handleManagerCommissionSubmit(event, manager.id)} className="flex items-end gap-2">
-                                  <label className="min-w-0 flex-1 text-[10px] font-medium text-slate-600 dark:text-slate-400">
-                                    Share (%)
-                                    <input aria-label={`Commission rate for ${manager.username}`} type="number" min="0" max="100" step="0.01" value={draft.commissionRate} onChange={(event) => updateManagerDraft(manager.id, "commissionRate", event.target.value)} required className="mt-1 w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs tabular-nums text-slate-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/15 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-indigo-400" />
-                                  </label>
-                                  <button type="submit" disabled={isSubmitting} aria-label={`Save commission for ${manager.username}`} title="Save commission share" className="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-2.5 py-1.5 text-[10px] font-medium text-indigo-50 shadow-sm hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"><Save className="h-3 w-3" />Save share</button>
-                                </form>
-                                <form onSubmit={(event) => void handleManagerReferralCommissionSubmit(event, manager.id)} className="flex items-end gap-2">
-                                  <label className="min-w-0 flex-1 text-[10px] font-medium text-slate-600 dark:text-slate-400">
-                                    Referral share (%)
-                                    <input aria-label={`Referral commission rate for ${manager.username}`} type="number" min="0" max="100" step="0.01" value={draft.referralCommissionRate} onChange={(event) => updateManagerDraft(manager.id, "referralCommissionRate", event.target.value)} required className="mt-1 w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs tabular-nums text-slate-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/15 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-indigo-400" />
-                                  </label>
-                                  <button type="submit" disabled={isSubmitting} aria-label={`Save referral commission for ${manager.username}`} title="Save referral commission rate" className="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-2.5 py-1.5 text-[10px] font-medium text-indigo-50 shadow-sm hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"><Save className="h-3 w-3" />Save rate</button>
-                                </form>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="rounded-lg border border-dashed border-slate-300 px-4 py-5 text-center dark:border-slate-700">
-                        <p className="text-xs font-medium text-slate-700 dark:text-slate-300">No active manager accounts</p>
-                        <p className="mt-1 text-[11px] text-slate-500">Approved manager accounts will appear here when they are available.</p>
-                      </div>
-                    )}
-                  </div>
-                )}
+                    <button type="submit" disabled={isSubmitting} className="rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-indigo-50 shadow-sm transition hover:bg-indigo-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 dark:focus-visible:ring-offset-slate-900">{isSubmitting ? "Saving..." : "Save default click rate"}</button>
+                  </form>
                 </div>
               )}
 

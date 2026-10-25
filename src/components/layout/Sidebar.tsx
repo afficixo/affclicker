@@ -221,6 +221,7 @@ export default function Sidebar({ collapsed, mobileOpen, onMobileOpenChange }: S
       items: [
         ...(userRole === 'OWNER'
           ? [
+              { href: '/owner/manager-controls', label: 'Publisher Controls', icon: ShieldCheck },
               { href: '/owner/managers', label: 'Manage Publishers', icon: ShieldCheck },
               { href: '/owner/admins', label: 'Manage Admins', icon: UsersRound },
             ]

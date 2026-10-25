@@ -4,7 +4,7 @@ import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ChevronLeft, ChevronRight, Clock3, Menu, MessageCircle, Moon, Settings, Sun, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Menu, MessageCircle, Moon, Settings, Sun, X } from 'lucide-react'
 import Sidebar from '@/components/layout/Sidebar'
 import { getDashboardBasePath } from '@/lib/auth/dashboard-path'
 
@@ -20,21 +20,10 @@ export default function DashboardLayout({
   const [userRole, setUserRole] = useState<string | null>(null)
   const [now, setNow] = useState<Date | null>(null)
 
-  const clockTime = now?.toLocaleTimeString('en-GB', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hourCycle: 'h23',
-  }).split(':')
-  const clockDate = now?.toLocaleDateString('en-GB', {
-    weekday: 'short',
-    day: '2-digit',
-    month: 'short',
-  })
-
   useEffect(() => {
     const updateTime = () => setNow(new Date())
     updateTime()
-    const timer = window.setInterval(updateTime, 60_000)
+    const timer = window.setInterval(updateTime, 1_000)
     return () => window.clearInterval(timer)
   }, [])
 
@@ -144,16 +133,29 @@ export default function DashboardLayout({
             />
             {now && (
               <time
-                aria-label={`Local time ${clockTime?.join(':')} on ${clockDate}`}
+                aria-label={`Local time ${now.toLocaleTimeString('en-GB', { hourCycle: 'h23' })}`}
                 dateTime={now.toISOString()}
-                className="flex h-8 shrink-0 items-center gap-1.5 px-1.5 text-slate-700 sm:h-9 sm:gap-2 dark:text-slate-200"
+                className="flex h-10 shrink-0 items-start gap-0.5 px-1 text-slate-900 sm:gap-1.5 sm:px-2 dark:text-white"
               >
-                <Clock3 className="h-4 w-4 shrink-0 text-slate-500 dark:text-slate-400" aria-hidden="true" />
-                <span className="font-mono text-sm font-semibold leading-none tabular-nums tracking-tight sm:text-[15px]">
-                  {clockTime?.join(':')}
-                </span>
-                <span className="hidden h-3.5 w-px bg-slate-200 md:block dark:bg-white/15" aria-hidden="true" />
-                <span className="hidden text-xs text-slate-500 md:inline dark:text-slate-400">{clockDate?.replace(' ', ', ')}</span>
+                {[
+                  { value: String(now.getHours()).padStart(2, '0'), label: 'HOUR' },
+                  { value: String(now.getMinutes()).padStart(2, '0'), label: 'MIN' },
+                  { value: String(now.getSeconds()).padStart(2, '0'), label: 'SEC' },
+                ].map(({ value, label }, index) => (
+                  <span key={label} className="flex items-start">
+                    <span className="flex min-w-[27px] flex-col items-center leading-none sm:min-w-[42px]">
+                      <span className="font-mono text-lg font-medium tabular-nums tracking-tight sm:text-[28px]">
+                        {value}
+                      </span>
+                      <span className="mt-0.5 text-[7px] font-medium text-slate-900 sm:text-[10px] dark:text-slate-200">
+                        {label}
+                      </span>
+                    </span>
+                    {index < 2 && (
+                      <span className="pt-0.5 font-sans text-sm leading-none text-[#999] sm:pt-1 sm:text-[22px]" aria-hidden="true">:</span>
+                    )}
+                  </span>
+                ))}
               </time>
             )}
           </div>
