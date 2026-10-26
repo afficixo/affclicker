@@ -97,7 +97,7 @@ export default function HomePage() {
           />
           <div className="home-hero-overlay pointer-events-none absolute inset-0" aria-hidden="true" />
 
-          <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-left">
+          <div className="home-hero-content relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-left">
             <motion.h1
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}

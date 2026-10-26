@@ -104,6 +104,24 @@ html:not(.dark) {
   background-color: rgba(15, 23, 42, 0.28);
 }
 
+.home-hero-content {
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease,
+    visibility 0s linear 0s;
+}
+
+.public-site[data-mobile-menu-open="true"] .home-hero-content {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-8px);
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease,
+    visibility 0s linear 160ms;
+}
+
 .page-load-overlay {
   position: absolute;
   inset: 0;
@@ -179,8 +197,11 @@ html:not(.dark) {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .page-load-overlay {
+  .page-load-overlay,
+  .home-hero-content,
+  .public-site[data-mobile-menu-open="true"] .home-hero-content {
     transition-duration: 0ms;
+    transition-delay: 0ms;
   }
 
   .page-load-spinner span::before {

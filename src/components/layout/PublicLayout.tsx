@@ -94,7 +94,10 @@ export default function PublicLayout({
   };
 
   return (
-    <div className={`public-site relative min-h-screen w-full overflow-x-hidden ${className}`}>
+    <div
+      data-mobile-menu-open={open ? "true" : undefined}
+      className={`public-site relative min-h-screen w-full overflow-x-hidden ${className}`}
+    >
       <div className="relative z-10 flex min-h-screen flex-col">
         <header
           className={`fixed inset-x-0 top-0 z-40 border-b transition-colors ${
@@ -231,7 +234,7 @@ export default function PublicLayout({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.18 }}
-              className="fixed inset-0 z-30 cursor-default bg-[#0b1120]/45 backdrop-blur-sm lg:hidden"
+              className="fixed inset-0 z-30 cursor-default bg-[#0b1120]/45 backdrop-blur-none lg:hidden"
             />
           )}
         </AnimatePresence>
