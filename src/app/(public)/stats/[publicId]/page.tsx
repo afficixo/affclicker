@@ -30,7 +30,6 @@ import {
   RefreshCw,
   MapPin,
   Hash,
-  Apple,
   Laptop,
   Computer,
   Link2,
@@ -88,6 +87,27 @@ interface Stats {
     isBot: boolean
     createdAt: string
   }>
+}
+
+function AppleDeviceIcon({ className }: { className: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={className}
+      fill="currentColor"
+      aria-hidden="true"
+    >
+      <path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701" />
+    </svg>
+  )
+}
+
+function getReferrerLabel(referrer: string) {
+  try {
+    return new URL(referrer).hostname.replace(/^www\./, '')
+  } catch {
+    return referrer
+  }
 }
 
 // Metric Card
@@ -377,17 +397,13 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
   }, [publicId, search, filterCountry, filterUnique, refreshKey])
 
   const getDeviceIcon = useCallback((deviceType: string | null, deviceBrand: string | null) => {
-    if (!deviceType) return Monitor
-    const type = deviceType.toLowerCase()
+    const type = deviceType?.toLowerCase() || ''
     const brand = deviceBrand?.toLowerCase() || ''
-    if (brand.includes('apple') || brand.includes('iphone') || brand.includes('ipad') || brand.includes('mac')) {
-      if (type.includes('phone') || type.includes('mobile')) return Smartphone
-      if (type.includes('tablet')) return Tablet
-      return Apple
-    }
-    if (type.includes('desktop') || type.includes('computer')) return Computer
-    if (type.includes('mobile') || type.includes('phone')) return Smartphone
-    if (type.includes('tablet')) return Tablet
+    if (brand.includes('iphone')) return AppleDeviceIcon
+    if (brand.includes('ipad') || type.includes('tablet')) return Tablet
+    if (brand.includes('iphone') || type.includes('mobile') || type.includes('phone')) return Smartphone
+    if (type.includes('laptop') || type.includes('macbook')) return Laptop
+    if (isDesktopDeviceType(deviceType) || brand.includes('mac')) return Computer
     return Monitor
   }, [])
 
@@ -408,7 +424,6 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-      second: '2-digit',
     })
   }, [])
 
@@ -1070,6 +1085,16 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                 ]
                   .filter((value): value is string => Boolean(value))
                   .map((value) => decodeURIComponent(value))
+                const detailButtonClass = (isActive: boolean) =>
+                  `flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
+                    isActive
+                      ? (isDark
+                        ? 'bg-emerald-400/10 text-emerald-300'
+                        : 'bg-emerald-50 text-emerald-700')
+                      : (isDark
+                        ? 'text-white/65 hover:bg-white/[0.06] hover:text-white'
+                        : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900')
+                  }`
                 return (
                   <article
                     key={click.id}
@@ -1084,67 +1109,55 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                       >
                         {formatDate(click.createdAt || click.timestamp)}
                       </time>
-                      <span className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-[10px] font-semibold ${
+                      <span
+                        aria-label={click.isUnique ? 'Unique click' : 'Repeat click'}
+                        title={click.isUnique ? 'Unique click' : 'Repeat click'}
+                        className={`inline-flex shrink-0 items-center justify-center ${
                         click.isUnique
-                          ? (isDark ? 'bg-emerald-400/10 text-emerald-300' : 'bg-emerald-50 text-emerald-700')
-                          : (isDark ? 'bg-amber-400/10 text-amber-300' : 'bg-amber-50 text-amber-700')
-                      }`}>
+                          ? (isDark ? 'text-emerald-300' : 'text-emerald-700')
+                          : (isDark ? 'text-amber-300' : 'text-amber-700')
+                      }`}
+                      >
                         {click.isUnique
-                          ? <Check className="h-3 w-3" strokeWidth={2.5} aria-hidden="true" />
-                          : <X className="h-3 w-3" strokeWidth={2.5} aria-hidden="true" />}
-                        {click.isUnique ? 'Unique' : 'Repeat'}
+                          ? <Check className="h-3.5 w-3.5" strokeWidth={2.5} aria-hidden="true" />
+                          : <X className="h-3.5 w-3.5" strokeWidth={2.5} aria-hidden="true" />}
                       </span>
                     </div>
 
-                    <div className="mt-3 flex min-w-0 flex-wrap items-center gap-1.5">
+                    <div className="mt-2.5 flex min-w-0 flex-wrap items-center gap-2">
                       <button
                         type="button"
                         onClick={() => setShowGeoInfo(showGeoInfo === click.id ? null : click.id)}
                         aria-label={`Location: ${getCountryLabel(click.country)}. ${showGeoInfo === click.id ? 'Hide' : 'Show'} location details`}
                         aria-pressed={showGeoInfo === click.id}
-                        title="Show location details"
-                        className={`inline-flex max-w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-xs transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
-                          showGeoInfo === click.id
-                            ? (isDark ? 'bg-white/10 text-white' : 'bg-slate-100 text-slate-900')
-                            : (isDark ? 'text-white/65 hover:bg-white/5 hover:text-white' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900')
-                        }`}
+                        title={`${getCountryLabel(click.country)} · ${showGeoInfo === click.id ? 'Hide' : 'Show'} location details`}
+                        className={detailButtonClass(showGeoInfo === click.id)}
                       >
-                        <CountryFlag country={click.country} className="h-3 w-[18px] shrink-0" />
-                        <span className="max-w-[120px] truncate">{getCountryLabel(click.country)}</span>
+                        <CountryFlag country={click.country} className="h-3.5 w-5 shrink-0" />
                       </button>
                       <button
                         type="button"
                         onClick={() => setShowDeviceInfo(showDeviceInfo === click.id ? null : click.id)}
                         aria-label={`Device: ${deviceLabel}. ${showDeviceInfo === click.id ? 'Hide' : 'Show'} device details`}
                         aria-pressed={showDeviceInfo === click.id}
-                        title="Show device details"
-                        className={`inline-flex max-w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-xs transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
-                          showDeviceInfo === click.id
-                            ? (isDark ? 'bg-white/10 text-white' : 'bg-slate-100 text-slate-900')
-                            : (isDark ? 'text-white/65 hover:bg-white/5 hover:text-white' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900')
-                        }`}
+                        title={`${deviceLabel} · ${showDeviceInfo === click.id ? 'Hide' : 'Show'} device details`}
+                        className={detailButtonClass(showDeviceInfo === click.id)}
                       >
                         <DeviceIcon
-                          className={`h-3.5 w-3.5 shrink-0 ${isDark ? 'text-white/55' : 'text-slate-400'}`}
+                          className="h-4 w-4 shrink-0"
                           strokeWidth={1.5}
                           aria-hidden="true"
                         />
-                        <span className="max-w-[120px] truncate">{deviceLabel}</span>
                       </button>
                       <button
                         type="button"
                         onClick={() => setShowBrowserVersion(showBrowserVersion === click.id ? null : click.id)}
                         aria-label={`Browser: ${click.browser || 'Unknown'}, ${click.browserVersion || 'version unknown'}. ${showBrowserVersion === click.id ? 'Hide' : 'Show'} browser details`}
                         aria-pressed={showBrowserVersion === click.id}
-                        title="Show browser details"
-                        className={`inline-flex max-w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-xs transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
-                          showBrowserVersion === click.id
-                            ? (isDark ? 'bg-white/10 text-white' : 'bg-slate-100 text-slate-900')
-                            : (isDark ? 'text-white/65 hover:bg-white/5 hover:text-white' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900')
-                        }`}
+                        title={`${click.browser || 'Unknown'} · ${showBrowserVersion === click.id ? 'Hide' : 'Show'} browser details`}
+                        className={detailButtonClass(showBrowserVersion === click.id)}
                       >
                         <BrowserLogo name={click.browser || 'Unknown'} />
-                        <span className="max-w-[90px] truncate">{click.browser || 'Unknown'}</span>
                       </button>
                     </div>
 
@@ -1170,7 +1183,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                       </div>
                     )}
 
-                    <div className={`mt-3 flex min-w-0 flex-col gap-2 border-t pt-3 ${isDark ? 'border-white/10' : 'border-slate-200'}`}>
+                    <div className={`mt-2.5 flex min-w-0 flex-col gap-2 border-t pt-2.5 ${isDark ? 'border-white/10' : 'border-slate-200'}`}>
                       <div
                         className={`flex min-w-0 items-center gap-1.5 font-mono text-xs ${isDark ? 'text-cyan-200/90' : 'text-cyan-700'}`}
                         title={`IP address: ${click.ipAddress || 'N/A'}`}
@@ -1189,7 +1202,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                             aria-label={`Referrer: ${click.referrer}`}
                             title={click.referrer}
                           >
-                            {click.referrer}
+                            {getReferrerLabel(click.referrer)}
                           </a>
                         ) : (
                           <span className={isDark ? 'text-white/50' : 'text-slate-500'}>Direct</span>

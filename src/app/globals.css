@@ -104,49 +104,6 @@ html:not(.dark) {
   background-color: rgba(15, 23, 42, 0.28);
 }
 
-@media (max-width: 1023px) {
-  #home {
-    transition: filter 220ms ease;
-  }
-
-  .public-site[data-mobile-menu-open="true"] #home {
-    filter: blur(2px);
-  }
-
-  .home-hero-actions-shell {
-    max-height: 128px;
-    overflow: hidden;
-    opacity: 1;
-    translate: 0 0;
-    transition:
-      max-height 280ms cubic-bezier(0.22, 1, 0.36, 1),
-      opacity 180ms ease,
-      translate 280ms cubic-bezier(0.22, 1, 0.36, 1),
-      visibility 0s;
-  }
-
-  .public-site[data-mobile-menu-open="true"] .home-hero-actions-shell {
-    max-height: 0;
-    opacity: 0;
-    translate: 0 -10px;
-    visibility: hidden;
-    pointer-events: none;
-    transition:
-      max-height 280ms cubic-bezier(0.22, 1, 0.36, 1),
-      opacity 180ms ease,
-      translate 280ms cubic-bezier(0.22, 1, 0.36, 1),
-      visibility 0s 280ms;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  #home,
-  .home-hero-actions-shell {
-    transition-duration: 0.01ms;
-    transition-delay: 0s;
-  }
-}
-
 .page-load-overlay {
   position: absolute;
   inset: 0;
@@ -322,6 +279,10 @@ body {
     linear-gradient(135deg, rgba(52, 211, 153, 0.04), transparent 34%),
     linear-gradient(315deg, rgba(34, 211, 238, 0.04), transparent 34%);
   position: relative;
+}
+
+html.dark body {
+  background-color: #1d282b;
 }
 
 ::selection {

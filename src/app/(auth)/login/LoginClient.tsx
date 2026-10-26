@@ -133,9 +133,17 @@ export default function LoginClient() {
     <PublicLayout className="!bg-white">
       <main className="min-h-[250px] flex-1 bg-white px-4 pb-7 pt-24 md:pt-28">
         <div className="mx-auto w-full max-w-[610px]">
-          <h1 className="mb-2 text-center text-[2.25rem] font-bold italic leading-tight tracking-[-0.04em] text-[#263238]">
-            Affiliate Login
-          </h1>
+          <header className="mb-6 text-center">
+            <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-[#0e7a4d]">
+              Welcome back
+            </p>
+            <h1 className="font-[Montserrat] text-3xl font-bold leading-tight text-[#263238] sm:text-4xl">
+              Affiliate Login
+            </h1>
+            <p className="mx-auto mt-3 max-w-xl text-base leading-6 text-[#6b7c87]">
+              Sign in to continue to your Afficix account.
+            </p>
+          </header>
 
             {error && (
               <div
