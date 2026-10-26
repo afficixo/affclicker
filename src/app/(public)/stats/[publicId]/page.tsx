@@ -640,8 +640,8 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                 <Image
                   src="/afficixlogo.png"
                   alt="Afficix logo"
-                  width={2171}
-                  height={724}
+                  width={1275}
+                  height={482}
                   className="h-full w-full object-contain"
                   priority
                 />
@@ -676,11 +676,11 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                   }`}>
                     <CreditCard className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
                   </span>
-                  <span className={`truncate text-xs font-semibold ${isDark ? 'text-white/80' : 'text-slate-700'}`}>
-                    Wallet
-                  </span>
-                </div>
-                <span className="flex shrink-0 items-center gap-2">
+                  {unpaidEarning <= 0 && (
+                    <span className={`truncate text-xs font-semibold ${isDark ? 'text-white/80' : 'text-slate-700'}`}>
+                      Wallet
+                    </span>
+                  )}
                   {unpaidEarning > 0 && (
                     <span className={`whitespace-nowrap text-xs font-semibold tabular-nums ${isDark ? 'text-emerald-300' : 'text-emerald-700'}`}>
                       {earningCurrency === 'USD'
@@ -693,6 +693,8 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                         )}
                     </span>
                   )}
+                </div>
+                <span className="flex shrink-0 items-center">
                   <ArrowRight className={`h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 ${isDark ? 'text-white/35' : 'text-slate-400'}`} aria-hidden="true" />
                 </span>
               </a>

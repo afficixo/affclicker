@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { ChevronRight, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 
 const navLinks = [
   { href: "#home", label: "Home" },
@@ -86,23 +86,27 @@ export default function PublicLayout({
     e.preventDefault();
     const el = document.querySelector(href);
     if (!el) return;
-    const y = (el as HTMLElement).getBoundingClientRect().top + window.scrollY - 72;
+    const headerHeight = document.querySelector("header")?.getBoundingClientRect().height ?? 72;
+    const y = (el as HTMLElement).getBoundingClientRect().top + window.scrollY - headerHeight;
     window.scrollTo({ top: y, behavior: "smooth" });
     history.replaceState(null, "", href);
     setOpen(false);
   };
 
   return (
-    <div className={`public-site relative min-h-screen w-full overflow-x-hidden ${className}`}>
+    <div
+      className={`public-site relative min-h-screen w-full overflow-x-hidden ${className}`}
+      data-mobile-menu-open={open ? "true" : undefined}
+    >
       <div className="relative z-10 flex min-h-screen flex-col">
         <header
           className={`fixed inset-x-0 top-0 z-40 border-b transition-colors ${
             open || !isHomePage || isScrolled
-              ? "border-white/[0.08] bg-[#0f172a]/90 shadow-[0_2px_8px_rgba(0,0,0,0.18)] backdrop-blur-md"
+              ? "border-white/[0.08] bg-[#0f172a]/80 shadow-[0_2px_8px_rgba(0,0,0,0.18)] backdrop-blur-md"
               : "border-transparent bg-transparent shadow-none"
           }`}
         >
-          <nav className="relative z-10 mx-auto flex h-16 max-w-screen-2xl items-center justify-between px-4 sm:px-6 lg:px-8 md:h-20">
+          <nav className="relative z-10 mx-auto flex h-16 max-w-screen-2xl items-center justify-between px-4 sm:px-6 lg:h-20 lg:px-8">
             <a
               href={isHomePage ? "#home" : "/#home"}
               onClick={isHomePage ? (e) => go(e, "#home") : undefined}
@@ -111,15 +115,15 @@ export default function PublicLayout({
               <Image
                 src="/afficixlogo.png"
                 alt="Afficix"
-                width={2171}
-                height={724}
+                width={1275}
+                height={482}
                 sizes="120px"
-                className="h-10 w-[120px] object-contain"
+                className="h-10 w-[132px] object-contain"
                 priority
               />
             </a>
 
-            <div className="hidden items-center gap-8 md:flex">
+            <div className="hidden items-center gap-8 lg:flex">
               {navLinks.map((link) => (
                 <a
                   key={link.href}
@@ -139,7 +143,7 @@ export default function PublicLayout({
               <Link
                 href="/signup"
                 prefetch={false}
-                className="hidden sm:inline-flex items-center rounded-md bg-[#5ff442] px-4 py-2 text-sm font-bold text-[#263238] transition-colors hover:bg-[#4dd935]"
+                className="hidden lg:inline-flex items-center rounded-md bg-[#5ff442] px-4 py-2 text-sm font-bold text-[#263238] transition-colors hover:bg-[#4dd935]"
               >
                 Sign up
               </Link>
@@ -147,14 +151,14 @@ export default function PublicLayout({
                 href="/login"
                 prefetch={false}
                 aria-current={pathname === "/login" ? "page" : undefined}
-                className="hidden sm:inline-flex items-center rounded-md bg-white px-4 py-2 text-sm font-semibold text-[#263238] transition-colors hover:bg-[#f0f4f7]"
+                className="hidden lg:inline-flex items-center rounded-md bg-white px-4 py-2 text-sm font-semibold text-[#263238] transition-colors hover:bg-[#f0f4f7]"
               >
                 Login
               </Link>
               <button
                 type="button"
                 onClick={() => setOpen((v) => !v)}
-                className="grid h-10 w-10 place-items-center rounded-lg border border-white/15 bg-white/[0.04] text-white transition-colors hover:border-[#5ff442]/50 hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5ff442] md:hidden"
+                className="grid h-9 w-10 place-items-center rounded-md border border-white/20 bg-white/[0.04] text-white transition-colors hover:border-white/40 hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5ff442] lg:hidden"
                 aria-label={open ? "Close menu" : "Open menu"}
                 aria-expanded={open}
                 aria-controls="public-mobile-menu"
@@ -167,36 +171,15 @@ export default function PublicLayout({
           <AnimatePresence>
             {open && (
               <motion.div
-                key="mobile-menu-backdrop"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.18 }}
-              >
-                <button
-                  type="button"
-                  aria-label="Close navigation menu"
-                  onClick={() => setOpen(false)}
-                  className="fixed inset-x-0 bottom-0 top-16 z-0 cursor-default bg-slate-950/55 backdrop-blur-[2px] md:hidden"
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
-          <AnimatePresence>
-            {open && (
-              <motion.div
                 id="public-mobile-menu"
-                initial={{ opacity: 0, y: -8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.18, ease: "easeOut" }}
-                className="absolute inset-x-0 top-full z-10 max-h-[calc(100dvh-4rem)] overflow-y-auto border-t border-white/10 bg-[#202b2f] shadow-2xl shadow-black/30 md:hidden"
+                initial={{ y: -6 }}
+                animate={{ y: 0 }}
+                exit={{ y: -6 }}
+                transition={{ duration: 0.14, ease: "easeOut" }}
+                className="absolute right-4 top-full z-10 mt-4 max-h-[calc(100dvh-5rem)] w-[min(12rem,calc(100vw-2rem))] overflow-y-auto bg-transparent lg:hidden"
               >
-                <div className="mx-auto max-w-7xl px-4 pb-5 pt-4 sm:px-6">
-                  <p className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/40">
-                    Explore
-                  </p>
-                  <div className="space-y-1">
+                <nav aria-label="Mobile navigation" className="pb-3">
+                  <div className="space-y-0.5">
                     {navLinks.map((link) => (
                       <a
                         key={link.href}
@@ -206,23 +189,22 @@ export default function PublicLayout({
                           else setOpen(false);
                         }}
                         aria-current={isHomePage && active === link.href ? "location" : undefined}
-                        className={`flex min-h-12 items-center justify-between rounded-lg px-3 text-[15px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5ff442] ${
+                        className={`flex min-h-10 items-center justify-end rounded-md px-2 text-lg font-normal transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#5ff442] ${
                           isHomePage && active === link.href
-                            ? "bg-[#5ff442]/10 text-[#8aff70]"
-                            : "text-white/80 hover:bg-white/[0.06] hover:text-white"
+                            ? "text-white"
+                            : "text-white/65 hover:text-white"
                         }`}
                       >
                         {link.label}
-                        <ChevronRight className="h-4 w-4 text-white/35" aria-hidden="true" />
                       </a>
                     ))}
                   </div>
-                  <div className="mt-4 flex gap-3 border-t border-white/10 pt-4">
+                  <div className="mt-1 flex flex-col items-end gap-2">
                     <Link
                       href="/signup"
                       prefetch={false}
                       onClick={() => setOpen(false)}
-                      className="flex min-h-11 flex-1 items-center justify-center rounded-lg bg-[#5ff442] px-4 text-sm font-bold text-[#263238] transition-colors hover:bg-[#4dd935] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8aff70] focus-visible:ring-offset-2 focus-visible:ring-offset-[#202b2f]"
+                      className="flex min-h-9 min-w-[5.5rem] items-center justify-center rounded bg-[#5ff442] px-3 text-sm font-semibold text-[#263238] transition-colors hover:bg-[#4dd935] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#111a2c]"
                     >
                       Sign up
                     </Link>
@@ -231,16 +213,31 @@ export default function PublicLayout({
                       prefetch={false}
                       onClick={() => setOpen(false)}
                       aria-current={pathname === "/login" ? "page" : undefined}
-                      className="flex min-h-11 flex-1 items-center justify-center rounded-lg border border-white/15 bg-white/[0.04] px-4 text-sm font-semibold text-white transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+                      className="flex min-h-9 min-w-[5.5rem] items-center justify-center rounded bg-white px-3 text-sm font-medium text-[#263238] transition-colors hover:bg-[#e6ebed] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                     >
                       Login
                     </Link>
                   </div>
-                </div>
+                </nav>
               </motion.div>
             )}
           </AnimatePresence>
         </header>
+
+        <AnimatePresence>
+          {open && (
+            <motion.button
+              type="button"
+              aria-label="Close navigation menu"
+              onClick={() => setOpen(false)}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.18 }}
+              className="fixed inset-0 z-30 cursor-default bg-[#0b1120]/45 lg:hidden"
+            />
+          )}
+        </AnimatePresence>
 
         {children}
 

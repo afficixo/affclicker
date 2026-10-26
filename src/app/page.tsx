@@ -119,27 +119,29 @@ export default function HomePage() {
               advertiser we have solutions for everyone.
             </motion.p>
 
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.2 }}
-              className="flex flex-col items-start gap-3 sm:flex-row"
-            >
-              <Link
-                href="/signup"
-                prefetch={false}
-                className="inline-flex items-center justify-center gap-2 rounded-md bg-[#5ff442] px-8 py-3.5 text-base font-bold text-[#263238] transition-all hover:bg-[#4dd935] hover:-translate-y-0.5 w-full sm:w-auto"
+            <div className="home-hero-actions-shell">
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7, delay: 0.2 }}
+                className="flex flex-col items-start gap-3 sm:flex-row"
               >
-                Sign up
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-              <a
-                href="#contact"
-                className="inline-flex items-center justify-center rounded-md border border-white/30 px-8 py-3.5 text-base font-semibold text-white transition-colors hover:bg-white/10 w-full sm:w-auto"
-              >
-                Contact us
-              </a>
-            </motion.div>
+                <Link
+                  href="/signup"
+                  prefetch={false}
+                  className="inline-flex items-center justify-center gap-2 rounded-md bg-[#5ff442] px-8 py-3.5 text-base font-bold text-[#263238] transition-all hover:bg-[#4dd935] hover:-translate-y-0.5 w-full sm:w-auto"
+                >
+                  Sign up
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+                <a
+                  href="#contact"
+                  className="inline-flex items-center justify-center rounded-md border border-white/30 px-8 py-3.5 text-base font-semibold text-white transition-colors hover:bg-white/10 w-full sm:w-auto"
+                >
+                  Contact us
+                </a>
+              </motion.div>
+            </div>
           </div>
         </section>
 

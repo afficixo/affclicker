@@ -104,8 +104,8 @@ export default function DashboardLayout({
             <Image
               src="/afficixlogo.png"
               alt="Afficix logo"
-              width={2171}
-              height={724}
+              width={1275}
+              height={482}
               className="h-12 w-36 shrink-0 object-contain"
               priority
             />
@@ -126,16 +126,16 @@ export default function DashboardLayout({
             <Image
               src="/afficixlogo.png"
               alt="Afficix logo"
-              width={2171}
-              height={724}
-              className="h-8 w-[88px] shrink-0 object-contain min-[360px]:w-[106px] sm:h-9 sm:w-[124px] lg:hidden"
+              width={1275}
+              height={482}
+              className="h-7 w-[76px] shrink-0 object-contain min-[360px]:w-[92px] sm:h-9 sm:w-[124px] lg:hidden"
               priority
             />
             {now && (
               <time
                 aria-label={`Local time ${now.toLocaleTimeString('en-GB', { hourCycle: 'h23' })}`}
                 dateTime={now.toISOString()}
-                className="flex h-10 shrink-0 items-start gap-0.5 px-1 text-slate-900 sm:gap-1.5 sm:px-2 dark:text-white"
+                className="flex h-9 shrink-0 items-center gap-0 px-0.5 text-slate-900 sm:h-10 sm:items-start sm:gap-1.5 sm:px-2 dark:text-white"
               >
                 {[
                   { value: String(now.getHours()).padStart(2, '0'), label: 'HOUR' },
@@ -143,16 +143,16 @@ export default function DashboardLayout({
                   { value: String(now.getSeconds()).padStart(2, '0'), label: 'SEC' },
                 ].map(({ value, label }, index) => (
                   <span key={label} className="flex items-start">
-                    <span className="flex min-w-[27px] flex-col items-center leading-none sm:min-w-[42px]">
-                      <span className="font-mono text-lg font-medium tabular-nums tracking-tight sm:text-[28px]">
+                    <span className="flex min-w-0 flex-col items-center leading-none sm:min-w-[42px]">
+                      <span className="font-mono text-[13px] font-medium tabular-nums tracking-tight sm:text-[28px]">
                         {value}
                       </span>
-                      <span className="mt-0.5 text-[7px] font-medium text-slate-900 sm:text-[10px] dark:text-slate-200">
+                      <span className="mt-0.5 hidden text-[7px] font-medium text-slate-900 sm:block sm:text-[10px] dark:text-slate-200">
                         {label}
                       </span>
                     </span>
                     {index < 2 && (
-                      <span className="pt-0.5 font-sans text-sm leading-none text-[#999] sm:pt-1 sm:text-[22px]" aria-hidden="true">:</span>
+                      <span className="pt-0.5 font-sans text-[11px] leading-none text-[#999] sm:pt-1 sm:text-[22px]" aria-hidden="true">:</span>
                     )}
                   </span>
                 ))}
@@ -160,8 +160,8 @@ export default function DashboardLayout({
             )}
           </div>
 
-          <div className="flex shrink-0 items-center gap-0.5 rounded-xl border border-[#263238]/10 bg-slate-50/80 p-1 shadow-sm dark:border-white/10 dark:bg-[#192326]/70">
-            <nav aria-label="Quick links" className="flex shrink-0 items-center gap-0.5">
+          <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
+            <nav aria-label="Quick links" className="flex shrink-0 items-center gap-0.5 sm:gap-1">
               <Link
                 href={`${getDashboardBasePath(userRole)}/settings`}
                 className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-slate-600 transition-colors hover:bg-white hover:text-[#24651d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#359f25] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-[#a2fa8e] min-[360px]:h-8 min-[360px]:w-8 sm:h-9 sm:w-9"
@@ -181,7 +181,7 @@ export default function DashboardLayout({
                 </Link>
               )}
             </nav>
-            <span className="mx-0.5 h-5 w-px bg-slate-300/80 dark:bg-white/15" aria-hidden="true" />
+            <span className="mx-0.5 h-4 w-px bg-[#263238]/15 dark:bg-white/15" aria-hidden="true" />
             <button
               type="button"
               onClick={toggleTheme}

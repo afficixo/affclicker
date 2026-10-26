@@ -17,10 +17,10 @@ export function Logo({
   onClick,
 }: LogoProps) {
   const logoSizes = {
-    sm: { width: 106, height: 35 },
-    md: { width: 132, height: 44 },
-    lg: { width: 158, height: 53 },
-    xl: { width: 211, height: 70 },
+    sm: { width: 106, height: 40 },
+    md: { width: 132, height: 50 },
+    lg: { width: 158, height: 60 },
+    xl: { width: 211, height: 80 },
   }
   const dimensions = logoSizes[size]
 
