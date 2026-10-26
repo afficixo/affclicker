@@ -43,15 +43,12 @@ export default function PublicLayout({
   useEffect(() => {
     if (!open) return;
 
-    const previousOverflow = document.body.style.overflow;
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") setOpen(false);
     };
 
-    document.body.style.overflow = "hidden";
     window.addEventListener("keydown", closeOnEscape);
     return () => {
-      document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", closeOnEscape);
     };
   }, [open]);
@@ -100,7 +97,7 @@ export default function PublicLayout({
     >
       <div className="relative z-10 flex min-h-screen flex-col">
         <header
-          className={`fixed inset-x-0 top-0 z-40 border-b transition-colors ${
+          className={`fixed inset-x-0 top-0 z-40 border-b ${open ? "" : "transition-colors"} ${
             open || !isHomePage || isScrolled
               ? "border-white/[0.08] bg-[#0f172a]/80 shadow-[0_2px_8px_rgba(0,0,0,0.18)]"
               : "border-transparent bg-transparent shadow-none"
@@ -224,20 +221,14 @@ export default function PublicLayout({
           </AnimatePresence>
         </header>
 
-        <AnimatePresence>
-          {open && (
-            <motion.button
-              type="button"
-              aria-label="Close navigation menu"
-              onClick={() => setOpen(false)}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.18 }}
-              className="fixed inset-0 z-30 cursor-default bg-[#0b1120]/45 backdrop-blur-none lg:hidden"
-            />
-          )}
-        </AnimatePresence>
+        {open && (
+          <button
+            type="button"
+            aria-label="Close navigation menu"
+            onClick={() => setOpen(false)}
+            className="fixed inset-0 z-30 cursor-default bg-[#0b1120]/45 backdrop-blur-none lg:hidden"
+          />
+        )}
 
         {children}
 
