@@ -4,7 +4,7 @@
 
 ### What You Need to Know
 - ✅ Your app is on **Vercel** - wildcard subdomains work automatically
-- ✅ Landing pages will be at: `subdomain.afficixo.com`
+- ✅ Landing pages will be at: `subdomain.AffClickero.com`
 - ✅ Requires **1 DNS record** and **1 environment variable**
 
 ---
@@ -17,7 +17,7 @@ Time: ~5 minutes | Propagation: 24 hours
 Go to your domain registrar (Namecheap, GoDaddy, Route 53, etc.):
 ```
 Type:   CNAME
-Name:   *.afficixo.com
+Name:   *.AffClickero.com
 Value:  cname.vercel.sh
 TTL:    3600 (default)
 ```
@@ -28,13 +28,13 @@ Time: ~2 minutes | Effect: Immediate after redeploy
 Go to Vercel Project Settings:
 ```
 Name:   NEXT_PUBLIC_LANDING_PAGE_DOMAIN
-Value:  afficixo.com
+Value:  AffClickero.com
 Env:    Production, Preview, Development
 ```
 
 Or add to `.env`:
 ```
-NEXT_PUBLIC_LANDING_PAGE_DOMAIN=afficixo.com
+NEXT_PUBLIC_LANDING_PAGE_DOMAIN=AffClickero.com
 ```
 
 ### 3️⃣ **Redeploy** (Automatic or Manual)
@@ -53,7 +53,7 @@ Time: ~3 minutes
 4. Paste tracking URL
 5. Complete the form
 6. Publish
-7. Visit: `https://test.afficixo.com`
+7. Visit: `https://test.AffClickero.com`
 8. Should redirect to your tracking URL ✓
 
 ---
@@ -64,7 +64,7 @@ After setup:
 ```
 User creates landing page with subdomain: "summer-sale"
               ↓
-Live URL: https://summer-sale.afficixo.com
+Live URL: https://summer-sale.AffClickero.com
               ↓
 User clicks button
               ↓
@@ -79,13 +79,13 @@ To verify DNS is working:
 
 ```bash
 # Mac/Linux
-nslookup test.afficixo.com
+nslookup test.AffClickero.com
 
 # Windows PowerShell
-Resolve-DnsName test.afficixo.com
+Resolve-DnsName test.AffClickero.com
 
 # Expected output:
-# test.afficixo.com  CNAME  cname.vercel.sh
+# test.AffClickero.com  CNAME  cname.vercel.sh
 ```
 
 ---

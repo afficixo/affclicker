@@ -3,45 +3,45 @@ import { Suspense } from "react";
 import LoginClient from "./LoginClient";
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://afficix.com'),
-  title: 'Manager Login — Afficix',
+  metadataBase: new URL('https://affclicker.com'),
+  title: 'Manager Login — AffClicker',
   description:
-    'Log in to your Afficix publisher account to manage CPC offers, tracking links, traffic analytics, and earnings.',
+    'Log in to your AffClicker publisher account to manage CPC offers, tracking links, traffic analytics, and earnings.',
   keywords: [
     'manager login',
-    'Afficix login',
+    'AffClicker login',
     'affiliate dashboard',
     'offer management login',
     'click tracking login',
   ],
   alternates: {
-    canonical: 'https://afficix.com/login',
+    canonical: 'https://affclicker.com/login',
   },
   openGraph: {
-    title: 'Manager Login — Afficix',
+    title: 'Manager Login — AffClicker',
     description:
-      'Log in to your Afficix publisher account to manage CPC offers, tracking links, traffic analytics, and earnings.',
+      'Log in to your AffClicker publisher account to manage CPC offers, tracking links, traffic analytics, and earnings.',
     type: 'website',
-    url: 'https://afficix.com/login',
-    siteName: 'Afficix',
+    url: 'https://affclicker.com/login',
+    siteName: 'AffClicker',
     images: [
       {
-        url: 'https://afficix.com/afficix-preview.png',
-        secureUrl: 'https://afficix.com/afficix-preview.png',
+        url: 'https://affclicker.com/affclicker-preview.png',
+        secureUrl: 'https://affclicker.com/affclicker-preview.png',
         width: 768,
         height: 768,
-        alt: 'Afficix Pay Per Click Affiliate Marketplace',
+        alt: 'AffClicker Pay Per Click Affiliate Marketplace',
         type: 'image/png',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Manager Login — Afficix',
+    title: 'Manager Login — AffClicker',
     description:
-      'Log in to your Afficix publisher account to manage CPC offers, tracking links, traffic analytics, and earnings.',
-    images: ['https://afficix.com/afficix-preview.png'],
-    creator: 'Afficix',
+      'Log in to your AffClicker publisher account to manage CPC offers, tracking links, traffic analytics, and earnings.',
+    images: ['https://affclicker.com/affclicker-preview.png'],
+    creator: 'AffClicker',
   },
 };
 

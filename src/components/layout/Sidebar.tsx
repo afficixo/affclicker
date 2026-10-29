@@ -22,9 +22,9 @@ import {
   MessageCircle,
   Loader2,
   Send,
-  UsersRound,
   Sun,
   Moon,
+  UsersRound,
 } from 'lucide-react'
 import { getDashboardBasePath, getDashboardPath } from '@/lib/auth/dashboard-path'
 
@@ -223,7 +223,6 @@ export default function Sidebar({ collapsed, mobileOpen, onMobileOpenChange }: S
           ? [
               { href: '/owner/manager-controls', label: 'Publisher Controls', icon: ShieldCheck },
               { href: '/owner/managers', label: 'Manage Publishers', icon: ShieldCheck },
-              { href: '/owner/admins', label: 'Manage Admins', icon: UsersRound },
             ]
           : []),
       ],
@@ -375,7 +374,7 @@ export default function Sidebar({ collapsed, mobileOpen, onMobileOpenChange }: S
   const supportPopup = userRole === 'MANAGER' && pathname !== '/publisher/help' && supportOpen ? (
     <div id="support-messenger-popup" role="dialog" aria-label="Help messenger with Rayan" className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 z-[70] flex w-[min(22rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-2xl shadow-slate-900/15 dark:border-white/10 dark:bg-slate-900 sm:right-6">
       <div className="flex items-center gap-3 border-b border-slate-200/70 px-4 py-3 dark:border-white/10">
-        <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full border border-slate-200 dark:border-white/10"><Image src="/afficix_favicon.png" alt="Afficix" fill sizes="36px" className="object-cover" /><span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-white bg-emerald-400 dark:border-slate-900" /></div>
+        <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full border border-slate-200 dark:border-white/10"><Image src="/affclicker_favicon.png" alt="AffClicker" fill sizes="36px" className="object-cover" /><span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-white bg-emerald-400 dark:border-slate-900" /></div>
         <div className="min-w-0"><p className="truncate text-sm font-semibold text-slate-800 dark:text-slate-100">Rayan</p><p className="text-[11px] text-slate-500 dark:text-slate-400">How can we help?</p></div>
         <Link href="/publisher/help" target="_blank" rel="noreferrer" className="ml-auto text-[11px] font-medium text-cyan-600 hover:text-cyan-500 dark:text-cyan-300">Open full page</Link>
       </div>
@@ -386,7 +385,7 @@ export default function Sidebar({ collapsed, mobileOpen, onMobileOpenChange }: S
           const isManagerMessage = message.sender.role === 'MANAGER'
           const previousMessage = supportConversation.messages[index - 1]
           const showOwnerAvatar = !isManagerMessage && (index === 0 || previousMessage?.sender.role === 'MANAGER')
-          return <div key={message.id} className={`flex items-end gap-1.5 ${isManagerMessage ? 'justify-end' : 'justify-start'}`}>{!isManagerMessage && <div className={`flex h-5 w-5 shrink-0 overflow-hidden rounded-full border border-slate-200 dark:border-white/10 ${showOwnerAvatar ? '' : 'invisible'}`}><Image src="/afficix_favicon.png" alt="Afficix" width={20} height={20} className="h-full w-full object-cover" /></div>}<div className={`max-w-[78%] whitespace-pre-wrap break-words px-3 py-2 text-xs leading-5 ${isManagerMessage ? 'rounded-xl rounded-br-sm bg-cyan-500 text-slate-950' : `rounded-xl border border-slate-200 bg-white text-slate-700 dark:border-white/10 dark:bg-slate-800 dark:text-slate-200 ${showOwnerAvatar ? 'rounded-bl-sm' : 'rounded-l-md'}`}`}><MessageBody body={message.body} /></div></div>
+          return <div key={message.id} className={`flex items-end gap-1.5 ${isManagerMessage ? 'justify-end' : 'justify-start'}`}>{!isManagerMessage && <div className={`flex h-5 w-5 shrink-0 overflow-hidden rounded-full border border-slate-200 dark:border-white/10 ${showOwnerAvatar ? '' : 'invisible'}`}><Image src="/affclicker_favicon.png" alt="AffClicker" width={20} height={20} className="h-full w-full object-cover" /></div>}<div className={`max-w-[78%] whitespace-pre-wrap break-words px-3 py-2 text-xs leading-5 ${isManagerMessage ? 'rounded-xl rounded-br-sm bg-cyan-500 text-slate-950' : `rounded-xl border border-slate-200 bg-white text-slate-700 dark:border-white/10 dark:bg-slate-800 dark:text-slate-200 ${showOwnerAvatar ? 'rounded-bl-sm' : 'rounded-l-md'}`}`}><MessageBody body={message.body} /></div></div>
         })}
       </div>
       {supportError && <p className="border-t border-red-500/15 bg-red-500/5 px-3 py-2 text-xs text-red-600 dark:text-red-300">{supportError}</p>}

@@ -102,11 +102,11 @@ export default function DashboardLayout({
         <div className={`hidden h-full shrink-0 items-center border-r border-[#263238]/10 bg-[#f3f6f5] px-3 transition-[width] duration-300 dark:border-white/10 dark:bg-[#192326] lg:flex ${sidebarCollapsed ? 'w-16 justify-center' : 'w-52 justify-between'}`}>
           {!sidebarCollapsed && (
             <Image
-              src="/afficixlogo.png"
-              alt="Afficix logo"
+              src="/affclickerlogo.png"
+              alt="AffClicker logo"
               width={1275}
               height={482}
-              className="h-12 w-36 shrink-0 object-contain"
+              className="h-10 w-[170px] shrink-0 object-contain"
               priority
             />
           )}
@@ -124,11 +124,11 @@ export default function DashboardLayout({
         <div className="flex min-w-0 flex-1 items-center justify-between gap-3 px-3 sm:px-5">
           <div className="flex min-w-0 items-center gap-1 sm:gap-3">
             <Image
-              src="/afficixlogo.png"
-              alt="Afficix logo"
+              src="/affclickerlogo.png"
+              alt="AffClicker logo"
               width={1275}
               height={482}
-              className="h-7 w-[76px] shrink-0 object-contain min-[360px]:w-[92px] sm:h-9 sm:w-[124px] lg:hidden"
+              className="h-8 w-[104px] shrink-0 object-contain min-[360px]:w-[120px] sm:h-9 sm:w-[140px] lg:hidden"
               priority
             />
             {now && (

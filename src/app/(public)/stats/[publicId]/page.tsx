@@ -327,7 +327,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
   const toggleTheme = () => setIsDark(!isDark)
 
   const [stats, setStats] = useState<Stats | null>(null)
-  const [accountName, setAccountName] = useState('Afficix')
+  const [accountName, setAccountName] = useState('AffClicker')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
@@ -376,7 +376,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
         if (!response.ok) throw new Error('Dashboard not found')
         const data = await response.json()
         setStats(data)
-        setAccountName(data.accountName || 'Afficix')
+        setAccountName(data.accountName || 'AffClicker')
         if (!paymentPromptShown.current && !data.payoutMethod) {
           paymentPromptShown.current = true
           setShowPaymentMethodPrompt(true)
@@ -487,7 +487,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.download = `afficix-stats-${publicId}-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.csv`
+    link.download = `affclicker-stats-${publicId}-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.csv`
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -625,12 +625,12 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
             '@type': 'DataDashboard',
             name: accountName || 'Public Analytics',
             description: `Real-time analytics with ${totalClicks} total clicks and ${uniqueClicks} unique visitors`,
-            url: `https://afficix.com/stats/${publicId}`,
+            url: `https://affclicker.com/stats/${publicId}`,
             provider: {
               '@type': 'Organization',
-              name: 'Afficix',
-              url: 'https://afficix.com',
-              logo: 'https://afficix.com/afficixlogo.png',
+              name: 'AffClicker',
+              url: 'https://affclicker.com',
+              logo: 'https://affclicker.com/affclickerlogo.png',
             },
             dateModified: new Date().toISOString(),
             identifier: publicId,
@@ -653,8 +653,8 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
             <div className="flex min-w-0 items-center gap-3 sm:gap-4">
               <div className="relative h-11 w-32 shrink-0 overflow-hidden rounded-2xl border border-transparent bg-transparent sm:h-[54px] sm:w-36">
                 <Image
-                  src="/afficixlogo.png"
-                  alt="Afficix logo"
+                  src="/affclickerlogo.png"
+                  alt="AffClicker logo"
                   width={1275}
                   height={482}
                   className="h-full w-full object-contain"
@@ -668,7 +668,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                     : 'border-slate-200 bg-slate-50 text-slate-700'
                 }`}>
                   <span className="truncate">
-                    {accountName && accountName !== 'Afficix' ? accountName : 'Public Analytics'}
+                    {accountName && accountName !== 'AffClicker' ? accountName : 'Public Analytics'}
                   </span>
                 </span>
               </div>

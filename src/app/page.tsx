@@ -14,13 +14,13 @@ const structuredData = [
   {
     "@context": "https://schema.org",
     "@type": "Organization",
-    name: "Afficix",
-    url: "https://afficix.com",
-    logo: "https://afficix.com/afficixlogo.png",
+    name: "AffClicker",
+    url: "https://affclicker.com",
+    logo: "https://affclicker.com/affclickerlogo.png",
     description:
-      "Afficix is a CPC affiliate marketplace that helps publishers monetize traffic with pay-per-click offers.",
+      "AffClicker is a CPC affiliate marketplace that helps publishers monetize traffic with pay-per-click offers.",
   },
-  { "@context": "https://schema.org", "@type": "WebSite", name: "Afficix", url: "https://afficix.com" },
+  { "@context": "https://schema.org", "@type": "WebSite", name: "AffClicker", url: "https://affclicker.com" },
 ];
 
 const fadeUp = {
@@ -395,8 +395,8 @@ export default function HomePage() {
                     </div>
                     <div>
                       <p className="text-xs font-semibold uppercase tracking-wider text-[#6b7c87] mb-0.5">Email</p>
-                      <a href="mailto:contact@afficix.com" className="text-sm text-[#0e7a4d] hover:underline">
-                        contact@afficix.com
+                      <a href="mailto:contact@affclicker.com" className="text-sm text-[#0e7a4d] hover:underline">
+                        contact@affclicker.com
                       </a>
                     </div>
                   </div>

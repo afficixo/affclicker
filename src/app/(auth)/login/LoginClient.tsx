@@ -141,7 +141,7 @@ export default function LoginClient() {
               Affiliate Login
             </h1>
             <p className="mx-auto mt-3 max-w-xl text-base leading-6 text-[#6b7c87]">
-              Sign in to continue to your Afficix account.
+              Sign in to continue to your AffClicker account.
             </p>
           </header>
 

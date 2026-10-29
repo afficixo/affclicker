@@ -77,7 +77,7 @@ interface ManagerPayment {
 }
 
 const USD_TO_BDT = 118;
-const PAYMENT_CURRENCY_STORAGE_KEY = "afficixo-payment-currency";
+const PAYMENT_CURRENCY_STORAGE_KEY = "affclicker-payment-currency";
 const PAYMENT_NOTICE_TITLE = "Weekly validation and payout schedule:";
 const PAYMENT_NOTICE_BODY = " Valid clicks are reviewed every Monday. Approved payments are released the next business day.";
 const formatMoney = (value: number, currency: "USD" | "BDT") => currency === "BDT"

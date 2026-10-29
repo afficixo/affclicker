@@ -1,9 +1,9 @@
 {
-  "name": "Afficix",
-  "short_name": "Afficix",
+  "name": "AffClicker",
+  "short_name": "AffClicker",
   "icons": [
     {
-      "src": "/afficix_favicon.png",
+      "src": "/affclicker_favicon.png",
       "sizes": "any",
       "type": "image/png",
       "purpose": "any"

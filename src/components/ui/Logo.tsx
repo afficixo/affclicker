@@ -17,10 +17,10 @@ export function Logo({
   onClick,
 }: LogoProps) {
   const logoSizes = {
-    sm: { width: 106, height: 40 },
-    md: { width: 132, height: 50 },
-    lg: { width: 158, height: 60 },
-    xl: { width: 211, height: 80 },
+    sm: { width: 140, height: 52 },
+    md: { width: 176, height: 66 },
+    lg: { width: 210, height: 80 },
+    xl: { width: 260, height: 98 },
   }
   const dimensions = logoSizes[size]
 
@@ -33,8 +33,8 @@ export function Logo({
       onClick={onClick}
     >
       <Image
-        src={variant === 'icon' ? '/afficix_favicon.png' : '/afficixlogo.png'}
-        alt="Afficix logo"
+        src={variant === 'icon' ? '/affclicker_favicon.png' : '/affclickerlogo.png'}
+        alt="AffClicker logo"
         width={variant === 'icon' ? 64 : dimensions.width}
         height={variant === 'icon' ? 64 : dimensions.height}
         sizes={variant === 'icon' ? '64px' : `${dimensions.width}px`}

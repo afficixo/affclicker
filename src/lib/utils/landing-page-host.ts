@@ -45,7 +45,7 @@ export function getLandingPageSubdomainFromHost(
 
   const configuredRootDomain = landingPageDomain.replace(/^www\./i, '')
   const fallbackRootDomains = additionalRootDomains === undefined
-    ? [...DEFAULT_LANDING_PAGE_DOMAINS, 'afficix.com'].flatMap((domain) => [domain, `www.${domain}`])
+    ? [...DEFAULT_LANDING_PAGE_DOMAINS, 'affclicker.com'].flatMap((domain) => [domain, `www.${domain}`])
     : []
   const candidateRootDomains = new Set([
     configuredRootDomain,

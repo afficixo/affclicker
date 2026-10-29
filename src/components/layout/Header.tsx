@@ -75,8 +75,8 @@ export default function Header() {
           <div className="relative">
             <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden bg-gradient-to-r from-cyan-500 via-indigo-500 to-fuchsia-500 shadow-[0_10px_24px_rgba(99,102,241,0.28)] flex-shrink-0 ring-1 ring-white/10">
               <Image
-                src="/afficix_favicon.png"
-                alt="Afficix logo"
+                src="/affclicker_favicon.png"
+                alt="AffClicker logo"
                 width={40}
                 height={40}
                 className="h-full w-full object-cover"

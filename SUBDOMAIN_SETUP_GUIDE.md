@@ -4,7 +4,7 @@
 
 The Landing Page Builder can create landing pages on **wildcard subdomains** of your main domain.
 
-**Example**: `myoffer.afficixo.com` → Automatically handles and redirects to your tracking URL
+**Example**: `myoffer.AffClickero.com` → Automatically handles and redirects to your tracking URL
 
 ---
 
@@ -16,13 +16,13 @@ Your site is deployed on **Vercel**, which supports wildcard subdomains out of t
 When a user creates a landing page:
 ```
 Subdomain Input:  "summer-sale"
-Your Domain:      "afficixo.com"
-Live URL:         "https://summer-sale.afficixo.com"
+Your Domain:      "AffClickero.com"
+Live URL:         "https://summer-sale.AffClickero.com"
 ```
 
 ### How It Routes
 ```
-User visits: https://summer-sale.afficixo.com
+User visits: https://summer-sale.AffClickero.com
     ↓
 Next.js API route catches: /lp/[subdomain]
     ↓
@@ -44,16 +44,16 @@ Redirect to tracking URL (affiliate link)
 1. Log in to your registrar
 2. Go to **DNS/Domain Settings**
 3. Add a CNAME record:
-   - **Name**: `*.afficixo.com` (or `*` if using zone apex)
+   - **Name**: `*.AffClickero.com` (or `*` if using zone apex)
    - **Type**: CNAME
    - **Value**: `cname.vercel.sh` or your Vercel URL
    - **TTL**: 3600 or default
 
 **Example DNS Records:**
 ```
-afficixo.com              A        76.76.19.21      (Vercel IP)
-www.afficixo.com          CNAME    cname.vercel.sh
-*.afficixo.com            CNAME    cname.vercel.sh
+AffClickero.com              A        76.76.19.21      (Vercel IP)
+www.AffClickero.com          CNAME    cname.vercel.sh
+*.AffClickero.com            CNAME    cname.vercel.sh
 ```
 
 ### Step 2: Update Environment Variables
@@ -62,33 +62,33 @@ Add to your `.env` file (or Vercel dashboard):
 
 ```env
 # Your main domain
-NEXT_PUBLIC_APP_URL=https://afficixo.com
+NEXT_PUBLIC_APP_URL=https://AffClickero.com
 
 # Landing page domain (should match your main domain)
-NEXT_PUBLIC_LANDING_PAGE_DOMAIN=afficixo.com
+NEXT_PUBLIC_LANDING_PAGE_DOMAIN=AffClickero.com
 ```
 
 **In Vercel Dashboard:**
 1. Go to **Project Settings** → **Environment Variables**
 2. Add:
    - Name: `NEXT_PUBLIC_LANDING_PAGE_DOMAIN`
-   - Value: `afficixo.com`
+   - Value: `AffClickero.com`
    - Environments: Production, Preview, Development
 
 ### Step 3: Verify in Builder UI
 
 After deploying, the builder will show:
 ```
-Subdomain input: [____]  .afficixo.com
+Subdomain input: [____]  .AffClickero.com
 ```
 
-Instead of hardcoded `afficixo.com`
+Instead of hardcoded `AffClickero.com`
 
 ### Step 4: Test
 
 1. Create a landing page with subdomain: `test`
 2. Publish it
-3. Visit: `https://test.afficixo.com`
+3. Visit: `https://test.AffClickero.com`
 4. Should redirect to your tracking URL
 
 ---
@@ -135,7 +135,7 @@ Instead of hardcoded `afficixo.com`
 
 ```
 File: src/app/(public)/lp/[subdomain]/route.ts
-Route: *.afficixo.com/*  →  Handled by /lp/[subdomain]
+Route: *.AffClickero.com/*  →  Handled by /lp/[subdomain]
 ```
 
 Next.js automatically matches all subdomains and passes the subdomain as a parameter.
@@ -151,7 +151,7 @@ Vercel automatically supports wildcard subdomains once DNS is configured correct
 The builder dynamically uses the domain from `.env`:
 
 ```typescript
-const LANDING_PAGE_DOMAIN = process.env.NEXT_PUBLIC_LANDING_PAGE_DOMAIN || 'afficixo.com'
+const LANDING_PAGE_DOMAIN = process.env.NEXT_PUBLIC_LANDING_PAGE_DOMAIN || 'AffClickero.com'
 
 // Used in UI:
 <span>{page.subdomain}.{LANDING_PAGE_DOMAIN}</span>
@@ -179,9 +179,9 @@ Landing page: https://test.localhost:3000/lp/test
 ### Production (Vercel)
 
 ```
-NEXT_PUBLIC_LANDING_PAGE_DOMAIN=afficixo.com
+NEXT_PUBLIC_LANDING_PAGE_DOMAIN=AffClickero.com
 
-Landing page: https://test.afficixo.com
+Landing page: https://test.AffClickero.com
 ```
 
 Requires DNS wildcard record configured (see Step 1)
@@ -194,7 +194,7 @@ Landing pages are stored with just the subdomain:
 
 ```prisma
 model LandingPage {
-  subdomain    String  @unique    // Only store "test", not "test.afficixo.com"
+  subdomain    String  @unique    // Only store "test", not "test.AffClickero.com"
   trackingUrl  String             // Actual redirect target
   // ...
 }
@@ -210,16 +210,16 @@ The full URL is built in:
 
 ### My Platform
 ```
-Main site:         https://afficixo.com
-Dashboard:         https://afficixo.com/admin/dashboard
-Builder:           https://afficixo.com/admin/landing-builder
+Main site:         https://AffClickero.com
+Dashboard:         https://AffClickero.com/admin/dashboard
+Builder:           https://AffClickero.com/admin/landing-builder
 ```
 
 ### Landing Pages
 ```
-Page 1:  https://summer-sale.afficixo.com
-Page 2:  https://black-friday.afficixo.com
-Page 3:  https://vip-offer.afficixo.com
+Page 1:  https://summer-sale.AffClickero.com
+Page 2:  https://black-friday.AffClickero.com
+Page 3:  https://vip-offer.AffClickero.com
 ```
 
 ### Custom Domains (Future)
@@ -238,10 +238,10 @@ Landing page:      https://summer-sale.myoffers.com
 1. Go to your domain registrar
 2. Verify wildcard CNAME record exists:
    ```
-   *.afficixo.com  CNAME  cname.vercel.sh
+   *.AffClickero.com  CNAME  cname.vercel.sh
    ```
 3. Wait 24 hours for DNS propagation
-4. Test with: `nslookup test.afficixo.com`
+4. Test with: `nslookup test.AffClickero.com`
 
 ### Issue: 404 on subdomain
 
@@ -270,7 +270,7 @@ WHERE subdomain = 'test';
 ```bash
 # In Vercel dashboard or your deployment:
 echo $NEXT_PUBLIC_LANDING_PAGE_DOMAIN
-# Should output: afficixo.com
+# Should output: AffClickero.com
 ```
 
 **If development:**
@@ -369,7 +369,7 @@ Returns: Created landing page object
 
 ## 🎯 Summary Checklist
 
-- [ ] Add wildcard DNS record (`*.afficixo.com` → `cname.vercel.sh`)
+- [ ] Add wildcard DNS record (`*.AffClickero.com` → `cname.vercel.sh`)
 - [ ] Add `NEXT_PUBLIC_LANDING_PAGE_DOMAIN` to `.env`
 - [ ] Deploy changes
 - [ ] Wait 24 hours for DNS propagation

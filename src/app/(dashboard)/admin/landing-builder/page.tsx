@@ -75,7 +75,7 @@ const getDomain = (): string => {
     }
     return host
   }
-  return process.env.NEXT_PUBLIC_LANDING_PAGE_DOMAIN || 'afficixo.com'
+  return process.env.NEXT_PUBLIC_LANDING_PAGE_DOMAIN || 'affclicker.com'
 }
 
 export default function LandingPageBuilder() {

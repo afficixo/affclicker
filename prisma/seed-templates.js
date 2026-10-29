@@ -28,7 +28,7 @@ async function seedTemplates() {
         systemUser = await prisma.user.create({
           data: {
             username: 'system',
-            email: 'system@afficixo.com',
+            email: 'system@affclicker.com',
             password: 'system-user',
             role: 'ADMIN',
           },

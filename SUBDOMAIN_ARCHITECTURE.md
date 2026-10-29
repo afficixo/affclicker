@@ -6,7 +6,7 @@
 ┌─────────────────────────────────────────────────────────────┐
 │                    Your Application                         │
 │                                                             │
-│  Domain: afficixo.com                                      │
+│  Domain: AffClickero.com                                      │
 │  Host: Vercel (supports wildcard subdomains)              │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
@@ -20,14 +20,14 @@
                     Domain Registrar
                   (Namecheap, GoDaddy, etc.)
                             │
-                            ├─ afficixo.com          → Vercel IP
-                            ├─ www.afficixo.com      → cname.vercel.sh
-                            └─ *.afficixo.com        → cname.vercel.sh  ← WILDCARD
+                            ├─ AffClickero.com          → Vercel IP
+                            ├─ www.AffClickero.com      → cname.vercel.sh
+                            └─ *.AffClickero.com        → cname.vercel.sh  ← WILDCARD
                                     │
                                     └─ Catches all subdomains!
-                                       ✓ test.afficixo.com
-                                       ✓ summer-sale.afficixo.com
-                                       ✓ any-subdomain.afficixo.com
+                                       ✓ test.AffClickero.com
+                                       ✓ summer-sale.AffClickero.com
+                                       ✓ any-subdomain.AffClickero.com
 ```
 
 ---
@@ -60,7 +60,7 @@
                    ↓
         ┌──────────────────────────────┐
         │  Landing Page Ready          │
-        │  https://summer-sale.afficixo.com
+        │  https://summer-sale.AffClickero.com
         └──────────┬───────────────────┘
                    │
                    ↓
@@ -132,17 +132,17 @@ Project Root
 
 ```
 Admin Dashboard:
-    https://afficixo.com/admin/landing-builder
+    https://AffClickero.com/admin/landing-builder
 
 Landing Pages (Created by Users):
-    https://summer-sale.afficixo.com
-    https://black-friday.afficixo.com
-    https://vip-offer.afficixo.com
+    https://summer-sale.AffClickero.com
+    https://black-friday.AffClickero.com
+    https://vip-offer.AffClickero.com
 
 Main Domain Still Works:
-    https://afficixo.com/admin/dashboard
-    https://afficixo.com/login
-    https://afficixo.com/settings
+    https://AffClickero.com/admin/dashboard
+    https://AffClickero.com/login
+    https://AffClickero.com/settings
 ```
 
 ---
@@ -151,14 +151,14 @@ Main Domain Still Works:
 
 ```
                         DNS Query
-                   "summer-sale.afficixo.com"
+                   "summer-sale.AffClickero.com"
                             │
                             ↓
                    ┌─────────────────┐
                    │  DNS Resolver   │
                    │                 │
                    │ Query:          │
-                   │ *.afficixo.com  │
+                   │ *.AffClickero.com  │
                    └────────┬────────┘
                             │
                             ↓
@@ -284,11 +284,11 @@ Main Domain Still Works:
 
 .env.production (Vercel)
 │
-├─ NEXT_PUBLIC_LANDING_PAGE_DOMAIN=afficixo.com
+├─ NEXT_PUBLIC_LANDING_PAGE_DOMAIN=AffClickero.com
 │
 ├─ DATABASE_URL=postgresql://... (Neon DB)
 │
-└─ API_URL=https://afficixo.com
+└─ API_URL=https://AffClickero.com
 ```
 
 ---
@@ -309,7 +309,7 @@ Main Domain Still Works:
 
 ## ⏳ Checklist - What You Need to Do
 
-- ⏳ Configure DNS wildcard record (`*.afficixo.com`)
+- ⏳ Configure DNS wildcard record (`*.AffClickero.com`)
 - ⏳ Add `NEXT_PUBLIC_LANDING_PAGE_DOMAIN` to Vercel
 - ⏳ Redeploy to Vercel
 - ⏳ Test with a sample landing page

@@ -267,7 +267,7 @@ export default function OwnerSupportPage() {
           </div>
           <div className="flex items-center justify-between gap-3 border-t border-slate-200/70 bg-white/60 p-3 dark:border-white/10 dark:bg-slate-900/30">
             <p className="text-xs text-slate-500">Reply directly to the sender by email.</p>
-            <a href={`mailto:${selectedInquiry.email}?subject=${encodeURIComponent('Re: Your message to Afficix')}`} className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-cyan-500 px-3 py-2 text-xs font-semibold text-slate-950 transition hover:bg-cyan-400">
+            <a href={`mailto:${selectedInquiry.email}?subject=${encodeURIComponent('Re: Your message to AffClicker')}`} className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-cyan-500 px-3 py-2 text-xs font-semibold text-slate-950 transition hover:bg-cyan-400">
               <Mail className="h-3.5 w-3.5" />Reply by email
             </a>
           </div>

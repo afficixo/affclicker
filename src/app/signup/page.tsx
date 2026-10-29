@@ -3,45 +3,45 @@ import { Suspense } from "react"
 import SignupClient from "./SignupClient"
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://afficix.com'),
-  title: 'Join Afficix — Become a CPC Affiliate Publisher',
+  metadataBase: new URL('https://affclicker.com'),
+  title: 'Join AffClicker — Become a CPC Affiliate Publisher',
   description:
-    'Create your Afficix publisher account to access CPC offers, track campaign performance, and monetize your traffic.',
+    'Create your AffClicker publisher account to access CPC offers, track campaign performance, and monetize your traffic.',
   keywords: [
-    'join Afficix',
+    'join AffClicker',
     'CPC affiliate publisher',
     'publisher signup',
     'affiliate tracking tools',
     'traffic monetization platform',
   ],
   alternates: {
-    canonical: 'https://afficix.com/signup',
+    canonical: 'https://affclicker.com/signup',
   },
   openGraph: {
-    title: 'Join Afficix — Become a CPC Affiliate Publisher',
+    title: 'Join AffClicker — Become a CPC Affiliate Publisher',
     description:
-      'Create your Afficix publisher account to access CPC offers, track campaign performance, and monetize your traffic.',
+      'Create your AffClicker publisher account to access CPC offers, track campaign performance, and monetize your traffic.',
     type: 'website',
-    url: 'https://afficix.com/signup',
-    siteName: 'Afficix',
+    url: 'https://affclicker.com/signup',
+    siteName: 'AffClicker',
     images: [
       {
-        url: 'https://afficix.com/afficix-preview.png',
-        secureUrl: 'https://afficix.com/afficix-preview.png',
+        url: 'https://affclicker.com/affclicker-preview.png',
+        secureUrl: 'https://affclicker.com/affclicker-preview.png',
         width: 768,
         height: 768,
-        alt: 'Afficix Pay Per Click Affiliate Marketplace',
+        alt: 'AffClicker Pay Per Click Affiliate Marketplace',
         type: 'image/png',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Join Afficix — Become a CPC Affiliate Publisher',
+    title: 'Join AffClicker — Become a CPC Affiliate Publisher',
     description:
-      'Create your Afficix publisher account to access CPC offers, track campaign performance, and monetize your traffic.',
-    images: ['https://afficix.com/afficix-preview.png'],
-    creator: 'Afficix',
+      'Create your AffClicker publisher account to access CPC offers, track campaign performance, and monetize your traffic.',
+    images: ['https://affclicker.com/affclicker-preview.png'],
+    creator: 'AffClicker',
   },
 }
 

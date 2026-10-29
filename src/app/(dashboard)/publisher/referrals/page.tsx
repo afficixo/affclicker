@@ -142,7 +142,7 @@ export default function PublisherReferralsPage() {
             Referral program
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--text-secondary)]">
-            Invite publishers to Afficix and earn a share of their eligible payouts.
+            Invite publishers to AffClicker and earn a share of their eligible payouts.
           </p>
         </div>
         <div className="inline-flex w-fit items-center gap-2 rounded-full border border-[#359f25]/20 bg-[#359f25]/[0.07] px-3 py-1.5 text-sm font-semibold text-[#24651d] dark:border-[#5ff442]/20 dark:bg-[#5ff442]/[0.08] dark:text-[#a2fa8e]">

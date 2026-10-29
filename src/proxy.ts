@@ -62,8 +62,6 @@ export async function proxy(request: NextRequest) {
     path.startsWith('/owner/managers/') ||
     path === '/owner/manager-controls' ||
     path.startsWith('/owner/manager-controls/') ||
-    path === '/owner/admins' ||
-    path.startsWith('/owner/admins/') ||
     path === '/owner/media' ||
     path.startsWith('/owner/media/') ||
     path === '/owner/payments' ||

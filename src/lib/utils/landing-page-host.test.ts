@@ -28,8 +28,8 @@ test('ignores the main app host so it does not redirect to a landing page', () =
 })
 
 test('detects custom production subdomains for the app domain', () => {
-  process.env.NEXT_PUBLIC_APP_URL = 'https://afficixo.com'
-  assert.equal(getLandingPageSubdomainFromHost('summer-sale.afficixo.com'), 'summer-sale')
+  process.env.NEXT_PUBLIC_APP_URL = 'https://affclicker.com'
+  assert.equal(getLandingPageSubdomainFromHost('summer-sale.affclicker.com'), 'summer-sale')
 })
 
 test('detects weobly.com landing page subdomains when the app URL is not configured', () => {

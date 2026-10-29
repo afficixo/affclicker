@@ -543,7 +543,7 @@ export default function AnalyticsPage() {
 
         {/* ===== FOOTER ===== */}
         <div className="mt-8 text-center text-xs text-slate-500 border-t border-white/5 pt-4">
-          <span>© 2026 Afficix</span>
+          <span>© 2026 AffClicker</span>
         </div>
       </div>
     </div>

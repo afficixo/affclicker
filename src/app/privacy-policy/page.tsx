@@ -1,8 +1,8 @@
 import LegalDocumentPage from "@/components/legal/LegalDocumentPage";
 
 export const metadata = {
-  title: "Privacy Policy | afficix",
-  description: "Read the afficix privacy policy for information about personal data and privacy.",
+  title: "Privacy Policy | affclicker",
+  description: "Read the affclicker privacy policy for information about personal data and privacy.",
 };
 
 export default function PrivacyPolicyPage() {

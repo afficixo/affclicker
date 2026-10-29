@@ -1,12 +1,12 @@
 # Landing Page Builder - User Guide
 
 ## Overview
-The Landing Page Builder allows you to create beautiful, custom landing pages with affiliate/tracking links. Your landing pages are automatically hosted at a custom subdomain on `afficixo.com` and can be published instantly.
+The Landing Page Builder allows you to create beautiful, custom landing pages with affiliate/tracking links. Your landing pages are automatically hosted at a custom subdomain on `AffClickero.com` and can be published instantly.
 
 ## Features
 
 ### 1. **Custom Subdomain**
-- Choose a unique subdomain for your landing page (e.g., `myoffer` → `myoffer.afficixo.com`)
+- Choose a unique subdomain for your landing page (e.g., `myoffer` → `myoffer.AffClickero.com`)
 - Real-time validation to ensure availability
 - Only lowercase letters, numbers, and hyphens allowed
 
@@ -64,13 +64,13 @@ Choose one of the available templates:
 1. Click "Create Landing Page"
 2. Your page is created and saved
 3. Click "Publish" to make it live
-4. Share the URL: `https://[subdomain].afficixo.com`
+4. Share the URL: `https://[subdomain].AffClickero.com`
 
 ## Example Workflow
 
 ```
 1. Subdomain: "summer-sale"
-   → URL: https://summer-sale.afficixo.com
+   → URL: https://summer-sale.AffClickero.com
 
 2. Tracking URL: "https://affiliate.example.com/click?id=123"
 

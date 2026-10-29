@@ -156,7 +156,7 @@ export default function SignupClient() {
         <div className="mx-auto w-full max-w-3xl">
           <header className="mb-7 text-center">
             <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-[#0e7a4d]">
-              Join Afficix
+              Join AffClicker
             </p>
             <h1 className="font-[Montserrat] text-3xl font-bold leading-tight text-[#263238] sm:text-4xl">
               Publisher Sign Up

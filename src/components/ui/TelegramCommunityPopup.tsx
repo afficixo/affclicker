@@ -40,7 +40,7 @@ export default function TelegramCommunityPopup({ onClose }: TelegramCommunityPop
 
       <div className="relative z-10">
         <h2 className="mb-1 text-center text-[18px] sm:text-[20px] font-semibold tracking-[-0.3px] text-slate-900 dark:text-white">
-          Join <span className="bg-[linear-gradient(135deg,#0088cc,#00b4ff)] bg-clip-text text-transparent">Afficix</span> Community
+          Join <span className="bg-[linear-gradient(135deg,#0088cc,#00b4ff)] bg-clip-text text-transparent">AffClicker</span> Community
         </h2>
 
         <p className="mb-3 text-center text-[13px] sm:text-[14px] leading-6 text-slate-600 dark:text-slate-400">
@@ -67,7 +67,7 @@ export default function TelegramCommunityPopup({ onClose }: TelegramCommunityPop
         </div>
 
         <a
-          href="https://t.me/afficixo"
+          href="https://t.me/affclicker"
           target="_blank"
           rel="noopener noreferrer"
           className="flex w-full items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,#0088cc,#006699)] px-4 py-3 text-sm sm:text-base font-semibold text-white shadow-[0_6px_18px_rgba(0,136,204,0.25)] transition-all hover:-translate-y-0.5 hover:bg-[linear-gradient(135deg,#0099dd,#0077aa)] hover:shadow-[0_8px_22px_rgba(0,136,204,0.3)]"

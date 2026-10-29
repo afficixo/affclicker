@@ -259,7 +259,7 @@ export async function GET(
 
     return NextResponse.json(
       {
-        accountName: dashboard.linkAccount?.accountName || 'Afficix',
+        accountName: dashboard.linkAccount?.accountName || 'AffClicker',
         totalClicks,
         uniqueClicks,
         botClicks,

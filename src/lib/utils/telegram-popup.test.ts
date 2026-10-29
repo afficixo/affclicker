@@ -18,7 +18,7 @@ test('markManagerTelegramPopupPending stores a pending popup flag', () => {
 
   markManagerTelegramPopupPending(fakeWindow)
 
-  assert.equal(storage.get('afficixo-manager-telegram-popup-pending'), 'true')
+  assert.equal(storage.get('affclicker-manager-telegram-popup-pending'), 'true')
 })
 
 test('consumeManagerTelegramPopupPending clears the pending flag after reading it', () => {
@@ -35,9 +35,9 @@ test('consumeManagerTelegramPopupPending clears the pending flag after reading i
     },
   } as unknown as Window
 
-  storage.set('afficixo-manager-telegram-popup-pending', 'true')
+  storage.set('affclicker-manager-telegram-popup-pending', 'true')
 
   assert.equal(consumeManagerTelegramPopupPending(fakeWindow), true)
-  assert.equal(storage.has('afficixo-manager-telegram-popup-pending'), false)
+  assert.equal(storage.has('affclicker-manager-telegram-popup-pending'), false)
   assert.equal(consumeManagerTelegramPopupPending(fakeWindow), false)
 })

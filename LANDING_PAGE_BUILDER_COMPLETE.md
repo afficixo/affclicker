@@ -28,7 +28,7 @@ A complete, production-ready **Landing Page Builder** system that allows users t
 - ✅ Thumbnail previews
 
 ### 3. **Subdomain Management**
-- ✅ Custom subdomain selection (e.g., `myoffer.afficixo.com`)
+- ✅ Custom subdomain selection (e.g., `myoffer.AffClickero.com`)
 - ✅ Real-time subdomain validation
 - ✅ Uniqueness checking
 - ✅ Automatic URL generation
@@ -137,7 +137,7 @@ GET    /api/lp/[subdomain]                   → Public redirect endpoint
 6. **Customize** headline, description, image, colors, button text
 7. **Click** "Create Landing Page"
 8. **Publish** to make it live
-9. **Share** the URL: `https://[subdomain].afficixo.com`
+9. **Share** the URL: `https://[subdomain].AffClickero.com`
 
 ### For Owners (Template Creation)
 
@@ -228,7 +228,7 @@ User: "I want to create a landing page for my affiliate offer"
 7. Clicks "Create Landing Page"
 8. Page is saved as draft
 9. Clicks "Publish"
-10. Instantly live at: https://black-friday-deal.afficixo.com
+10. Instantly live at: https://black-friday-deal.AffClickero.com
 
 User visits → Sees beautiful landing page → Clicks button → Redirects to affiliate URL ✓
 ```

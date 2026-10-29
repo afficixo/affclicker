@@ -1,7 +1,7 @@
-# SEO Optimization Guide for Afficix
+# SEO Optimization Guide for AffClicker
 
 ## Overview
-This document outlines the SEO metadata for Afficix on the `afficix.com` domain, focusing on the Home, Login, Signup, and Publishers pages.
+This document outlines the SEO metadata for AffClicker on the `AffClicker.com` domain, focusing on the Home, Login, Signup, and Publishers pages.
 
 ## ✅ Completed Optimizations
 
@@ -10,7 +10,7 @@ This document outlines the SEO metadata for Afficix on the `afficix.com` domain,
 - ✓ Refined meta descriptions around CPC offers, click tracking, and publisher monetization
 - ✓ Added keyword optimization
 - ✓ Configured Open Graph (OG) tags for social sharing
-- ✓ Configured the Afficix social preview image across public pages
+- ✓ Configured the AffClicker social preview image across public pages
 - ✓ Added Twitter card metadata
 - ✓ Implemented canonical URLs (self-referencing)
 - ✓ Configured robots directives with Google Bot guidelines
@@ -22,7 +22,7 @@ This document outlines the SEO metadata for Afficix on the `afficix.com` domain,
 - ✓ Theme color meta tag for browser UI
 
 ### 3. **Site Structure**
-- ✓ Canonical URLs use `https://afficix.com`
+- ✓ Canonical URLs use `https://AffClicker.com`
 - `robots.txt` and a sitemap are not currently present in the project; add and verify these before submitting a sitemap to search engines.
 - Ensure private dashboard and API routes are excluded from indexing when adding robots directives.
 
@@ -35,22 +35,22 @@ This document outlines the SEO metadata for Afficix on the `afficix.com` domain,
 ### 5. **Page-Specific Optimizations**
 
 #### Home Page (/)
-- Title: "Afficix — CPC Affiliate Marketplace for Publishers"
+- Title: "AffClicker — CPC Affiliate Marketplace for Publishers"
 - Primary Keywords: CPC affiliate marketplace, pay per click offers, publisher network
 - Priority: 1.00 (highest)
-- Canonical: https://afficix.com/
+- Canonical: https://AffClicker.com/
 
 #### Login Page (/login)
-- Title: "Manager Login — Afficix"
-- Keywords: manager login, Afficix login, affiliate dashboard, offer management
+- Title: "Manager Login — AffClicker"
+- Keywords: manager login, AffClicker login, affiliate dashboard, offer management
 - Priority: 0.80
-- Canonical: https://afficix.com/login
+- Canonical: https://AffClicker.com/login
 
 #### Signup Page (/signup)
-- Title: "Join Afficix — Become a CPC Affiliate Publisher"
-- Keywords: join Afficix, CPC affiliate publisher, publisher signup, traffic monetization
+- Title: "Join AffClicker — Become a CPC Affiliate Publisher"
+- Keywords: join AffClicker, CPC affiliate publisher, publisher signup, traffic monetization
 - Priority: 0.85
-- Canonical: https://afficix.com/signup
+- Canonical: https://AffClicker.com/signup
 
 ## 🎯 SEO Strategy
 
@@ -137,7 +137,7 @@ Long-tail: best CPC marketplace for publishers, how to monetize traffic
 - Clear privacy/security information
 
 ## 🔐 Security & Trust Signals
-- ✓ HTTPS enabled (afficix.com)
+- ✓ HTTPS enabled (AffClicker.com)
 - ✓ Sitemap included
 - ✓ robots.txt configured
 - ✓ OG images for social proof
@@ -160,5 +160,5 @@ Long-tail: best CPC marketplace for publishers, how to monetize traffic
 ---
 
 **Last Updated**: August 16, 2026
-**Domain**: https://afficix.com
+**Domain**: https://AffClicker.com
 **Optimization Focus**: Home, Login, Signup Pages

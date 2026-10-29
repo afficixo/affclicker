@@ -110,12 +110,12 @@ export default function PublicLayout({
               className="flex shrink-0 items-center"
             >
               <Image
-                src="/afficixlogo.png"
-                alt="Afficix"
+                src="/affclickerlogo.png"
+                alt="AffClicker"
                 width={1275}
                 height={482}
-                sizes="120px"
-                className="h-10 w-[132px] object-contain"
+                sizes="180px"
+                className="h-11 w-[170px] object-contain"
                 priority
               />
             </a>
@@ -235,7 +235,7 @@ export default function PublicLayout({
         <footer className="mt-auto border-t border-white/10 bg-[#202b2f]">
           <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-4 py-3 sm:px-6 md:flex-row lg:px-8">
             <p className="text-center text-xs text-white/55 md:text-left">
-              <span className="font-semibold text-white/85">Afficix</span>
+              <span className="font-semibold text-white/85">AffClicker</span>
               <span className="mx-2 text-[#5ff442]/70" aria-hidden="true">•</span>
               © 2019–2026. All rights reserved.
             </p>
