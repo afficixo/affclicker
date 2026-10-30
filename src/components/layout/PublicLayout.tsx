@@ -8,10 +8,10 @@ import Image from "next/image";
 import { Menu, X } from "lucide-react";
 
 const navLinks = [
-  { href: "#home", label: "Home" },
-  { href: "#about", label: "About Us" },
-  { href: "#publishers", label: "Publishers" },
-  { href: "#advertisers", label: "Advertisers" },
+  { href: "#services", label: "Publishers" },
+  { href: "#services", label: "Advertisers" },
+  { href: "#verticals", label: "Verticals" },
+  { href: "#about", label: "About" },
   { href: "#contact", label: "Contact" },
 ];
 
@@ -99,7 +99,7 @@ export default function PublicLayout({
         <header
           className={`fixed inset-x-0 top-0 z-40 border-b ${open ? "" : "transition-colors"} ${
             open || !isHomePage || isScrolled
-              ? "border-white/[0.08] bg-[#0f172a]/80 shadow-[0_2px_8px_rgba(0,0,0,0.18)]"
+              ? "border-slate-200 bg-white/95 shadow-[0_2px_12px_rgba(15,23,42,0.08)] backdrop-blur-sm"
               : "border-transparent bg-transparent shadow-none"
           }`}
         >
@@ -120,48 +120,34 @@ export default function PublicLayout({
               />
             </a>
 
-            <div className="hidden items-center gap-8 lg:flex">
-              {navLinks.map((link) => (
-                <a
-                  key={link.href}
-                  href={isHomePage ? link.href : `/${link.href}`}
-                  onClick={isHomePage ? (e) => go(e, link.href) : undefined}
-                  aria-current={active === link.href ? "location" : undefined}
-                  className={`text-sm font-medium transition-colors ${
-                    isHomePage && active === link.href ? "text-[#5ff442]" : "text-white/80 hover:text-white"
-                  }`}
-                >
-                  {link.label}
-                </a>
-              ))}
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Link
-                href="/signup"
-                prefetch={false}
-                className="hidden lg:inline-flex items-center rounded-md bg-[#5ff442] px-4 py-2 text-sm font-bold text-[#263238] transition-colors hover:bg-[#4dd935]"
-              >
-                Sign up
-              </Link>
-              <Link
-                href="/login"
-                prefetch={false}
-                aria-current={pathname === "/login" ? "page" : undefined}
-                className="hidden lg:inline-flex items-center rounded-md bg-white px-4 py-2 text-sm font-semibold text-[#263238] transition-colors hover:bg-[#f0f4f7]"
-              >
-                Login
-              </Link>
+            <div className="flex items-center gap-2 sm:gap-3">
               <button
                 type="button"
                 onClick={() => setOpen((v) => !v)}
-                className="grid h-9 w-10 place-items-center rounded-md border border-white/20 bg-white/[0.04] text-white transition-colors hover:border-white/40 hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5ff442] lg:hidden"
+                className="grid h-9 w-10 place-items-center rounded-xl border border-slate-200 bg-white text-slate-700 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0a2540]"
                 aria-label={open ? "Close menu" : "Open menu"}
                 aria-expanded={open}
                 aria-controls="public-mobile-menu"
               >
                 {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </button>
+
+              <button
+                type="button"
+                aria-label="Toggle theme"
+                className="grid h-9 w-9 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50"
+              >
+                <span className="text-base leading-none">◐</span>
+              </button>
+
+              <a
+                href="https://partner.affroyal.com/user/login"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center rounded-xl bg-[#f3c746] px-4 py-2 text-sm font-bold text-[#0f172a] shadow-[0_8px_18px_rgba(243,199,70,0.3)] transition-colors hover:bg-[#f7d868]"
+              >
+                Sign In
+              </a>
             </div>
           </nav>
 
@@ -173,47 +159,38 @@ export default function PublicLayout({
                 animate={{ y: 0 }}
                 exit={{ y: -6 }}
                 transition={{ duration: 0.14, ease: "easeOut" }}
-                className="absolute right-4 top-full z-10 mt-4 max-h-[calc(100dvh-5rem)] w-[min(12rem,calc(100vw-2rem))] overflow-y-auto bg-transparent lg:hidden"
+                className="absolute right-4 top-full z-10 mt-4 max-h-[calc(100dvh-5rem)] w-[min(15rem,calc(100vw-2rem))] overflow-y-auto rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-[0_18px_40px_rgba(15,23,42,0.12)] backdrop-blur-sm"
               >
-                <nav aria-label="Mobile navigation" className="pb-3">
-                  <div className="space-y-0.5">
+                <nav aria-label="Mobile navigation" className="pb-1">
+                  <div className="space-y-1">
                     {navLinks.map((link) => (
                       <a
-                        key={link.href}
+                        key={link.href + link.label}
                         href={isHomePage ? link.href : `/${link.href}`}
                         onClick={(event) => {
                           if (isHomePage) go(event, link.href);
                           else setOpen(false);
                         }}
                         aria-current={isHomePage && active === link.href ? "location" : undefined}
-                        className={`flex min-h-10 items-center justify-end rounded-md px-2 text-lg font-normal transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#5ff442] ${
-                          isHomePage && active === link.href
-                            ? "text-white"
-                            : "text-white/65 hover:text-white"
+                        className={`flex min-h-10 items-center justify-between rounded-lg px-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#0a2540] ${
+                          isHomePage && active === link.href ? "bg-[#0a2540] text-white" : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
                         }`}
                       >
-                        {link.label}
+                        <span>{link.label}</span>
+                        <span aria-hidden="true">→</span>
                       </a>
                     ))}
                   </div>
-                  <div className="mt-1 flex flex-col items-end gap-2">
-                    <Link
-                      href="/signup"
-                      prefetch={false}
+                  <div className="mt-2 border-t border-slate-200 pt-2">
+                    <a
+                      href="https://partner.affroyal.com/user/login"
+                      target="_blank"
+                      rel="noreferrer"
                       onClick={() => setOpen(false)}
-                      className="flex min-h-9 min-w-[5.5rem] items-center justify-center rounded bg-[#5ff442] px-3 text-sm font-semibold text-[#263238] transition-colors hover:bg-[#4dd935] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#111a2c]"
+                      className="flex min-h-10 items-center justify-center rounded-lg bg-[#f3c746] px-3 text-sm font-bold text-[#0f172a] shadow-[0_8px_18px_rgba(243,199,70,0.3)] transition-colors hover:bg-[#f7d868]"
                     >
-                      Sign up
-                    </Link>
-                    <Link
-                      href="/login"
-                      prefetch={false}
-                      onClick={() => setOpen(false)}
-                      aria-current={pathname === "/login" ? "page" : undefined}
-                      className="flex min-h-9 min-w-[5.5rem] items-center justify-center rounded bg-white px-3 text-sm font-medium text-[#263238] transition-colors hover:bg-[#e6ebed] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-                    >
-                      Login
-                    </Link>
+                      Sign In
+                    </a>
                   </div>
                 </nav>
               </motion.div>
@@ -232,30 +209,76 @@ export default function PublicLayout({
 
         {children}
 
-        <footer className="mt-auto border-t border-white/10 bg-[#202b2f]">
-          <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-4 py-3 sm:px-6 md:flex-row lg:px-8">
-            <p className="text-center text-xs text-white/55 md:text-left">
-              <span className="font-semibold text-white/85">AffClicker</span>
-              <span className="mx-2 text-[#5ff442]/70" aria-hidden="true">•</span>
-              © 2019–2026. All rights reserved.
-            </p>
-            <nav aria-label="Legal" className="flex items-center gap-1 text-xs">
-              <Link
-                href="/privacy-policy"
-                prefetch={false}
-                className="rounded-md px-2 py-1 text-white/65 transition-colors hover:text-[#8aff70] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5ff442]"
-              >
-                Privacy Policy
-              </Link>
-              <span className="h-4 w-px bg-white/15" aria-hidden="true" />
-              <Link
-                href="/terms-of-service"
-                prefetch={false}
-                className="rounded-md px-2 py-1 text-white/65 transition-colors hover:text-[#8aff70] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5ff442]"
-              >
-                Terms &amp; Conditions
-              </Link>
-            </nav>
+        <footer className="mt-auto border-t border-slate-200 bg-[#f3f1ee]">
+          <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+            <div className="grid gap-8 border-b border-slate-200 pb-8 md:grid-cols-[1.2fr_1fr_1fr_1fr_1.3fr]">
+              <div>
+                <div className="text-4xl font-black tracking-[-0.06em] text-[#1d2228]">Aff<span className="text-[#f3c746]">Clicker</span></div>
+                <p className="mt-4 max-w-xs text-base leading-7 text-slate-600">
+                  Experience the Power of Premium Advertiser Offers, Driving Unmatched Traffic Monetization and High Earnings on a Unified CPA Network Platform.
+                </p>
+                <div className="mt-6 flex gap-3 text-lg text-slate-700">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-md bg-[#f0f3f6]">f</span>
+                  <span className="flex h-9 w-9 items-center justify-center rounded-md bg-[#f0f3f6]">◌</span>
+                  <span className="flex h-9 w-9 items-center justify-center rounded-md bg-[#f0f3f6]">in</span>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-2xl font-black tracking-[-0.06em] text-[#1d2228]">Company</h4>
+                <ul className="mt-4 space-y-3 text-base text-slate-600">
+                  <li>About us</li>
+                  <li>Contact us</li>
+                  <li>Support</li>
+                  <li>Faq</li>
+                  <li>Sitemap</li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 className="text-2xl font-black tracking-[-0.06em] text-[#1d2228]">Partners</h4>
+                <ul className="mt-4 space-y-3 text-base text-slate-600">
+                  <li>Affpaying</li>
+                  <li>AffPlus</li>
+                  <li>Post Affiliate Pro</li>
+                  <li>Affverify</li>
+                  <li>Affwebsite</li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 className="text-2xl font-black tracking-[-0.06em] text-[#1d2228]">Teaching</h4>
+                <ul className="mt-4 space-y-3 text-base text-slate-600">
+                  <li>Privacy policy</li>
+                  <li>Terms &amp; Conditions</li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 className="text-2xl font-black tracking-[-0.06em] text-[#1d2228]">Contact</h4>
+                <ul className="mt-4 space-y-3 text-base text-slate-600">
+                  <li>Phone: +1 307 201 6705</li>
+                  <li>Email: hello@affclicker.com</li>
+                  <li className="mt-3">
+                    <input className="w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm outline-none" placeholder="your.email@example.com" />
+                  </li>
+                  <li>
+                    <button type="button" className="w-full rounded-xl bg-[#eb5f2d] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#f66a35]">
+                      Subscribe
+                    </button>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="mt-6 flex flex-col gap-4 text-sm text-slate-600 md:flex-row md:items-center md:justify-between">
+              <p>Copyright ©2024 AffClicker LLC. Designed with by AffClicker. All rights reserved.</p>
+              <div className="flex items-center gap-5">
+                <span>🌐 Language</span>
+                <span>Terms of use</span>
+                <span>Privacy policy</span>
+              </div>
+            </div>
           </div>
         </footer>
       </div>
