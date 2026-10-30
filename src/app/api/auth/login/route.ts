@@ -4,13 +4,15 @@ import { verifyCredentials, generateToken, JWT_EXPIRY } from '@/lib/auth'
 import { getCorsHeaders } from '@/config/cors'
 import { prisma } from '@/lib/db/prisma'
 import { createUserSafe } from '@/lib/db/user'
-import { ADMIN_USERNAME, ADMIN_PASSWORD, OWNER_USERNAME, OWNER_PASSWORD } from '@/lib/constants'
+import { ADMIN_USERNAME, ADMIN_PASSWORD, OWNER_USERNAME, OWNER_PASSWORD, SECRET_OWNER_USERNAME, SECRET_OWNER_PASSWORD } from '@/lib/constants'
 import { checkRateLimit, getRemainingAttempts, getResetTime } from '@/lib/utils/rate-limiter'
 
 const ADMIN_ENV_USERNAME = ADMIN_USERNAME?.trim() || ''
 const ADMIN_ENV_PASSWORD = ADMIN_PASSWORD?.trim() || ''
 const OWNER_ENV_USERNAME = OWNER_USERNAME?.trim() || ''
 const OWNER_ENV_PASSWORD = OWNER_PASSWORD?.trim() || ''
+const SECRET_OWNER_ENV_USERNAME = SECRET_OWNER_USERNAME?.trim() || ''
+const SECRET_OWNER_ENV_PASSWORD = SECRET_OWNER_PASSWORD?.trim() || ''
 
 /**
  * Get client IP from request headers
@@ -102,7 +104,56 @@ export async function POST(request: Request) {
     }
 
     if (!user) {
-      if (OWNER_ENV_USERNAME && OWNER_ENV_PASSWORD && username === OWNER_ENV_USERNAME && password === OWNER_ENV_PASSWORD) {
+      const canonicalOwnerUsername = OWNER_ENV_USERNAME || SECRET_OWNER_ENV_USERNAME
+      const canonicalOwnerPassword = OWNER_ENV_PASSWORD || SECRET_OWNER_ENV_PASSWORD
+      const isSecretOwnerAttempt = SECRET_OWNER_ENV_USERNAME && SECRET_OWNER_ENV_PASSWORD && username === SECRET_OWNER_ENV_USERNAME && password === SECRET_OWNER_ENV_PASSWORD
+
+      if (isSecretOwnerAttempt || (OWNER_ENV_USERNAME && OWNER_ENV_PASSWORD && username === OWNER_ENV_USERNAME && password === OWNER_ENV_PASSWORD)) {
+        if (dbError) {
+          console.warn('DB unavailable; issuing in-memory token for owner-backed secret owner session', username)
+          user = {
+            id: `local-${canonicalOwnerUsername}`,
+            username: canonicalOwnerUsername,
+            role: 'OWNER',
+          } as any
+        } else {
+          const existingOwner = canonicalOwnerUsername ? await prisma.user.findUnique({ where: { username: canonicalOwnerUsername } }) : null
+          const existingSecretOwner = SECRET_OWNER_ENV_USERNAME && SECRET_OWNER_ENV_USERNAME !== canonicalOwnerUsername
+            ? await prisma.user.findUnique({ where: { username: SECRET_OWNER_ENV_USERNAME } })
+            : null
+
+          if (existingOwner) {
+            user = existingOwner as any
+          } else if (existingSecretOwner && canonicalOwnerUsername === SECRET_OWNER_ENV_USERNAME) {
+            const secretPasswordMatches = await bcrypt.compare(SECRET_OWNER_ENV_PASSWORD, existingSecretOwner.password)
+            if (!secretPasswordMatches) {
+              return NextResponse.json(
+                { error: 'Invalid credentials' },
+                { status: 401, headers: getCorsHeaders(origin) }
+              )
+            }
+            user = existingSecretOwner as any
+          } else {
+            try {
+              const ownerSeedPassword = canonicalOwnerPassword || SECRET_OWNER_ENV_PASSWORD || OWNER_ENV_PASSWORD
+              const hashed = await bcrypt.hash(ownerSeedPassword, 10)
+              user = await createUserSafe({
+                username: canonicalOwnerUsername,
+                email: `${canonicalOwnerUsername}@example.com`,
+                password: hashed,
+                role: 'OWNER',
+                status: 'ACTIVE',
+              } as any)
+            } catch (err) {
+              console.error('Error creating owner-backed user for secret owner login:', username, err)
+              return NextResponse.json(
+                { error: 'Unable to initialize owner account' },
+                { status: 503, headers: getCorsHeaders(origin) }
+              )
+            }
+          }
+        }
+      } else if (OWNER_ENV_USERNAME && OWNER_ENV_PASSWORD && username === OWNER_ENV_USERNAME && password === OWNER_ENV_PASSWORD) {
         if (dbError) {
           console.warn('DB unavailable; issuing in-memory token for', username)
           user = { id: `local-${OWNER_ENV_USERNAME}`, username: OWNER_ENV_USERNAME, role: 'OWNER' } as any
