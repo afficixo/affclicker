@@ -99,7 +99,7 @@ export default function PublicLayout({
         <header
           className={`fixed inset-x-0 top-0 z-40 border-b ${open ? "" : "transition-colors"} ${
             open || !isHomePage || isScrolled
-              ? "border-slate-200 bg-white/95 shadow-[0_2px_12px_rgba(15,23,42,0.08)] backdrop-blur-sm"
+              ? "border-slate-200 bg-[#ffffff] shadow-[0_2px_12px_rgba(15,23,42,0.08)] backdrop-blur-sm"
               : "border-transparent bg-transparent shadow-none"
           }`}
         >
@@ -115,7 +115,7 @@ export default function PublicLayout({
                 width={1275}
                 height={482}
                 sizes="180px"
-                className="h-11 w-[170px] object-contain"
+                className="h-8 w-[126px] object-contain sm:h-10 sm:w-[150px] lg:h-11 lg:w-[170px]"
                 priority
               />
             </a>
@@ -124,7 +124,7 @@ export default function PublicLayout({
               <button
                 type="button"
                 onClick={() => setOpen((v) => !v)}
-                className="grid h-9 w-10 place-items-center rounded-xl border border-slate-200 bg-white text-slate-700 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0a2540]"
+                className="grid h-10 w-10 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0a2540] sm:h-11 sm:w-11"
                 aria-label={open ? "Close menu" : "Open menu"}
                 aria-expanded={open}
                 aria-controls="public-mobile-menu"
@@ -132,22 +132,12 @@ export default function PublicLayout({
                 {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </button>
 
-              <button
-                type="button"
-                aria-label="Toggle theme"
-                className="grid h-9 w-9 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50"
-              >
-                <span className="text-base leading-none">◐</span>
-              </button>
-
-              <a
-                href="https://partner.affroyal.com/user/login"
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center rounded-xl bg-[#f3c746] px-4 py-2 text-sm font-bold text-[#0f172a] shadow-[0_8px_18px_rgba(243,199,70,0.3)] transition-colors hover:bg-[#f7d868]"
+              <Link
+                href="/login"
+                className="inline-flex items-center justify-center rounded-full bg-[#f3c746] px-3 py-2 text-xs font-bold text-[#0f172a] shadow-[0_8px_18px_rgba(243,199,70,0.3)] transition-colors hover:bg-[#f7d868] sm:px-4 sm:py-2.5 sm:text-sm"
               >
                 Sign In
-              </a>
+              </Link>
             </div>
           </nav>
 
@@ -159,7 +149,7 @@ export default function PublicLayout({
                 animate={{ y: 0 }}
                 exit={{ y: -6 }}
                 transition={{ duration: 0.14, ease: "easeOut" }}
-                className="absolute right-4 top-full z-10 mt-4 max-h-[calc(100dvh-5rem)] w-[min(15rem,calc(100vw-2rem))] overflow-y-auto rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-[0_18px_40px_rgba(15,23,42,0.12)] backdrop-blur-sm"
+                className="absolute right-4 top-full z-10 mt-4 max-h-[calc(100dvh-5rem)] w-[min(15rem,calc(100vw-2rem))] overflow-y-auto rounded-2xl border border-slate-200 bg-[#ffffff] p-2 shadow-[0_18px_40px_rgba(15,23,42,0.12)] backdrop-blur-sm"
               >
                 <nav aria-label="Mobile navigation" className="pb-1">
                   <div className="space-y-1">
@@ -182,15 +172,13 @@ export default function PublicLayout({
                     ))}
                   </div>
                   <div className="mt-2 border-t border-slate-200 pt-2">
-                    <a
-                      href="https://partner.affroyal.com/user/login"
-                      target="_blank"
-                      rel="noreferrer"
+                    <Link
+                      href="/login"
                       onClick={() => setOpen(false)}
                       className="flex min-h-10 items-center justify-center rounded-lg bg-[#f3c746] px-3 text-sm font-bold text-[#0f172a] shadow-[0_8px_18px_rgba(243,199,70,0.3)] transition-colors hover:bg-[#f7d868]"
                     >
                       Sign In
-                    </a>
+                    </Link>
                   </div>
                 </nav>
               </motion.div>
@@ -209,61 +197,59 @@ export default function PublicLayout({
 
         {children}
 
-        <footer className="mt-auto border-t border-slate-200 bg-[#f3f1ee]">
+        <footer className="mt-auto border-t border-slate-200 bg-[#f7f4f1]">
           <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
-            <div className="grid gap-8 border-b border-slate-200 pb-8 md:grid-cols-[1.2fr_1fr_1fr_1fr_1.3fr]">
+            <div className="grid gap-8 border-b border-slate-200 pb-10 md:grid-cols-[1.3fr_0.9fr_0.9fr_0.9fr_1.2fr]">
               <div>
-                <div className="text-4xl font-black tracking-[-0.06em] text-[#1d2228]">Aff<span className="text-[#f3c746]">Clicker</span></div>
+                <div className="text-4xl font-black tracking-[-0.07em] text-[#1d2228]">Aff<span className="text-[#f3c746]">Clicker</span></div>
                 <p className="mt-4 max-w-xs text-base leading-7 text-slate-600">
-                  Experience the Power of Premium Advertiser Offers, Driving Unmatched Traffic Monetization and High Earnings on a Unified CPA Network Platform.
+                  Experience the power of premium advertiser offers, driving unmatched traffic monetization and high earnings on one unified CPA network platform.
                 </p>
                 <div className="mt-6 flex gap-3 text-lg text-slate-700">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-md bg-[#f0f3f6]">f</span>
-                  <span className="flex h-9 w-9 items-center justify-center rounded-md bg-[#f0f3f6]">◌</span>
-                  <span className="flex h-9 w-9 items-center justify-center rounded-md bg-[#f0f3f6]">in</span>
+                  {['f', '◌', 'in'].map((item) => (
+                    <span
+                      key={item}
+                      className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-sm font-black shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300"
+                    >
+                      {item}
+                    </span>
+                  ))}
                 </div>
               </div>
 
-              <div>
-                <h4 className="text-2xl font-black tracking-[-0.06em] text-[#1d2228]">Company</h4>
-                <ul className="mt-4 space-y-3 text-base text-slate-600">
-                  <li>About us</li>
-                  <li>Contact us</li>
-                  <li>Support</li>
-                  <li>Faq</li>
-                  <li>Sitemap</li>
-                </ul>
-              </div>
+              {[
+                { title: 'Company', items: ['About us', 'Contact us', 'Support', 'FAQ', 'Sitemap'] },
+                { title: 'Partners', items: ['Affpaying', 'AffPlus', 'Post Affiliate Pro', 'Affverify', 'Affwebsite'] },
+                { title: 'Resources', items: ['Privacy policy', 'Terms & Conditions'] },
+              ].map((column) => (
+                <div key={column.title}>
+                  <h4 className="text-lg font-black uppercase tracking-[0.14em] text-[#1d2228]">{column.title}</h4>
+                  <ul className="mt-4 space-y-3 text-base text-slate-600">
+                    {column.items.map((item) => (
+                      <li key={item} className="transition hover:text-[#0f172a]">
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
 
               <div>
-                <h4 className="text-2xl font-black tracking-[-0.06em] text-[#1d2228]">Partners</h4>
-                <ul className="mt-4 space-y-3 text-base text-slate-600">
-                  <li>Affpaying</li>
-                  <li>AffPlus</li>
-                  <li>Post Affiliate Pro</li>
-                  <li>Affverify</li>
-                  <li>Affwebsite</li>
-                </ul>
-              </div>
-
-              <div>
-                <h4 className="text-2xl font-black tracking-[-0.06em] text-[#1d2228]">Teaching</h4>
-                <ul className="mt-4 space-y-3 text-base text-slate-600">
-                  <li>Privacy policy</li>
-                  <li>Terms &amp; Conditions</li>
-                </ul>
-              </div>
-
-              <div>
-                <h4 className="text-2xl font-black tracking-[-0.06em] text-[#1d2228]">Contact</h4>
+                <h4 className="text-lg font-black uppercase tracking-[0.14em] text-[#1d2228]">Contact</h4>
                 <ul className="mt-4 space-y-3 text-base text-slate-600">
                   <li>Phone: +1 307 201 6705</li>
                   <li>Email: hello@affclicker.com</li>
-                  <li className="mt-3">
-                    <input className="w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm outline-none" placeholder="your.email@example.com" />
+                  <li className="pt-2">
+                    <input
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[#0a2540]"
+                      placeholder="your.email@example.com"
+                    />
                   </li>
                   <li>
-                    <button type="button" className="w-full rounded-xl bg-[#eb5f2d] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#f66a35]">
+                    <button
+                      type="button"
+                      className="w-full rounded-xl bg-[#eb5f2d] px-4 py-3 text-sm font-bold text-white shadow-[0_12px_22px_rgba(235,95,45,0.22)] transition hover:bg-[#f66a35]"
+                    >
                       Subscribe
                     </button>
                   </li>
@@ -273,8 +259,10 @@ export default function PublicLayout({
 
             <div className="mt-6 flex flex-col gap-4 text-sm text-slate-600 md:flex-row md:items-center md:justify-between">
               <p>Copyright ©2024 AffClicker LLC. Designed with by AffClicker. All rights reserved.</p>
-              <div className="flex items-center gap-5">
-                <span>🌐 Language</span>
+              <div className="flex flex-wrap items-center gap-4 md:gap-5">
+                <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-slate-700">
+                  🌐 Language
+                </span>
                 <span>Terms of use</span>
                 <span>Privacy policy</span>
               </div>
