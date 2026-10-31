@@ -23,10 +23,10 @@ import {
 } from "lucide-react"
 
 const inputClassName =
-  "min-h-11 w-full rounded-md border border-[#cbd5d9] bg-white px-3.5 py-2.5 text-base text-[#263238] placeholder-[#87949b] outline-none transition focus:border-[#168b55] focus:ring-2 focus:ring-[#168b55]/15 disabled:cursor-not-allowed disabled:bg-[#f1f3f5]"
+  "min-h-12 w-full rounded-lg border border-[#d9e0e5] bg-[#f8fafc] px-3.5 py-2.5 text-base text-[#24292d] placeholder-[#8a9299] outline-none transition focus:border-[#066ac9] focus:bg-white focus:ring-2 focus:ring-[#066ac9]/15 disabled:cursor-not-allowed disabled:bg-[#f1f3f5]"
 
 const sectionHeadingClassName =
-  "border-b border-[#e6ebed] pb-2 text-base font-semibold text-[#263238]"
+  "border-b border-[#e7eaed] pb-3 text-base font-bold tracking-tight text-[#24292d]"
 
 export default function SignupClient() {
   const router = useRouter()
@@ -152,29 +152,24 @@ export default function SignupClient() {
 
   return (
     <PublicLayout className="!bg-white">
-      <main className="flex-1 bg-[#f7f9fa] px-4 pb-12 pt-28 sm:px-6 md:pb-16 md:pt-32">
+      <main className="flex-1 bg-[#f5f7f9] px-4 pb-12 pt-24 sm:px-6 md:pb-16 md:pt-28">
         <div className="mx-auto w-full max-w-3xl">
-          <header className="mb-7 text-center">
-            <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-[#0e7a4d]">
-              Join AffClicker
-            </p>
-            <h1 className="font-[Montserrat] text-3xl font-bold leading-tight text-[#263238] sm:text-4xl">
-              Publisher Sign Up
-            </h1>
-            <p className="mx-auto mt-3 max-w-xl text-base leading-6 text-[#6b7c87]">
-              Create your publisher account to get started. Your manager account will be reviewed by the owner.
-            </p>
-            {referralCode && (
-              <p className="mx-auto mt-3 max-w-xl text-sm font-medium text-[#0e7a4d]">
-                You were invited by a publisher. Your account will be linked to their referral.
-              </p>
-            )}
-          </header>
-
           <form
             onSubmit={handleSubmit}
-            className="rounded-xl border border-[#e1e7e9] bg-white p-5 shadow-[0_16px_48px_-32px_rgba(38,50,56,0.3)] sm:p-8"
+            className="rounded-2xl border border-[#e7eaed] bg-white p-5 shadow-[0_16px_48px_-32px_rgba(36,41,45,0.24)] sm:p-7 lg:p-8"
           >
+            <div className="mb-6 border-b border-[#eff1f2] pb-5">
+              <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#066ac9]">Join AffClicker</p>
+              <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-[#24292d] sm:text-3xl">Publisher Sign Up</h1>
+              <p className="mt-2 text-sm leading-6 text-[#747579]">
+                Create your account to get started.
+              </p>
+              {referralCode && (
+                <p className="mt-3 text-sm font-medium leading-6 text-[#066ac9]">
+                  You were invited by a publisher. Your account will be linked to their referral.
+                </p>
+              )}
+            </div>
             {error && (
               <div role="alert" className="mb-6 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-800">
                 <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
@@ -220,7 +215,7 @@ export default function SignupClient() {
                   <div className="space-y-1.5">
                     <label htmlFor="fullName" className="block text-sm font-medium text-[#34464f]">Full name</label>
                     <div className="relative">
-                      <User aria-hidden="true" className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#74818a]" />
+                      <User aria-hidden="true" className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8a9299]" />
                       <input
                         id="fullName"
                         name="fullName"
@@ -239,7 +234,7 @@ export default function SignupClient() {
                   <div className="space-y-1.5">
                     <label htmlFor="email" className="block text-sm font-medium text-[#34464f]">Email address</label>
                     <div className="relative">
-                      <Mail aria-hidden="true" className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#74818a]" />
+                      <Mail aria-hidden="true" className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8a9299]" />
                       <input
                         id="email"
                         name="email"
@@ -258,7 +253,7 @@ export default function SignupClient() {
                   <div className="space-y-1.5 sm:col-span-2">
                     <label htmlFor="address" className="block text-sm font-medium text-[#34464f]">Address</label>
                     <div className="relative">
-                      <MapPin aria-hidden="true" className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#74818a]" />
+                      <MapPin aria-hidden="true" className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8a9299]" />
                       <input
                         id="address"
                         name="address"
@@ -277,7 +272,7 @@ export default function SignupClient() {
                   <div className="space-y-1.5">
                     <label htmlFor="contractNumber" className="block text-sm font-medium text-[#34464f]">Contract number</label>
                     <div className="relative">
-                      <PhoneCall aria-hidden="true" className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#74818a]" />
+                      <PhoneCall aria-hidden="true" className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8a9299]" />
                       <input
                         id="contractNumber"
                         name="contractNumber"
@@ -302,7 +297,7 @@ export default function SignupClient() {
                   <div className="space-y-1.5">
                     <label htmlFor="telegram" className="block text-sm font-medium text-[#34464f]">Telegram username</label>
                     <div className="relative">
-                      <Send aria-hidden="true" className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#74818a]" />
+                      <Send aria-hidden="true" className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8a9299]" />
                       <input
                         id="telegram"
                         name="telegramUsername"
@@ -328,7 +323,7 @@ export default function SignupClient() {
                   <div className="space-y-1.5">
                     <label htmlFor="username" className="block text-sm font-medium text-[#34464f]">Username</label>
                     <div className="relative">
-                      <User aria-hidden="true" className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#74818a]" />
+                      <User aria-hidden="true" className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8a9299]" />
                       <input
                         id="username"
                         name="username"
@@ -347,7 +342,7 @@ export default function SignupClient() {
                   <div className="space-y-1.5">
                     <label htmlFor="password" className="block text-sm font-medium text-[#34464f]">Password</label>
                     <div className="relative">
-                      <Lock aria-hidden="true" className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#74818a]" />
+                      <Lock aria-hidden="true" className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8a9299]" />
                       <input
                         id="password"
                         name="password"
@@ -363,7 +358,7 @@ export default function SignupClient() {
                       <button
                         type="button"
                         onClick={() => setShowPassword((visible) => !visible)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 text-[#74818a] transition-colors hover:text-[#263238] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#168b55]"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 text-[#747579] transition-colors hover:text-[#24292d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#066ac9]"
                         aria-label={showPassword ? "Hide password" : "Show password"}
                         aria-pressed={showPassword}
                         disabled={loading}
@@ -379,7 +374,7 @@ export default function SignupClient() {
                 <h2 id="signup-verification" className={sectionHeadingClassName}>
                   Verification
                 </h2>
-                <div className="mt-4 rounded-lg border border-[#e1e7e9] bg-[#f7f9fa] p-4">
+                <div className="mt-4 rounded-xl border border-[#e7eaed] bg-[#f8fafc] p-4">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <p className="text-sm font-medium text-[#34464f]">Solve this quick question</p>
@@ -396,7 +391,7 @@ export default function SignupClient() {
                         onChange={(event) => setCaptchaAnswer(event.target.value)}
                         aria-invalid={!!captchaError}
                         aria-describedby={captchaError ? "captcha-error" : undefined}
-                        className="min-h-11 w-full rounded-md border border-[#cbd5d9] bg-white px-3 py-2 text-base text-[#263238] placeholder-[#87949b] outline-none transition focus:border-[#168b55] focus:ring-2 focus:ring-[#168b55]/15 sm:w-32"
+                        className="min-h-12 w-full rounded-lg border border-[#d9e0e5] bg-white px-3 py-2 text-base text-[#24292d] placeholder-[#8a9299] outline-none transition focus:border-[#066ac9] focus:ring-2 focus:ring-[#066ac9]/15 sm:w-32"
                         placeholder="Answer"
                         required
                         disabled={loading}
@@ -404,7 +399,7 @@ export default function SignupClient() {
                       <button
                         type="button"
                         onClick={generateCaptcha}
-                        className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-md border border-[#cbd5d9] bg-white text-[#455964] transition-colors hover:bg-[#edf2f3] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#168b55]"
+                        className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-[#d9e0e5] bg-white text-[#455964] transition-colors hover:bg-[#f5f7f9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#066ac9]"
                         disabled={loading}
                         aria-label="Refresh verification question"
                       >
@@ -421,7 +416,7 @@ export default function SignupClient() {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex min-h-12 w-full items-center justify-center gap-2 rounded-md bg-[#1ba1b4] px-5 py-3 text-base font-semibold text-white shadow-sm transition-colors hover:bg-[#168b9c] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#1ba1b4]/20 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+                className="flex min-h-14 w-full items-center justify-center gap-2 rounded-xl border border-[#ed4c00] border-b-4 bg-[#ff4c00] px-5 py-3 text-base font-bold uppercase tracking-wide text-white shadow-[0_5px_12px_rgba(255,76,0,0.18)] transition hover:-translate-y-0.5 hover:bg-[#ed4c00] hover:shadow-[0_8px_18px_rgba(255,76,0,0.22)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#066ac9] focus-visible:ring-offset-2 active:translate-y-0.5 active:border-b-2 disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {loading ? (
                   <span className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
@@ -434,15 +429,15 @@ export default function SignupClient() {
                 )}
               </button>
 
-              <p className="text-center text-sm leading-6 text-[#6b7c87]">
+              <p className="text-center text-sm leading-6 text-[#747579]">
                 Your account will be reviewed before publisher access is approved.
               </p>
             </div>
           </form>
 
-          <p className="mt-6 text-center text-base text-[#6b7c87]">
+          <p className="mt-6 text-center text-sm text-[#747579]">
             Already have an account?{" "}
-            <Link href="/login" className="font-semibold text-[#0e7a4d] underline-offset-2 hover:underline">
+            <Link href="/login" className="font-bold text-[#066ac9] underline-offset-4 hover:underline">
               Sign in
             </Link>
           </p>

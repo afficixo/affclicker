@@ -6,9 +6,9 @@ import Link from "next/link";
 import { markManagerTelegramPopupPending } from "@/lib/utils/telegram-popup";
 import { getDashboardPath } from "@/lib/auth/dashboard-path";
 import PublicLayout from "@/components/layout/PublicLayout";
-import { AlertCircle, CheckCircle2, Clock3 } from "lucide-react";
+import { AlertCircle, ArrowRight, CheckCircle2, Clock3, LockKeyhole, LogIn, Mail } from "lucide-react";
 
-const APPROVAL_SUPPORT_TELEGRAM = "Rayanveyron";
+const APPROVAL_SUPPORT_TELEGRAM = "affclicker";
 
 export default function LoginClient() {
   const router = useRouter();
@@ -131,30 +131,32 @@ export default function LoginClient() {
 
   return (
     <PublicLayout className="!bg-white">
-      <main className="min-h-[250px] flex-1 bg-white px-4 pb-7 pt-24 md:pt-28">
-        <div className="mx-auto w-full max-w-[610px]">
-          <header className="mb-6 text-center">
-            <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-[#0e7a4d]">
-              Welcome back
-            </p>
-            <h1 className="font-[Montserrat] text-3xl font-bold leading-tight text-[#263238] sm:text-4xl">
-              Affiliate Login
-            </h1>
-            <p className="mx-auto mt-3 max-w-xl text-base leading-6 text-[#6b7c87]">
-              Sign in to continue to your AffClicker account.
-            </p>
-          </header>
+      <main className="flex-1 bg-[#f5f7f9] px-4 pb-12 pt-24 sm:px-6 md:pb-16 md:pt-28">
+        <div className="mx-auto w-full max-w-[520px]">
+          <section className="rounded-2xl border border-[#e7eaed] bg-white p-5 shadow-[0_16px_48px_-32px_rgba(36,41,45,0.24)] sm:p-8">
+            <header className="mb-7 text-center">
+              <span className="mx-auto inline-flex items-center gap-2 rounded-full border border-[#e7eaed] bg-[#f8fafc] px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-[#066ac9]">
+                <LogIn aria-hidden="true" className="h-3.5 w-3.5" />
+                Welcome back
+              </span>
+              <h1 className="mt-4 text-3xl font-extrabold leading-tight tracking-[-0.04em] text-[#24292d] sm:text-4xl">
+                Affiliate Login
+              </h1>
+              <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-[#747579] sm:text-base">
+                Sign in to continue to your AffClicker account.
+              </p>
+            </header>
 
             {error && (
               <div
                 role="alert"
-                className={`mb-3 overflow-hidden rounded border ${
+                className={`mb-4 overflow-hidden rounded-xl border ${
                   approvalPendingNotice || supportTelegram
-                    ? "border-[#7ec9b4]/40 bg-[#eef8f4] text-[#31584e]"
+                    ? "border-[#b9e2d5] bg-[#eff9f5] text-[#31584e]"
                     : "border-red-200 bg-red-50 text-red-800"
                 }`}
               >
-                <div className="flex items-start gap-3 p-3">
+                <div className="flex items-start gap-3 p-4">
                   <div className="mt-0.5">
                     {approvalPendingNotice ? (
                       <Clock3 className="h-4 w-4" />
@@ -177,10 +179,10 @@ export default function LoginClient() {
 
                     {contactTelegram && (
                       <a
-                        href={`https://t.me/${contactTelegram}`}
+                        href="https://t.me/affclicker"
                         target="_blank"
                         rel="noreferrer"
-                        className="mt-3 inline-flex items-center justify-center rounded-sm bg-[#1ba1b4] px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#168b9c]"
+                        className="mt-3 inline-flex min-h-10 items-center justify-center rounded-lg bg-[#24292d] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#343b40] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#066ac9] focus-visible:ring-offset-2"
                       >
                         Contact Account Owner
                       </a>
@@ -191,61 +193,69 @@ export default function LoginClient() {
             )}
 
             {success && (
-              <div role="status" aria-live="polite" className="mb-3 flex items-start gap-2 rounded border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
+              <div role="status" aria-live="polite" className="mb-4 flex items-start gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
                 <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0" />
                 <span className="leading-5">{success}</span>
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-3">
-              <div className={supportTelegram ? "pointer-events-none opacity-55" : ""}>
-                <label htmlFor="login-username" className="sr-only">Email or username</label>
-                <input
-                  id="login-username"
-                  name="username"
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="w-full rounded-[3px] border border-[#c7cbcd] bg-[#f1f3f5] px-3 py-2.5 text-lg text-[#455964] placeholder-[#74818a] outline-none transition focus:border-[#1ba1b4] focus:ring-2 focus:ring-[#1ba1b4]/20"
-                  placeholder="E-mail or username"
-                  autoComplete="username"
-                  required
-                  disabled={loading || !!supportTelegram}
-                />
-              </div>
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className={`space-y-4 ${supportTelegram ? "pointer-events-none opacity-55" : ""}`}>
+                <div className="space-y-1.5">
+                  <label htmlFor="login-username" className="block text-sm font-semibold text-[#343b40]">Email or username</label>
+                  <div className="relative">
+                    <Mail aria-hidden="true" className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8a9299]" />
+                    <input
+                      id="login-username"
+                      name="username"
+                      type="text"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      className="min-h-12 w-full rounded-lg border border-[#d9e0e5] bg-[#f8fafc] py-2.5 pl-10 pr-3.5 text-base text-[#24292d] placeholder-[#8a9299] outline-none transition focus:border-[#066ac9] focus:bg-white focus:ring-2 focus:ring-[#066ac9]/15 disabled:cursor-not-allowed"
+                      placeholder="you@example.com"
+                      autoComplete="username"
+                      required
+                      disabled={loading || !!supportTelegram}
+                    />
+                  </div>
+                </div>
 
-              <div className={supportTelegram ? "pointer-events-none opacity-55" : ""}>
-                <label htmlFor="login-password" className="sr-only">Password</label>
-                <input
-                  id="login-password"
-                  name="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-[3px] border border-[#c7cbcd] bg-[#f1f3f5] px-3 py-2.5 text-lg text-[#455964] placeholder-[#74818a] outline-none transition focus:border-[#1ba1b4] focus:ring-2 focus:ring-[#1ba1b4]/20"
-                  placeholder="Password"
-                  autoComplete="current-password"
-                  required
-                  disabled={loading || !!supportTelegram}
-                />
+                <div className="space-y-1.5">
+                  <label htmlFor="login-password" className="block text-sm font-semibold text-[#343b40]">Password</label>
+                  <div className="relative">
+                    <LockKeyhole aria-hidden="true" className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8a9299]" />
+                    <input
+                      id="login-password"
+                      name="password"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="min-h-12 w-full rounded-lg border border-[#d9e0e5] bg-[#f8fafc] py-2.5 pl-10 pr-3.5 text-base text-[#24292d] placeholder-[#8a9299] outline-none transition focus:border-[#066ac9] focus:bg-white focus:ring-2 focus:ring-[#066ac9]/15 disabled:cursor-not-allowed"
+                      placeholder="Enter your password"
+                      autoComplete="current-password"
+                      required
+                      disabled={loading || !!supportTelegram}
+                    />
+                  </div>
+                </div>
               </div>
 
               <button
                 type="submit"
                 disabled={loading || !!supportTelegram}
-                className="flex min-h-12 w-full items-center justify-center rounded-lg bg-[#5ff442] px-5 py-3 text-base font-semibold text-[#263238] shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#4dd935] hover:shadow-md focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#5ff442]/30 focus-visible:ring-offset-2 active:translate-y-0 active:shadow-sm disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60 disabled:shadow-none"
+                className="flex min-h-14 w-full items-center justify-center gap-2 rounded-xl border border-[#ed4c00] border-b-4 bg-[#ff4c00] px-5 py-3 text-sm font-bold uppercase italic tracking-wide text-white shadow-[0_5px_12px_rgba(255,76,0,0.18)] transition hover:-translate-y-0.5 hover:bg-[#ed4c00] hover:shadow-[0_8px_18px_rgba(255,76,0,0.22)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#066ac9] focus-visible:ring-offset-2 active:translate-y-0.5 active:border-b-2 disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {loading ? "Signing in..." : "Login"}
+                {loading ? "Signing in..." : <>Login <ArrowRight aria-hidden="true" className="h-4 w-4" /></>}
               </button>
 
-              <div className="flex items-center justify-between gap-3 text-[17px]">
-                <Link href="/signup" className="text-[#007bff] hover:underline">
+              <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 text-sm">
+                <Link href="/signup" className="font-semibold text-[#066ac9] underline-offset-4 hover:underline">
                   Don&apos;t have an account?
                 </Link>
                 <button
                   type="button"
                   onClick={() => setShowPasswordResetDialog(true)}
-                  className="text-[#007bff] hover:underline"
+                  className="font-semibold text-[#066ac9] underline-offset-4 hover:underline"
                 >
                   Forgot Password?
                 </button>
@@ -258,10 +268,10 @@ export default function LoginClient() {
                   setGoogleLoading(true);
                   window.location.assign("/api/auth/google/start?redirect=/admin/dashboard");
                 }}
-                className="flex w-full items-center justify-center gap-3 rounded-[3px] border border-[#d3d7d9] bg-white px-3 py-2.5 text-lg font-medium text-[#455964] transition-colors hover:bg-[#f5f7f8] disabled:cursor-not-allowed disabled:opacity-60"
+                className="flex min-h-12 w-full items-center justify-center gap-3 rounded-xl border border-[#d9e0e5] bg-white px-3 py-2.5 text-sm font-semibold text-[#343b40] transition-colors hover:bg-[#f8fafc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#066ac9] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {googleLoading ? (
-                  <span className="h-4 w-4 rounded-full border-2 border-[#1ba1b4] border-t-transparent animate-spin" />
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#066ac9] border-t-transparent" />
                 ) : (
                   <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true">
                     <path fill="#4285F4" d="M21.6 12.23c0-.78-.07-1.53-.2-2.25H12v4.26h5.38a4.6 4.6 0 0 1-2 3.02v2.5h3.24c1.9-1.75 2.98-4.33 2.98-7.53Z" />
@@ -274,11 +284,12 @@ export default function LoginClient() {
               </button>
 
               {supportTelegram && (
-                <p className="text-center text-sm text-[#74818a]">
+                <p className="text-center text-sm text-[#747579]">
                   Already approved? Refresh this page or try signing in again.
                 </p>
               )}
             </form>
+          </section>
         </div>
 
         {showPasswordResetDialog && (
@@ -293,9 +304,9 @@ export default function LoginClient() {
               aria-modal="true"
               aria-labelledby="password-reset-title"
               aria-describedby="password-reset-description"
-              className="w-full max-w-md rounded-lg border border-[#d3d7d9] bg-white p-5 text-[#455964] shadow-2xl sm:p-6"
+              className="w-full max-w-md rounded-2xl border border-[#e7eaed] bg-white p-5 text-[#343b40] shadow-2xl sm:p-6"
             >
-              <h2 id="password-reset-title" className="text-xl font-semibold text-[#263238]">
+              <h2 id="password-reset-title" className="text-xl font-bold tracking-tight text-[#24292d]">
                 Reset your password?
               </h2>
               <p id="password-reset-description" className="mt-2 text-base leading-6">
@@ -305,7 +316,7 @@ export default function LoginClient() {
                 <button
                   type="button"
                   onClick={() => setShowPasswordResetDialog(false)}
-                  className="rounded-[3px] border border-[#c7cbcd] bg-white px-4 py-2.5 text-base font-medium text-[#455964] transition-colors hover:bg-[#f1f3f5]"
+                  className="rounded-lg border border-[#d9e0e5] bg-white px-4 py-2.5 text-sm font-semibold text-[#343b40] transition-colors hover:bg-[#f8fafc]"
                 >
                   Cancel
                 </button>
@@ -316,7 +327,7 @@ export default function LoginClient() {
                     setGoogleLoading(true);
                     window.location.assign("/api/auth/google/start?redirect=%2Fadmin%2Fsettings&purpose=password-reset");
                   }}
-                  className="rounded-[3px] bg-[#1ba1b4] px-4 py-2.5 text-base font-medium text-white transition-colors hover:bg-[#168b9c] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="rounded-lg border border-[#ed4c00] border-b-4 bg-[#ff4c00] px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#ed4c00] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {googleLoading ? "Connecting to Google..." : "Continue with Google"}
                 </button>

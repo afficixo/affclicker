@@ -26,8 +26,8 @@ export const metadata: Metadata = {
     siteName: 'AffClicker',
     images: [
       {
-        url: 'https://affclicker.com/affclicker-preview.png',
-        secureUrl: 'https://affclicker.com/affclicker-preview.png',
+        url: 'https://affclicker.com/affclicker-preview-20261031.png',
+        secureUrl: 'https://affclicker.com/affclicker-preview-20261031.png',
         width: 768,
         height: 768,
         alt: 'AffClicker Pay Per Click Affiliate Marketplace',
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     title: 'Manager Login — AffClicker',
     description:
       'Log in to your AffClicker publisher account to manage CPC offers, tracking links, traffic analytics, and earnings.',
-    images: ['https://affclicker.com/affclicker-preview.png'],
+    images: ['https://affclicker.com/affclicker-preview-20261031.png'],
     creator: 'AffClicker',
   },
 };

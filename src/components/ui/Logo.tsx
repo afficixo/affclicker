@@ -33,7 +33,7 @@ export function Logo({
       onClick={onClick}
     >
       <Image
-        src={variant === 'icon' ? '/affclicker_favicon.png' : '/affclickerlogo.png'}
+        src={variant === 'icon' ? '/affclicker-favicon-20261031.png' : '/affclickerlogo.png'}
         alt="AffClicker logo"
         width={variant === 'icon' ? 64 : dimensions.width}
         height={variant === 'icon' ? 64 : dimensions.height}

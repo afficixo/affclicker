@@ -3,8 +3,8 @@
   "short_name": "AffClicker",
   "icons": [
     {
-      "src": "/affclicker_favicon.png",
-      "sizes": "any",
+      "src": "/affclicker-favicon-20261031.png",
+      "sizes": "768x768",
       "type": "image/png",
       "purpose": "any"
     }

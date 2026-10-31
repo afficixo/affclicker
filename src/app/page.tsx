@@ -1,7 +1,9 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { ArrowRight, BarChart3, BriefcaseBusiness, Check, Globe, ShieldCheck, Sparkles, TrendingUp, WalletCards } from 'lucide-react';
+import { AnimatePresence, motion, useInView, useReducedMotion } from 'framer-motion';
+import { ArrowRight, BarChart3, BriefcaseBusiness, Check, ChevronDown, CircleDollarSign, Gamepad2, Gift, Globe, Handshake, HeartPulse, Mail, Plane, Power, ShieldCheck, ShoppingBag, Sparkles, TrendingUp, Trophy, UserRoundPlus, WalletCards } from 'lucide-react';
+import { AU, CA, DE, GB, NZ, US } from 'country-flag-icons/react/3x2';
+import { useEffect, useRef, useState } from 'react';
 import PublicLayout from '@/components/layout/PublicLayout';
 
 const stats = [
@@ -11,83 +13,213 @@ const stats = [
 ];
 
 const countries = [
-  { name: 'Canada', flag: 'https://affroyal.com/images/flags/cn.svg', offer: 'Health & Fitness', tag: 'High Conversion' },
-  { name: 'Germany', flag: 'https://affroyal.com/images/flags/gr.svg', offer: 'Survey, Finance', tag: 'Top' },
-  { name: 'New Zealand', flag: 'https://affroyal.com/images/flags/nz.svg', offer: 'Finance', tag: 'Trending' },
-  { name: 'United Kingdom', flag: 'https://affroyal.com/images/flags/uk.svg', offer: 'Rewards', tag: 'Top' },
-  { name: 'USA', flag: 'https://affroyal.com/images/flags/us.svg', offer: 'Jobs, Credit Score', tag: 'High Conversion' },
-  { name: 'Australia', flag: 'https://affroyal.com/images/flags/au.svg', offer: 'Rewards, Sweeps', tag: 'Trending' },
+  { name: 'Canada', flag: CA, offer: 'Health & Fitness', tag: 'High Conversion', color: 'bg-emerald-500' },
+  { name: 'Germany', flag: DE, offer: 'Survey, Finance', tag: 'Top', color: 'bg-rose-500' },
+  { name: 'New Zealand', flag: NZ, offer: 'Finance', tag: 'Trending', color: 'bg-sky-600' },
+  { name: 'United Kingdom', flag: GB, offer: 'Rewards', tag: 'Top', color: 'bg-rose-500' },
+  { name: 'USA', flag: US, offer: 'Jobs, Credit Score', tag: 'High Conversion', color: 'bg-emerald-500' },
+  { name: 'Australia', flag: AU, offer: 'Rewards, Sweeps', tag: 'Trending', color: 'bg-sky-600' },
 ];
 
 const highlights = [
   {
-    title: 'Offer Management',
+    title: 'For Publishers',
     icon: BriefcaseBusiness,
-    text: 'Access carefully selected offers across multiple high-converting verticals with pricing built for performance.',
-    bullets: ['High payouts', 'Fresh campaigns', 'Optimized recommendations'],
+    text: 'Boost your earnings with high-converting, exclusive offers.',
+    bullets: ['Highest payouts with top commissions', 'Dedicated campaign guidance', 'Real-time tracking and reporting'],
   },
   {
-    title: 'Real-Time Tracking',
+    title: 'For Advertisers',
     icon: TrendingUp,
-    text: 'Track clicks, conversions, and revenue in one place with clean reporting for smarter growth decisions.',
-    bullets: ['Live metrics', 'Traffic visibility', 'Faster optimization'],
-  },
-  {
-    title: 'Affiliate Support',
-    icon: ShieldCheck,
-    text: 'Work with a team that understands scale, conversion strategy, and long-term partnership growth.',
-    bullets: ['Dedicated help', 'Fast response', 'Growth advice'],
+    text: 'Expand your reach with an engaged network of quality publishers.',
+    bullets: ['Targeted traffic from verified sources', 'Campaigns tailored to your objectives', 'Dedicated account support'],
   },
 ];
 
 const categories = [
-  { name: 'Finance', count: '70 Offers', icon: '💰' },
-  { name: 'Health & Beauty', count: '95 Offers', icon: '✨' },
-  { name: 'E-Commerce', count: '85 Offers', icon: '🛒' },
-  { name: 'Sweepstakes', count: '110 Offers', icon: '🎁' },
-  { name: 'Jobs', count: '75 Offers', icon: '💼' },
-  { name: 'Gaming', count: '60 Offers', icon: '🎮' },
-  { name: 'Insurance', count: '50 Offers', icon: '🛡️' },
-  { name: 'Travel', count: '45 Offers', icon: '✈️' },
+  { name: 'Finance', count: '70 Offers', detail: 'Loans, credit cards, and investment offers', icon: CircleDollarSign },
+  { name: 'Health & Beauty', count: '95 Offers', detail: 'Supplements, skincare, and fitness', icon: HeartPulse },
+  { name: 'E-Commerce', count: '85 Offers', detail: 'Popular products and online stores', icon: ShoppingBag },
+  { name: 'Sweepstakes', count: '110 Offers', detail: 'Giveaways, prizes, and lead generation', icon: Gift },
+  { name: 'Jobs', count: '75 Offers', detail: 'Career opportunities and gig platforms', icon: BriefcaseBusiness },
+  { name: 'Gaming', count: '60 Offers', detail: 'Games, apps, and entertainment', icon: Gamepad2 },
+  { name: 'Insurance', count: '50 Offers', detail: 'Coverage and insurance comparison', icon: ShieldCheck },
+  { name: 'Travel', count: '45 Offers', detail: 'Travel bookings and trip services', icon: Plane },
 ];
 
 const faqs = [
-  'Signing up is simple. Share your traffic profile and we review your application quickly so you can start working with high-performing offers.',
-  'AffClicker supports reliable payouts and a smooth partner experience with focused campaign support and clear reporting.',
-  'We work across popular sectors including finance, health, rewards, jobs, e-commerce, gaming, sweepstakes, and more.',
-  'Our system is built for real-time visibility so you can track performance and improve campaigns with better data.',
+  { question: 'How do I sign up as an affiliate with AffClicker?', answer: 'Complete the publisher registration form and share details about your traffic sources. Our team will review your application and, once approved, help you find offers that fit your audience.' },
+  { question: 'What payment methods do you offer?', answer: 'Available payment methods and schedules depend on your account and region. Contact your account manager for the current options and eligibility.' },
+  { question: 'What types of offers are available?', answer: 'Explore a variety of campaigns across finance, health and beauty, e-commerce, sweepstakes, gaming, rewards, insurance, travel, and more.' },
+  { question: 'How do I track conversions and earnings?', answer: 'Your publisher dashboard provides performance reporting for clicks, conversions, and earnings so you can monitor and optimize your campaigns.' },
+  { question: 'Do you offer support to affiliates?', answer: 'Yes. Our team can help with campaign setup, optimization, and account questions. Reach us by email or through your dashboard.' },
+  { question: 'How can I promote offers effectively?', answer: 'Choose offers that fit your audience, review the campaign requirements, and use your tracking links to measure results across your traffic sources.' },
 ];
 
+const verticals = [
+  { name: 'Jobs', image: 'job-offers.png', text: 'Explore career and gig-economy campaigns suited to audiences looking for their next opportunity.', bullets: ['Competitive campaigns', 'Strong audience relevance', 'Clear conversion tracking'] },
+  { name: 'Rewards', image: 'rewards.webp', text: 'Engage audiences with reward programs, cashback, and loyalty offers.', bullets: ['Cashback and gift card offers', 'Audience-friendly campaigns', 'Wide range of promotions'] },
+  { name: 'Credit Score', image: 'credit-score.png', text: 'Connect finance-minded audiences with credit monitoring and score services.', bullets: ['Useful finance resources', 'Relevant audience targeting', 'Trackable campaign results'] },
+  { name: 'Sweepstakes', image: 'sweepstakes.png', text: 'Promote giveaways and prize campaigns built to drive interest and engagement.', bullets: ['Popular prize campaigns', 'Broad audience appeal', 'Lead-generation focused'] },
+];
+
+const earningServices = [
+  { title: 'Offer Management', icon: BriefcaseBusiness, summary: 'Optimize campaigns with quality offers.', bullets: ['Exclusive offers across niches', 'Fresh high-payout campaigns', 'Recommendations for growth'] },
+  { title: 'Advanced Tracking', icon: TrendingUp, summary: 'Actionable analytics for better performance.', bullets: ['Real-time performance metrics', 'Clear conversion reports', 'Traffic source insights'] },
+  { title: 'Affiliate Support', icon: Handshake, summary: 'Get guidance from a team that knows performance.', bullets: ['Dedicated account support', 'Campaign optimization help', 'Timely answers to questions'] },
+];
+const partners = [
+  { name: 'Affpaying', image: 'affpaying.png' },
+  { name: 'AffPlus', image: 'affplus.png' },
+  { name: 'Post Affiliate Pro', image: 'Post-Affiliate-Pro.png' },
+  { name: 'Affverify', image: 'affverify.png' },
+  { name: 'Affwebsite', image: 'affwebsite.png' },
+  { name: 'Trustpilot', image: 'trustpilot.png' },
+];
 const revealEase = [0.22, 1, 0.36, 1] as const;
-const sectionReveal = {
-  initial: { opacity: 0, y: 24 },
-  whileInView: { opacity: 1, y: 0 },
-  viewport: { once: true, amount: 0.18 },
-  transition: { duration: 0.7, ease: revealEase },
-} as const;
+type RevealDirection = 'up' | 'left' | 'right' | 'scale';
+
+function scrollReveal(
+  reduceMotion: boolean,
+  direction: RevealDirection = 'up',
+  delay = 0,
+  duration = 0.55,
+) {
+  const offset = direction === 'left'
+    ? { x: -18 }
+    : direction === 'right'
+      ? { x: 18 }
+      : direction === 'scale'
+        ? { scale: 0.97 }
+        : { y: 16 };
+
+  return {
+    initial: { opacity: 0, ...offset },
+    animate: reduceMotion ? { opacity: 1, x: 0, y: 0, scale: 1 } : undefined,
+    whileInView: { opacity: 1, x: 0, y: 0, scale: 1 },
+    viewport: { once: true, amount: 0.15 },
+    transition: {
+      duration: reduceMotion ? 0 : duration,
+      delay: reduceMotion ? 0 : delay,
+      ease: revealEase,
+    },
+  };
+}
+
+function AnimatedStat({ value, reduceMotion }: { value: string; reduceMotion: boolean }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: true, amount: 0.8 });
+  const [count, setCount] = useState(0);
+  const match = /^(\d+)(.*)$/.exec(value);
+  const end = match ? Number(match[1]) : 0;
+  const suffix = match?.[2] ?? '';
+
+  useEffect(() => {
+    if (!inView) return;
+    if (reduceMotion) {
+      setCount(end);
+      return;
+    }
+
+    const duration = 900;
+    let frame = 0;
+    let startTime: number | undefined;
+    const updateCount = (time: number) => {
+      startTime ??= time;
+      const progress = Math.min((time - startTime) / duration, 1);
+      setCount(Math.round(end * (1 - (1 - progress) ** 3)));
+      if (progress < 1) frame = requestAnimationFrame(updateCount);
+    };
+
+    frame = requestAnimationFrame(updateCount);
+    return () => cancelAnimationFrame(frame);
+  }, [end, inView, reduceMotion]);
+
+  return <span ref={ref}>{count}{suffix}</span>;
+}
 
 export default function HomePage() {
+  const [activeVertical, setActiveVertical] = useState(0);
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [contactSubmitting, setContactSubmitting] = useState(false);
+  const [contactError, setContactError] = useState('');
+  const [contactSuccess, setContactSuccess] = useState('');
+  const prefersReducedMotion = useReducedMotion();
+  const [hasHydrated, setHasHydrated] = useState(false);
+  const reduceMotion = hasHydrated && prefersReducedMotion === true;
+
+  useEffect(() => {
+    setHasHydrated(true);
+  }, []);
+
+  const submitContactForm = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    setContactError('');
+    setContactSuccess('');
+    setContactSubmitting(true);
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          firstName: formData.get('firstName'),
+          lastName: formData.get('lastName'),
+          email: formData.get('email'),
+          message: formData.get('message'),
+        }),
+      });
+      const result = await response.json();
+
+      if (!response.ok) {
+        setContactError(typeof result.error === 'string' ? result.error : 'Unable to send your message. Please try again.');
+        return;
+      }
+
+      setContactSuccess('Thanks for reaching out. Our team will be in touch soon.');
+      form.reset();
+    } catch (error) {
+      setContactError(error instanceof Error ? error.message : 'Unable to send your message. Please try again.');
+    } finally {
+      setContactSubmitting(false);
+    }
+  };
+
   return (
     <PublicLayout>
-      <main className="bg-[#f3f1ee] text-[#1d2228]">
+      <main className="bg-white text-[#24292d]">
         <motion.section
           id="home"
-          {...sectionReveal}
-          className="relative overflow-hidden bg-[#f3f1ee] pb-10 pt-20 md:pb-16 md:pt-24"
+          {...scrollReveal(Boolean(reduceMotion), 'up', 0, 0.55)}
+          className="relative isolate overflow-hidden bg-white pb-12 pt-24 sm:pt-32 md:pb-16"
         >
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(13,79,136,0.12),transparent_32%),radial-gradient(circle_at_bottom_right,rgba(243,106,45,0.08),transparent_28%)]" />
-          <div className="absolute -left-16 top-8 h-64 w-64 rounded-full bg-[#9ad0ea]/25 blur-3xl" />
-          <div className="absolute -right-16 bottom-4 h-72 w-72 rounded-full bg-[#f1d268]/25 blur-3xl" />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 border-b-2 border-dotted border-slate-100" />
+          <img
+            src="https://affroyal.com/images/element/rocket.svg"
+            alt=""
+            aria-hidden="true"
+            className="home-hero-rocket pointer-events-none absolute bottom-0 left-0 hidden w-[159px] rotate-[74deg] md:block"
+            style={reduceMotion ? undefined : { animation: 'rocket-enter-left 1.8s ease-out both' }}
+          />
+          <img
+            src="https://affroyal.com/images/element/rocket.svg"
+            alt=""
+            aria-hidden="true"
+            className="home-hero-rocket pointer-events-none absolute bottom-0 right-0 hidden w-[159px] -rotate-[74deg] scale-x-[-1] md:block"
+            style={reduceMotion ? undefined : { animation: 'rocket-enter-right 1.8s ease-out both' }}
+          />
 
-          <div className="relative mx-auto max-w-[1180px] px-4 sm:px-6 lg:px-8">
+          <div className="relative mx-auto max-w-[1180px] px-4 text-center sm:px-6 lg:px-8">
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, ease: revealEase }}
-              className="flex items-center gap-3 rounded-[18px] bg-[#0d4f88] px-4 py-3 text-white shadow-[0_8px_18px_rgba(13,79,136,0.18)] md:px-6"
+              transition={{ duration: reduceMotion ? 0 : 0.5, ease: revealEase }}
+              className="mx-auto inline-flex max-w-full items-center gap-3 rounded-md bg-[#1d5a82] px-4 py-2.5 text-left text-white shadow-[0_5px_14px_rgba(29,59,83,0.18)] sm:px-6"
             >
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-base">◆</div>
-              <div className="text-[0.8rem] font-bold leading-[1.2] tracking-[-0.03em] sm:text-sm md:text-xl">
+              <Sparkles aria-hidden="true" className="h-4 w-4 shrink-0" />
+              <div className="text-xs font-bold leading-5 sm:text-sm">
                 Elevate Your Earnings with Premium Offers – The Ultimate CPA Platform
               </div>
             </motion.div>
@@ -95,33 +227,46 @@ export default function HomePage() {
             <motion.div
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, ease: revealEase, delay: 0.08 }}
-              className="mt-7 max-w-[780px] md:mt-10"
+              transition={{ duration: reduceMotion ? 0 : 0.7, ease: revealEase, delay: reduceMotion ? 0 : 0.08 }}
+              className="mx-auto mt-5 max-w-[1000px] md:mt-6"
             >
-              <div className="hidden max-w-[760px] text-[2.3rem] font-black leading-[0.98] tracking-[-0.065em] text-[#111827] md:text-[4.2rem]">
-                AffClicker: Where Top Affiliates Meet Premium Offers
-              </div>
+              <motion.h1
+                initial={{ scale: 0.88, opacity: 0 }}
+                animate={reduceMotion
+                  ? { scale: 1, opacity: 1 }
+                  : {
+                  scale: [0.88, 1.06, 0.96, 1.02, 1],
+                  opacity: 1,
+                }}
+                transition={{ duration: reduceMotion ? 0 : 0.9, delay: reduceMotion ? 0 : 0.15, ease: 'easeOut' }}
+                className="text-[2rem] font-extrabold leading-[1.12] tracking-[-0.04em] text-[#24292d] sm:text-5xl sm:leading-[1.08] sm:tracking-[-0.045em] md:text-[3rem]"
+              >
+                AffClicker: Where Top Affiliates Meet
+                <br className="hidden sm:block" /> Premium Offers
+              </motion.h1>
 
-              <p className="mt-4 text-[0.96rem] leading-7 text-[#4a5565] sm:text-base md:mt-5 md:text-[1.15rem] md:leading-8">
-                “Join AffClicker’s Global Premium Affiliate Network and unlock unparalleled opportunities with high-converting offers, seamless traffic monetization, and the highest payouts — all in one dynamic, unified platform.”
+              <p className="mx-auto mt-4 max-w-[760px] text-sm leading-6 text-[#747579] sm:text-base sm:leading-7 md:mt-5">
+                Join AffClicker’s global affiliate network and unlock high-converting offers, seamless traffic monetization, and reliable support — all in one platform.
               </p>
             </motion.div>
 
-            <div className="hidden mt-8 space-y-5 md:mt-10">
+            <div className="mx-auto mt-7 grid max-w-[740px] grid-cols-2 gap-x-2 gap-y-4 sm:mt-8 sm:gap-x-10 sm:gap-y-6 md:mt-10">
               {stats.map(({ icon: Icon, value, label }, index) => (
                 <motion.div
                   key={label}
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.35, delay: 0.1 + index * 0.08, ease: 'easeOut' }}
-                  className="flex items-center gap-4 rounded-[18px] bg-transparent"
+                  transition={{ duration: reduceMotion ? 0 : 0.35, delay: reduceMotion ? 0 : 0.1 + index * 0.08, ease: 'easeOut' }}
+                  className={`flex items-center justify-center gap-2.5 text-left sm:gap-3 ${index === 2 ? 'col-span-2 justify-self-center sm:col-span-2' : ''}`}
                 >
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full border border-[#dfe7ef] bg-[#eaf2f7] text-[#0d4f88] shadow-[0_8px_18px_rgba(13,79,136,0.08)] md:h-20 md:w-20">
-                    <Icon className="h-7 w-7 md:h-8 md:w-8" />
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#edf2f8] text-[#1d5a82] shadow-[0_4px_14px_rgba(29,59,83,0.08)]">
+                    <Icon className="h-6 w-6" />
                   </div>
-                  <div className="flex items-baseline gap-2 md:gap-3">
-                    <span className="text-[2.1rem] font-black tracking-[-0.07em] text-[#111827] md:text-[2.8rem]">{value}</span>
-                    <span className="text-lg font-medium text-[#495669] md:text-2xl">{label}</span>
+                  <div>
+                    <div className="text-2xl font-extrabold leading-7 text-[#24292d]">
+                      <AnimatedStat value={value} reduceMotion={Boolean(reduceMotion)} />
+                    </div>
+                    <div className="mt-1 text-sm text-[#747579]">{label}</div>
                   </div>
                 </motion.div>
               ))}
@@ -130,28 +275,32 @@ export default function HomePage() {
             <motion.div
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.65, delay: 0.2, ease: revealEase }}
-              className="mt-8 grid max-w-[760px] gap-3 sm:grid-cols-2"
+              transition={{ duration: reduceMotion ? 0 : 0.65, delay: reduceMotion ? 0 : 0.2, ease: revealEase }}
+              className="mt-8 flex flex-col items-stretch justify-center gap-2.5 sm:flex-row sm:items-center"
             >
               <motion.a
                 href="/signup"
-                whileHover={{ y: -2, scale: 1.01 }}
-                whileTap={{ scale: 0.99 }}
-                transition={{ duration: 0.2, ease: revealEase }}
-                className="inline-flex min-h-[56px] w-full items-center justify-center gap-2 rounded-[18px] bg-[#f36a2d] px-5 py-4 text-sm font-black text-white shadow-[0_12px_20px_rgba(243,106,45,0.25)] transition hover:bg-[#f67a3f] sm:text-base"
+                initial={{ opacity: 0, x: -80 }}
+                animate={{ opacity: 1, x: 0 }}
+                whileHover={reduceMotion ? undefined : { y: -2, scale: 1.01, transition: { duration: 0.2 } }}
+                whileTap={reduceMotion ? undefined : { scale: 0.99, transition: { duration: 0.1 } }}
+                transition={{ duration: reduceMotion ? 0 : 0.7, delay: reduceMotion ? 0 : 0.2, ease: revealEase }}
+                className="home-hero-cta inline-flex min-h-[54px] w-full items-center justify-center gap-2 rounded-xl border border-[#ed4c00] border-b-4 bg-[#ff4c00] px-7 py-3 text-sm font-bold uppercase italic tracking-wide text-white shadow-[0_5px_12px_rgba(255,76,0,0.2)] transition hover:-translate-y-0.5 hover:bg-[#ed4c00] hover:shadow-[0_8px_18px_rgba(255,76,0,0.25)] active:translate-y-0.5 active:border-b-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#066ac9] focus-visible:ring-offset-2 sm:w-auto sm:text-base"
               >
-                <span className="text-lg">✦</span>
-                SIGN UP NOW
+                <UserRoundPlus aria-hidden="true" className="h-4 w-4" />
+                Signup now
               </motion.a>
               <motion.a
                 href="/login"
-                whileHover={{ y: -2, scale: 1.01 }}
-                whileTap={{ scale: 0.99 }}
-                transition={{ duration: 0.2, ease: revealEase }}
-                className="inline-flex min-h-[56px] w-full items-center justify-center gap-2 rounded-[18px] bg-[#f4cf5d] px-5 py-4 text-sm font-black text-[#111827] shadow-[0_12px_20px_rgba(244,207,93,0.22)] transition hover:bg-[#f7d774] sm:text-base"
+                initial={{ opacity: 0, x: 80 }}
+                animate={{ opacity: 1, x: 0 }}
+                whileHover={reduceMotion ? undefined : { y: -2, scale: 1.01, transition: { duration: 0.2 } }}
+                whileTap={reduceMotion ? undefined : { scale: 0.99, transition: { duration: 0.1 } }}
+                transition={{ duration: reduceMotion ? 0 : 0.7, delay: reduceMotion ? 0 : 0.32, ease: revealEase }}
+                className="home-hero-cta inline-flex min-h-[54px] w-full items-center justify-center gap-2 rounded-xl border border-[#e7b820] border-b-4 bg-[#ffcc2b] px-7 py-3 text-sm font-bold uppercase italic tracking-wide text-[#24292d] shadow-[0_5px_12px_rgba(247,195,46,0.2)] transition hover:-translate-y-0.5 hover:bg-[#f1bd16] hover:shadow-[0_8px_18px_rgba(247,195,46,0.26)] active:translate-y-0.5 active:border-b-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#066ac9] focus-visible:ring-offset-2 sm:w-auto sm:text-base"
               >
-                <span className="text-lg">◔</span>
-                SIGN IN
+                <Power aria-hidden="true" className="h-4 w-4" />
+                Sign In
               </motion.a>
             </motion.div>
           </div>
@@ -159,11 +308,8 @@ export default function HomePage() {
 
         <motion.section
           id="countries"
-          initial={{ opacity: 0, y: 18 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.2 }}
-          transition={{ duration: 0.6, ease: revealEase }}
-          className="hidden relative overflow-hidden bg-[#f6f3ef] py-8 md:py-16"
+          {...scrollReveal(Boolean(reduceMotion), 'left', 0, 0.55)}
+          className="relative overflow-hidden bg-[#fafbfd] py-10 md:py-14"
           style={{
             backgroundImage: "url('https://affroyal.com/images/element/map.svg')",
             backgroundPosition: 'center left',
@@ -171,184 +317,408 @@ export default function HomePage() {
             backgroundRepeat: 'no-repeat',
           }}
         >
-          <div className="mx-auto max-w-[1180px] px-4 sm:px-6 lg:px-8">
-            <h2 className="text-[2.1rem] font-black leading-none tracking-[-0.065em] text-[#111827] md:text-[3.2rem]">
+          <div className="mx-auto grid max-w-[1180px] gap-7 px-4 sm:px-6 lg:grid-cols-[0.72fr_2.28fr] lg:items-center lg:px-8">
+            <h2 className="max-w-[240px] text-4xl font-extrabold leading-tight tracking-[-0.045em] text-[#24292d] sm:text-5xl">
               Top Countries for Leads
             </h2>
-
-            <div className="mt-7 rounded-[22px] border border-slate-200 bg-white/80 p-4 shadow-[0_12px_24px_rgba(15,23,42,0.04)] md:p-5">
-              <div className="flex items-center gap-4">
-                <div className="h-16 w-16 overflow-hidden rounded-[14px] border border-slate-200 bg-[#f3f8ff]">
-                  <img src="https://affroyal.com/images/flags/cn.svg" alt="Canada" className="h-full w-full object-cover" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="text-[2rem] font-black tracking-[-0.06em] text-[#111827] md:text-[2.5rem]">Canada</div>
-                  <div className="mt-1 text-base text-[#495669] md:text-lg">Top Offer: Health &amp; Fitness</div>
-                </div>
-              </div>
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {countries.map(({ name, flag: Flag, offer, tag, color }, index) => (
+                <motion.article
+                  key={name}
+                  {...scrollReveal(Boolean(reduceMotion), 'scale', Math.min(index * 0.06, 0.3), 0.65)}
+                  whileInView={reduceMotion
+                    ? { opacity: 1, scale: 1, y: 0 }
+                    : { opacity: [0, 1], scale: [0.96, 1.02, 1], y: [10, 0, 0] }}
+                  whileHover={reduceMotion ? undefined : { y: -4, scale: 1.02 }}
+                  className="rounded-xl border border-slate-100 bg-white p-4 shadow-[0_8px_24px_rgba(36,41,45,0.08)] sm:p-5"
+                >
+                  <div className="flex min-w-0 items-center gap-3">
+                    <motion.div
+                      initial={{ rotate: -8 }}
+                      animate={reduceMotion ? { rotate: 0 } : undefined}
+                      whileInView={{ rotate: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: reduceMotion ? 0 : 0.45, delay: Math.min(index * 0.06, 0.3), ease: revealEase }}
+                      className="origin-bottom"
+                    >
+                      <Flag role="img" aria-label={`${name} flag`} className="h-9 w-12 shrink-0 rounded-sm shadow-sm" />
+                    </motion.div>
+                    <div className="min-w-0">
+                      <h3 className="truncate text-base font-bold text-[#24292d] sm:text-lg">{name}</h3>
+                      <p className="mt-0.5 text-xs text-[#9a9ea4] sm:text-sm">Top Offer: {offer}</p>
+                      <span className={`mt-2 inline-flex items-center gap-1 rounded px-2 py-1 text-[10px] font-semibold text-white ${color}`}>
+                        {tag === 'Trending' ? <Trophy className="h-3 w-3" /> : <TrendingUp className="h-3 w-3" />}
+                        {tag}
+                      </span>
+                    </div>
+                  </div>
+                </motion.article>
+              ))}
             </div>
           </div>
         </motion.section>
 
-        <motion.section id="services" className="bg-[#f7f7f4] py-12 md:py-20" initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.15 }} transition={{ duration: 0.6, ease: revealEase }}>
-          <div id="about" className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-            <div className="mb-8 max-w-2xl">
-              <p className="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-[#657489] sm:text-xs">Why AffClicker</p>
-              <h2 className="mt-2 text-[2.2rem] font-black tracking-[-0.06em] text-[#16212d] sm:text-4xl md:text-[3.2rem]">Built for publishers who want serious growth</h2>
+        <motion.section id="services" className="bg-white py-12 md:py-16" {...scrollReveal(Boolean(reduceMotion))}>
+          <div className="mx-auto grid max-w-[1180px] gap-6 px-4 sm:px-6 lg:grid-cols-[0.9fr_1.2fr_1.2fr] lg:items-stretch lg:px-8">
+            <div id="about" className="self-center">
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#066ac9]">Built for growth</p>
+              <h2 className="mt-2 text-3xl font-extrabold leading-tight tracking-[-0.04em] text-[#24292d] sm:text-4xl">Why Work with Us?</h2>
+              <p className="mt-4 text-sm leading-6 text-[#747579] sm:text-base">
+                AffClicker connects advertisers and publishers for mutual success with thoughtful tools, quality campaigns, and expert support.
+              </p>
             </div>
-
-            <div className="grid gap-4 sm:gap-5 lg:grid-cols-3">
+            <div className="contents">
               {highlights.map(({ title, icon: Icon, text, bullets }, index) => (
                 <motion.div
                   key={title}
-                  initial={{ opacity: 0, y: 18 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, amount: 0.2 }}
-                  transition={{ duration: 0.5, delay: index * 0.08, ease: revealEase }}
-                  whileHover={{ y: -4, scale: 1.01 }}
-                  className="overflow-hidden rounded-[24px] border border-slate-200 bg-white p-4 shadow-[0_18px_30px_rgba(15,23,42,0.04)] sm:rounded-[28px] sm:p-5"
+                  {...scrollReveal(Boolean(reduceMotion), index === 1 ? 'left' : 'up', index * 0.08, 0.5)}
+                  whileHover={reduceMotion ? undefined : { y: -4, scale: 1.01 }}
+                  className="flex flex-col rounded-xl border border-[#eff1f2] bg-white p-5 shadow-[0_8px_24px_rgba(36,41,45,0.08)] sm:p-6"
                 >
-                  <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-[#edf7ef] text-[#0a2540]">
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#fff4d4] text-[#c18d08]">
                     <Icon className="h-5 w-5" />
                   </div>
-                  <h3 className="text-[1.7rem] font-black tracking-[-0.05em] text-[#15212f] sm:text-2xl">{title}</h3>
-                  <p className="mt-3 text-sm leading-6 text-slate-600 sm:text-base">{text}</p>
-                  <ul className="mt-5 space-y-3">
+                  <h3 className="text-xl font-bold text-[#24292d]">{title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-[#747579]">{text}</p>
+                  <ul className="mt-4 flex-1 space-y-3">
                     {bullets.map((item) => (
-                      <li key={item} className="flex items-center gap-3 text-sm font-medium text-slate-700 sm:text-base">
-                        <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-[10px] text-emerald-700">
+                      <li key={item} className="flex items-start gap-2.5 text-sm leading-5 text-[#404448]">
+                        <span className="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
                           <Check className="h-3 w-3" />
                         </span>
                         {item}
                       </li>
                     ))}
                   </ul>
+                  <a
+                    href={title === 'For Publishers' ? '/signup' : 'mailto:hello@affclicker.com'}
+                    className="mt-5 inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-[#f7c32e] px-4 py-2.5 text-sm font-bold text-[#24292d] transition hover:bg-[#eab51f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#066ac9] focus-visible:ring-offset-2"
+                  >
+                    {title === 'For Publishers' ? 'Become a Publisher' : 'Partner with Us'}
+                    <ArrowRight className="h-4 w-4" />
+                  </a>
                 </motion.div>
               ))}
             </div>
           </div>
         </motion.section>
 
-        <motion.section id="verticals" className="bg-[#f4f1ec] py-12 md:py-20" initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.15 }} transition={{ duration: 0.6, ease: revealEase }}>
-          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-            <div className="mb-8 text-center">
-              <p className="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-[#657489] sm:text-xs">Popular verticals</p>
-              <h2 className="mt-2 text-[2.15rem] font-black tracking-[-0.06em] text-[#16212d] sm:text-4xl md:text-[3.2rem]">High-converting offers that move</h2>
+        <motion.section id="verticals" className="relative overflow-hidden bg-[#f5f7f9] py-12 md:py-16" {...scrollReveal(Boolean(reduceMotion))}>
+          <div className="mx-auto max-w-[1180px] px-4 sm:px-6 lg:px-8">
+            <div className="mb-7 text-center">
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#066ac9]">Discover campaigns</p>
+              <h2 className="mt-2 text-3xl font-extrabold tracking-[-0.04em] text-[#24292d] sm:text-4xl">Popular Verticals</h2>
+              <p className="mx-auto mt-2 max-w-2xl text-sm text-[#747579] sm:text-base">Explore the categories and campaign types publishers are working with.</p>
             </div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 24, scale: 0.98 }}
-              whileInView={{ opacity: 1, y: 0, scale: 1 }}
-              viewport={{ once: true, amount: 0.2 }}
-              transition={{ duration: 0.7, ease: revealEase }}
-              className="overflow-hidden rounded-[24px] border border-slate-200 bg-white p-4 shadow-[0_18px_30px_rgba(15,23,42,0.04)] sm:rounded-[28px] sm:p-5 md:p-8"
-            >
-              <div className="grid gap-6 lg:grid-cols-[1fr_0.92fr]">
-                <motion.div
-                  initial={{ opacity: 0, x: -14 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true, amount: 0.3 }}
-                  transition={{ duration: 0.6, delay: 0.08, ease: revealEase }}
+            <div className="mb-5 flex flex-wrap justify-center gap-2" role="tablist" aria-label="Offer verticals">
+              {verticals.map((vertical, index) => (
+                <motion.button
+                  key={vertical.name}
+                  id={`vertical-tab-${index}`}
+                  type="button"
+                  role="tab"
+                  aria-selected={activeVertical === index}
+                  aria-controls="vertical-panel"
+                  onClick={() => setActiveVertical(index)}
+                  whileHover={reduceMotion ? undefined : { y: -2, scale: 1.04 }}
+                  whileTap={reduceMotion ? undefined : { scale: 0.96 }}
+                  transition={{ duration: reduceMotion ? 0 : 0.2 }}
+                  className={`min-h-10 rounded-full border px-5 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#066ac9] focus-visible:ring-offset-2 ${
+                    activeVertical === index
+                      ? 'border-[#1d3b53] bg-[#1d3b53] text-white shadow-sm'
+                      : 'border-[#dde0e3] bg-white text-[#404448] hover:border-[#9a9ea4] hover:bg-[#eff1f2]'
+                  }`}
                 >
-                  <div className="inline-flex items-center gap-2 rounded-full bg-[#edf6f0] px-3 py-1.5 text-[0.62rem] font-bold uppercase tracking-[0.14em] text-emerald-700 sm:text-xs">
-                    <ShieldCheck className="h-3.5 w-3.5" />
-                    Best performers
-                  </div>
-                  <h3 className="mt-5 text-[2.1rem] font-black tracking-[-0.06em] text-[#16212d] sm:text-4xl">Jobs</h3>
-                  <p className="mt-4 max-w-lg text-base leading-7 text-slate-600 sm:text-lg sm:leading-8">
-                    Access high-converting job offers from recruitment and gig platforms. Ideal for audiences seeking employment and growth opportunities.
-                  </p>
-                  <ul className="mt-6 space-y-4 text-sm text-slate-700 sm:text-base">
-                    {['High-paying campaigns', 'Strong conversion potential', 'Great fit for broad audiences'].map((item, index) => (
-                      <motion.li
-                        key={item}
-                        initial={{ opacity: 0, x: -10 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true, amount: 0.5 }}
-                        transition={{ duration: 0.35, delay: 0.12 + index * 0.08, ease: revealEase }}
-                        className="flex items-center gap-3"
-                      >
-                        <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-[10px] text-emerald-700">
-                          <Check className="h-3 w-3" />
-                        </span>
-                        {item}
-                      </motion.li>
-                    ))}
-                  </ul>
-                </motion.div>
+                  {vertical.name}
+                </motion.button>
+              ))}
+            </div>
 
+            <AnimatePresence mode="wait" initial={false}>
+              {verticals.map((vertical, index) => (
+                activeVertical === index && (
                 <motion.div
-                  initial={{ opacity: 0, x: 16, scale: 0.96 }}
-                  whileInView={{ opacity: 1, x: 0, scale: 1 }}
-                  viewport={{ once: true, amount: 0.25 }}
-                  transition={{ duration: 0.7, delay: 0.12, ease: revealEase }}
-                  className="relative overflow-hidden rounded-[20px] border border-slate-200 bg-[#f7f2ea] sm:rounded-[24px]"
+                  key={vertical.name}
+                  id="vertical-panel"
+                  role="tabpanel"
+                  aria-labelledby={`vertical-tab-${index}`}
+                  initial={{ opacity: 0, y: 14, scale: 0.99 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -8, scale: 0.99 }}
+                  transition={{ duration: reduceMotion ? 0 : 0.35, ease: revealEase }}
+                  className="grid overflow-hidden rounded-xl border border-[#eff1f2] bg-white shadow-[0_12px_30px_rgba(36,41,45,0.08)] lg:grid-cols-2"
                 >
-                  <img src="https://affroyal.com/images/verticals/job-offers.png" alt="Jobs" className="h-full w-full object-cover" />
+                  <div className="p-6 sm:p-9">
+                    <h3 className="text-2xl font-extrabold text-[#24292d] sm:text-3xl">{vertical.name}</h3>
+                    <p className="mt-3 max-w-xl text-sm leading-6 text-[#747579] sm:text-base sm:leading-7">{vertical.text}</p>
+                    <ul className="mt-5 space-y-3">
+                      {vertical.bullets.map((item) => (
+                        <li key={item} className="flex items-center gap-2.5 text-sm text-[#404448]">
+                          <Check className="h-4 w-4 shrink-0 text-[#0cbc87]" />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                    <a href="/signup" className="mt-7 inline-flex items-center gap-2 text-sm font-bold text-[#066ac9] hover:text-[#0555a1]">
+                      Browse publisher opportunities <ArrowRight className="h-4 w-4" />
+                    </a>
+                  </div>
+                  <div className="min-h-56 bg-[#eef1f4]">
+                    <motion.img
+                      src={`https://affroyal.com/images/verticals/${vertical.image}`}
+                      alt={`${vertical.name} offers`}
+                      initial={{ opacity: 0, x: 24 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: reduceMotion ? 0 : 0.65, delay: 0.08, ease: revealEase }}
+                      className="h-full max-h-[360px] min-h-56 w-full object-cover"
+                    />
+                  </div>
                 </motion.div>
-              </div>
-            </motion.div>
+                )
+              ))}
+            </AnimatePresence>
           </div>
         </motion.section>
 
-        <motion.section className="bg-[#f3f1ee] py-12 md:py-20" initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.15 }} transition={{ duration: 0.6, ease: revealEase }}>
+        <motion.section className="bg-white py-12 md:py-16" {...scrollReveal(Boolean(reduceMotion))}>
+          <div className="mx-auto grid max-w-[1180px] gap-5 px-4 sm:px-6 md:grid-cols-2 lg:grid-cols-4 lg:px-8">
+            <div className="self-center md:col-span-2 lg:col-span-1">
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#066ac9]">More ways to grow</p>
+              <h2 className="mt-2 text-3xl font-extrabold leading-tight tracking-[-0.04em] text-[#24292d]">Services to Boost Your Affiliate Earnings</h2>
+              <p className="mt-3 text-sm leading-6 text-[#747579]">Tools and support designed to make it easier to build, track, and improve your campaigns.</p>
+            </div>
+            {earningServices.map(({ title, icon: Icon, summary, bullets }, index) => (
+              <motion.article
+                key={title}
+                {...scrollReveal(Boolean(reduceMotion), index === 1 ? 'up' : index === 0 ? 'right' : 'left', index * 0.07, 0.55)}
+                whileHover={reduceMotion ? undefined : { y: -4, scale: 1.01 }}
+                className="rounded-xl border border-[#eff1f2] bg-white p-5 shadow-[0_8px_24px_rgba(36,41,45,0.07)]"
+              >
+                <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#edf4fa] text-[#1d5a82]">
+                  <Icon className="h-5 w-5" />
+                </div>
+                <h3 className="mt-4 text-lg font-bold text-[#24292d]">{title}</h3>
+                <p className="mt-1 text-sm leading-5 text-[#747579]">{summary}</p>
+                <ul className="mt-4 space-y-2.5">
+                  {bullets.map((bullet) => (
+                    <li key={bullet} className="flex items-start gap-2 text-xs leading-5 text-[#404448]">
+                      <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#0cbc87]" />
+                      {bullet}
+                    </li>
+                  ))}
+                </ul>
+              </motion.article>
+            ))}
+          </div>
+        </motion.section>
+
+        <motion.section className="bg-[#f5f7f9] py-12 md:py-16" {...scrollReveal(Boolean(reduceMotion))}>
           <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <div className="mb-8 max-w-2xl">
-              <p className="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-[#657489] sm:text-xs">Offer categories</p>
-              <h2 className="mt-2 text-[2.15rem] font-black tracking-[-0.06em] text-[#16212d] sm:text-4xl md:text-[3.2rem]">Explore top-performing verticals</h2>
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#066ac9]">A wide range of campaigns</p>
+              <h2 className="mt-2 text-3xl font-extrabold tracking-[-0.04em] text-[#24292d] sm:text-4xl">Find your next opportunity</h2>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-2 xl:grid-cols-4">
-              {categories.map(({ name, count, icon }, index) => (
+              {categories.map(({ name, count, detail, icon: Icon }, index) => (
                 <motion.div
                   key={name}
-                  initial={{ opacity: 0, y: 16 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, amount: 0.25 }}
-                  transition={{ duration: 0.45, delay: index * 0.05, ease: revealEase }}
-                  whileHover={{ y: -3, scale: 1.01 }}
-                  className="rounded-[18px] border border-slate-200 bg-white/80 p-4 shadow-[0_12px_24px_rgba(15,23,42,0.04)] sm:rounded-[20px]"
+                  {...scrollReveal(Boolean(reduceMotion), 'scale', Math.min(index * 0.055, 0.3), 0.55)}
+                  whileHover={reduceMotion ? undefined : { y: -4, scale: 1.02 }}
+                  className="rounded-xl border border-[#eff1f2] bg-white p-4 shadow-[0_8px_24px_rgba(36,41,45,0.06)]"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#edf7ef] text-2xl">{icon}</div>
-                    <div>
-                      <h3 className="text-base font-black tracking-[-0.04em] text-[#16212d] sm:text-lg">{name}</h3>
-                      <p className="text-sm text-slate-500">{count}</p>
+                    <motion.div
+                      initial={{ rotate: -8, scale: 0.9 }}
+                      animate={reduceMotion ? { rotate: 0, scale: 1 } : undefined}
+                      whileInView={{ rotate: 0, scale: 1 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: reduceMotion ? 0 : 0.5, delay: Math.min(index * 0.055, 0.3), ease: revealEase }}
+                      className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#fff4d4] text-[#c18d08]"
+                    >
+                      <Icon className="h-6 w-6" />
+                    </motion.div>
+                    <div className="min-w-0">
+                      <h3 className="text-base font-bold text-[#24292d] sm:text-lg">{name}</h3>
+                      <p className="text-xs font-medium text-[#066ac9]">{count}</p>
                     </div>
                   </div>
+                  <p className="mt-3 text-xs leading-5 text-[#747579]">{detail}</p>
                 </motion.div>
               ))}
             </div>
           </div>
         </motion.section>
 
-        <motion.section className="bg-[#f3f1ee] pb-12 md:pb-16" initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.15 }} transition={{ duration: 0.6, ease: revealEase }}>
-          <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-            <div className="mb-8 max-w-2xl">
-              <p className="text-[0.68rem] font-bold uppercase tracking-[0.18em] text-[#657489] sm:text-xs">FAQ</p>
-              <h2 className="mt-2 text-[2.15rem] font-black tracking-[-0.06em] text-[#16212d] sm:text-4xl md:text-[3.2rem]">Everything you need to know</h2>
-            </div>
+        <motion.section id="contact" className="relative overflow-hidden bg-white py-12 md:py-16" {...scrollReveal(Boolean(reduceMotion))}>
+          <div className="mx-auto grid max-w-[1180px] gap-8 px-4 sm:px-6 lg:grid-cols-2 lg:items-center lg:px-8">
+            <motion.div {...scrollReveal(Boolean(reduceMotion), 'right')}>
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#066ac9]">We’re here to help</p>
+              <h2 className="mt-2 text-3xl font-extrabold tracking-[-0.04em] text-[#24292d] sm:text-4xl">Get in touch with us!</h2>
+              <p className="mt-3 max-w-lg text-sm leading-6 text-[#747579] sm:text-base">Have a question or want to explore a partnership? Reach our team and we’ll be glad to help.</p>
+              <a href="mailto:hello@affclicker.com" className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-[#066ac9] hover:text-[#0555a1]">
+                <Mail className="h-4 w-4" />
+                hello@affclicker.com
+              </a>
+              <div className="mt-7 grid gap-3 sm:grid-cols-2">
+                <motion.div {...scrollReveal(Boolean(reduceMotion), 'up', 0.05, 0.45)} className="rounded-lg border border-[#eff1f2] bg-[#f5f7f9] p-4">
+                  <h3 className="text-sm font-bold text-[#24292d]">Publisher support</h3>
+                  <p className="mt-1 text-xs leading-5 text-[#747579]">Campaign guidance and account setup.</p>
+                </motion.div>
+                <motion.div {...scrollReveal(Boolean(reduceMotion), 'up', 0.12, 0.45)} className="rounded-lg border border-[#eff1f2] bg-[#f5f7f9] p-4">
+                  <h3 className="text-sm font-bold text-[#24292d]">Advertiser inquiries</h3>
+                  <p className="mt-1 text-xs leading-5 text-[#747579]">Discuss campaign goals and traffic.</p>
+                </motion.div>
+              </div>
+            </motion.div>
+            <motion.form
+              onSubmit={submitContactForm}
+              initial={{ opacity: 0, x: 32 }}
+              animate={reduceMotion ? { opacity: 1, x: 0 } : undefined}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: reduceMotion ? 0 : 0.65, ease: revealEase }}
+              className="rounded-xl border border-[#eff1f2] bg-white p-5 shadow-[0_12px_30px_rgba(36,41,45,0.08)] sm:p-7"
+            >
+              <h3 className="text-xl font-bold text-[#24292d]">Send us a message</h3>
+              <p className="mt-1 text-sm text-[#747579]">Fill out the form and our team will follow up.</p>
+              <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                <label className="block text-sm font-medium text-[#404448]">
+                  First name
+                  <input name="firstName" required maxLength={100} autoComplete="given-name" className="mt-1.5 min-h-11 w-full rounded-md border border-[#dde0e3] bg-white px-3 text-sm text-[#24292d] outline-none transition placeholder:text-[#9a9ea4] focus:border-[#066ac9] focus:ring-2 focus:ring-[#066ac9]/15" />
+                </label>
+                <label className="block text-sm font-medium text-[#404448]">
+                  Last name
+                  <input name="lastName" required maxLength={100} autoComplete="family-name" className="mt-1.5 min-h-11 w-full rounded-md border border-[#dde0e3] bg-white px-3 text-sm text-[#24292d] outline-none transition placeholder:text-[#9a9ea4] focus:border-[#066ac9] focus:ring-2 focus:ring-[#066ac9]/15" />
+                </label>
+                <label className="block text-sm font-medium text-[#404448] sm:col-span-2">
+                  Email address
+                  <input type="email" name="email" required maxLength={254} autoComplete="email" className="mt-1.5 min-h-11 w-full rounded-md border border-[#dde0e3] bg-white px-3 text-sm text-[#24292d] outline-none transition placeholder:text-[#9a9ea4] focus:border-[#066ac9] focus:ring-2 focus:ring-[#066ac9]/15" />
+                </label>
+                <label className="block text-sm font-medium text-[#404448] sm:col-span-2">
+                  Message
+                  <textarea name="message" required maxLength={5000} rows={4} className="mt-1.5 w-full resize-y rounded-md border border-[#dde0e3] bg-white px-3 py-2.5 text-sm text-[#24292d] outline-none transition placeholder:text-[#9a9ea4] focus:border-[#066ac9] focus:ring-2 focus:ring-[#066ac9]/15" />
+                </label>
+              </div>
+              {contactError && <p role="alert" className="mt-4 rounded-md bg-rose-50 px-3 py-2 text-sm text-rose-700">{contactError}</p>}
+              {contactSuccess && <p role="status" className="mt-4 rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{contactSuccess}</p>}
+              <button type="submit" disabled={contactSubmitting} className="mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-md bg-[#f7c32e] px-5 py-2.5 text-sm font-bold text-[#24292d] transition hover:bg-[#eab51f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#066ac9] focus-visible:ring-offset-2 disabled:cursor-wait disabled:opacity-60 sm:w-auto">
+                {contactSubmitting ? 'Sending...' : 'Send message'}
+                {!contactSubmitting && <ArrowRight className="h-4 w-4" />}
+              </button>
+            </motion.form>
+          </div>
+        </motion.section>
 
+        <motion.section id="faqs" className="bg-[#f5f7f9] py-12 md:py-16" {...scrollReveal(Boolean(reduceMotion))}>
+          <div className="mx-auto max-w-[880px] px-4 sm:px-6 lg:px-8">
+            <div className="mb-7 text-center">
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#066ac9]">Helpful answers</p>
+              <h2 className="mt-2 text-3xl font-extrabold tracking-[-0.04em] text-[#24292d] sm:text-4xl">Frequently Asked Questions</h2>
+            </div>
             <div className="space-y-3">
-              {faqs.map((faq, index) => (
-                <motion.div
-                  key={faq}
-                  initial={{ opacity: 0, y: 14 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, amount: 0.25 }}
-                  transition={{ duration: 0.45, delay: index * 0.06, ease: revealEase }}
-                  whileHover={{ y: -2 }}
-                  className="rounded-[18px] border border-slate-200 bg-white px-4 py-4 shadow-[0_12px_24px_rgba(15,23,42,0.02)] sm:rounded-[20px] sm:px-5"
+              {faqs.map(({ question, answer }, index) => (
+                <motion.article
+                  key={question}
+                  {...scrollReveal(Boolean(reduceMotion), 'scale', Math.min(index * 0.045, 0.225), 0.35)}
+                  className="rounded-lg border border-[#eff1f2] bg-white px-4 shadow-[0_5px_18px_rgba(36,41,45,0.04)] sm:px-5"
                 >
-                  <div className="flex items-start gap-3">
-                    <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#0a2540] text-sm font-bold text-white">{index + 1}</div>
-                    <p className="text-sm leading-6 text-slate-700 sm:text-base sm:leading-7">{faq}</p>
-                  </div>
-                </motion.div>
+                  <h3>
+                    <button
+                      type="button"
+                      aria-expanded={openFaq === index}
+                      aria-controls={`faq-answer-${index}`}
+                      onClick={() => setOpenFaq(openFaq === index ? null : index)}
+                      className="flex min-h-14 w-full items-center justify-between gap-4 py-4 text-left text-sm font-bold text-[#24292d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#066ac9] sm:text-base"
+                    >
+                      {question}
+                      <ChevronDown className={`h-4 w-4 shrink-0 text-[#747579] transition-transform duration-200 ${openFaq === index ? 'rotate-180' : ''}`} />
+                    </button>
+                  </h3>
+                  <AnimatePresence initial={false}>
+                    {openFaq === index && (
+                      <motion.div
+                        id={`faq-answer-${index}`}
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{
+                          height: { duration: reduceMotion ? 0 : 0.32, ease: revealEase },
+                          opacity: { duration: reduceMotion ? 0 : 0.2, ease: 'easeOut' },
+                        }}
+                        className="overflow-hidden"
+                      >
+                        <p className="border-t border-[#eff1f2] pb-4 pt-3 text-sm leading-6 text-[#747579]">
+                          {answer}
+                        </p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.article>
               ))}
             </div>
           </div>
         </motion.section>
+
+        <section aria-label="Affiliate industry partners" className="bg-white py-8">
+          <div className="mx-auto max-w-[1180px] overflow-hidden px-4 sm:px-6 lg:px-8">
+            <div className={`partner-logo-track ${reduceMotion ? 'partner-logo-track-static' : ''}`}>
+              {[0, 1].map((copy) => (
+                <div key={copy} className="flex shrink-0 items-center gap-5 pr-5 sm:gap-20 sm:pr-20" aria-hidden={copy === 1}>
+                  {partners.map((partner) => (
+                    <div key={partner.name} className="flex h-14 min-w-28 items-center justify-center rounded-md border border-[#eff1f2] bg-white px-3 py-2 shadow-sm">
+                      <img
+                        src={`https://affroyal.com/images/element/${partner.image}`}
+                        alt={copy === 1 ? '' : partner.name}
+                        loading="lazy"
+                        decoding="async"
+                        className="h-10 w-auto max-w-[170px] object-contain"
+                      />
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="bg-white px-4 pb-12 sm:px-6 md:pb-16">
+          <div className="mx-auto max-w-[1180px] rounded-xl bg-[#24292d] px-5 py-8 sm:px-8 sm:py-10 lg:px-12">
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+              <motion.div
+                initial={{ opacity: 0, x: -56 }}
+                animate={reduceMotion ? { opacity: 1, x: 0 } : undefined}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, amount: 0.25 }}
+                transition={{ duration: reduceMotion ? 0 : 0.7, ease: revealEase }}
+                className="max-w-2xl"
+              >
+                <h2 className="text-2xl font-extrabold tracking-[-0.03em] text-white sm:text-3xl">Join AffClicker and grow with confidence</h2>
+                <p className="mt-2 text-sm leading-6 text-white/75 sm:text-base">Access quality offers, clear performance insights, and support built around your goals.</p>
+                <ul className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-xs text-white/90 sm:text-sm">
+                  {['Reliable support', 'Exclusive offers', 'Real-time insights'].map((item) => (
+                    <li key={item} className="inline-flex items-center gap-1.5"><Check className="h-4 w-4 text-[#0cbc87]" />{item}</li>
+                  ))}
+                </ul>
+              </motion.div>
+              <motion.a
+                href="/signup"
+                initial={{ opacity: 0, x: 56 }}
+                animate={reduceMotion ? { opacity: 1, x: 0 } : undefined}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, amount: 0.25 }}
+                transition={{ duration: reduceMotion ? 0 : 0.7, delay: reduceMotion ? 0 : 0.08, ease: revealEase }}
+                whileHover={reduceMotion ? undefined : { y: -3, scale: 1.03 }}
+                whileTap={reduceMotion ? undefined : { scale: 0.97 }}
+                className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-lg bg-[#ff4c00] px-6 py-3 text-sm font-bold uppercase text-white shadow-[0_6px_16px_rgba(255,76,0,0.25)] transition hover:bg-[#ed4c00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#24292d]"
+              >
+                <UserRoundPlus className="h-4 w-4" />
+                Start earning
+              </motion.a>
+            </div>
+          </div>
+        </section>
 
       </main>
     </PublicLayout>

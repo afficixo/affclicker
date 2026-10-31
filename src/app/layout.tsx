@@ -67,10 +67,10 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: '/affclicker_favicon.png', type: 'image/png' },
+      { url: '/affclicker-favicon-20261031.png', type: 'image/png', sizes: '768x768' },
     ],
-    apple: [{ url: '/affclicker_favicon.png', type: 'image/png' }],
-    shortcut: '/affclicker_favicon.png',
+    apple: [{ url: '/affclicker-favicon-20261031.png', type: 'image/png', sizes: '768x768' }],
+    shortcut: '/affclicker-favicon-20261031.png',
   },
   manifest: '/site.webmanifest',
   openGraph: {
@@ -83,8 +83,8 @@ export const metadata: Metadata = {
     locale: 'en_US',
     images: [
       {
-        url: '/affclicker-preview.png',
-        secureUrl: 'https://affclicker.com/affclicker-preview.png',
+        url: '/affclicker-preview-20261031.png',
+        secureUrl: 'https://affclicker.com/affclicker-preview-20261031.png',
         width: 768,
         height: 768,
         alt: 'AffClicker Pay Per Click Affiliate Marketplace',
@@ -97,7 +97,7 @@ export const metadata: Metadata = {
     title: 'AffClicker — CPC Affiliate Marketplace',
     description:
       'Discover CPC offers, promote campaigns, track valid clicks, and monetize your traffic with AffClicker.',
-    images: ['/affclicker-preview.png'],
+    images: ['/affclicker-preview-20261031.png'],
     site: '@affclicker',
     creator: '@affclicker',
   },
