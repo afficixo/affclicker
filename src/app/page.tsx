@@ -197,14 +197,14 @@ export default function HomePage() {
         >
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 border-b-2 border-dotted border-slate-100" />
           <img
-            src="https://affroyal.com/images/element/rocket.svg"
+            src="/images/element/rocket.svg"
             alt=""
             aria-hidden="true"
             className="home-hero-rocket pointer-events-none absolute bottom-0 left-0 hidden w-[159px] rotate-[74deg] md:block"
             style={reduceMotion ? undefined : { animation: 'rocket-enter-left 1.8s ease-out both' }}
           />
           <img
-            src="https://affroyal.com/images/element/rocket.svg"
+            src="/images/element/rocket.svg"
             alt=""
             aria-hidden="true"
             className="home-hero-rocket pointer-events-none absolute bottom-0 right-0 hidden w-[159px] -rotate-[74deg] scale-x-[-1] md:block"
@@ -311,7 +311,7 @@ export default function HomePage() {
           {...scrollReveal(Boolean(reduceMotion), 'left', 0, 0.55)}
           className="relative overflow-hidden bg-[#fafbfd] py-10 md:py-14"
           style={{
-            backgroundImage: "url('https://affroyal.com/images/element/map.svg')",
+            backgroundImage: "url('/images/element/map.svg')",
             backgroundPosition: 'center left',
             backgroundSize: 'cover',
             backgroundRepeat: 'no-repeat',
@@ -466,7 +466,7 @@ export default function HomePage() {
                   </div>
                   <div className="min-h-56 bg-[#eef1f4]">
                     <motion.img
-                      src={`https://affroyal.com/images/verticals/${vertical.image}`}
+                      src={`/images/verticals/${vertical.image}`}
                       alt={`${vertical.name} offers`}
                       initial={{ opacity: 0, x: 24 }}
                       animate={{ opacity: 1, x: 0 }}
@@ -669,7 +669,7 @@ export default function HomePage() {
                   {partners.map((partner) => (
                     <div key={partner.name} className="flex h-14 min-w-28 items-center justify-center rounded-md border border-[#eff1f2] bg-white px-3 py-2 shadow-sm">
                       <img
-                        src={`https://affroyal.com/images/element/${partner.image}`}
+                        src={`/images/element/${partner.image}`}
                         alt={copy === 1 ? '' : partner.name}
                         loading="lazy"
                         decoding="async"
