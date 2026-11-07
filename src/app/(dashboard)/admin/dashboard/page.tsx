@@ -83,10 +83,13 @@ export default function DashboardPage() {
     async (isManualRefresh = false) => {
       if (isManualRefresh) setRefreshing(true);
       try {
-        const response = await fetch(
-          "/api/analytics/dashboard?period=all",
-          { credentials: "include", cache: "no-store" }
-        );
+        const [response, postbacksResponse] = await Promise.all([
+          fetch(
+            "/api/analytics/dashboard?period=all",
+            { credentials: "include", cache: "no-store" }
+          ),
+          fetch("/api/postbacks?summary=1", { credentials: "include" }),
+        ]);
 
         if (response.status === 401) {
           router.push("/login");
@@ -119,7 +122,6 @@ export default function DashboardPage() {
         }
 
         const data = await response.json();
-        const postbacksResponse = await fetch("/api/postbacks", { credentials: "include" });
         const postbacksData = postbacksResponse.ok ? await postbacksResponse.json() : null;
         const linksResponse = await fetch("/api/links", { credentials: "include" });
         const paymentLinks = linksResponse.ok ? await linksResponse.json() : [];
