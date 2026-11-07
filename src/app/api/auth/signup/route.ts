@@ -7,6 +7,7 @@ import { createUserSafe } from '@/lib/db/user'
 import { getOwnerUserId } from '@/lib/auth'
 import { getCorsHeaders } from '@/config/cors'
 import { checkRateLimit, getResetTime } from '@/lib/utils/rate-limiter'
+import { decryptTelegramToken, sendTelegramMessage } from '@/lib/services/telegram'
 
 /**
  * Get client IP from request headers
@@ -143,6 +144,25 @@ export async function POST(request: Request) {
     }
 
     const user = await createUserSafe(createData)
+
+    if (ownerUserId) {
+      try {
+        const telegram = await prisma.telegramNotification.findUnique({
+          where: { userId: ownerUserId },
+          select: { channelId: true, botTokenEncrypted: true, isActive: true },
+        })
+
+        if (telegram?.isActive) {
+          await sendTelegramMessage(
+            decryptTelegramToken(telegram.botTokenEncrypted),
+            telegram.channelId,
+            'A new manager signup is pending approval. Review the request in your AffClicker dashboard.',
+          )
+        }
+      } catch (error) {
+        console.error('Failed to send Telegram signup notification:', error)
+      }
+    }
 
     return NextResponse.json(
       {

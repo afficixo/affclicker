@@ -1,3 +1,5 @@
+import { countries } from 'country-flag-icons'
+
 const COUNTRY_FLAGS: Record<string, string> = {
   US: '🇺🇸',
   GB: '🇬🇧',
@@ -159,6 +161,13 @@ const COUNTRY_LABELS: Record<string, string> = {
   DK: 'Denmark',
   HU: 'Hungary',
 }
+
+const countryDisplayNames = new Intl.DisplayNames(['en'], { type: 'region' })
+const countryCodes = Object.values(countries).flat()
+export const COUNTRY_OPTIONS = countryCodes
+  .filter((code) => /^[A-Z]{2}$/.test(code))
+  .map((code) => ({ code, name: countryDisplayNames.of(code) || code }))
+  .sort((a, b) => a.name.localeCompare(b.name))
 
 export function normalizeCountryCode(country?: string | null): string | null {
   if (!country) return null

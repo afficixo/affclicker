@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { getTokenFromCookie, getUserFromToken, isManager } from '@/lib/auth'
 import { getCorsHeaders } from '@/config/cors'
 import { prisma } from '@/lib/db/prisma'
-import { DEFAULT_REFERRAL_COMMISSION_RATE } from '@/lib/referrals'
+import { DEFAULT_REFERRAL_COMMISSION_RATE, estimateReferralCommission } from '@/lib/referrals'
 import { calculatePaidManagerPayoutAmount } from '@/lib/utils/payment-pending'
 
 export async function GET(request: Request) {
@@ -49,27 +49,72 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Publisher account not found' }, { status: 404, headers: getCorsHeaders(origin) })
     }
 
+    const referredManagers = await prisma.user.findMany({
+      where: { referredById: user.id, role: 'MANAGER' },
+      select: { id: true, username: true, commissionRate: true },
+    })
+    const pendingInvoices = referredManagers.length > 0
+      ? await prisma.invoice.findMany({
+        where: {
+          isPaid: false,
+          managerPayouts: { none: {} },
+          linkAccount: { userId: { in: referredManagers.map((manager) => manager.id) } },
+        },
+        select: {
+          invoiceNumber: true,
+          totalEarning: true,
+          createdAt: true,
+          linkAccount: { select: { userId: true } },
+        },
+      })
+      : []
+    const managerById = new Map(referredManagers.map((manager) => [manager.id, manager]))
+    const pendingEstimates = pendingInvoices.flatMap((invoice) => {
+      const manager = managerById.get(invoice.linkAccount.userId)
+      if (!manager) return []
+
+      const estimate = estimateReferralCommission(
+        invoice.totalEarning,
+        Number(manager.commissionRate ?? 20) || 0,
+        publisher.referralCommissionRate ?? DEFAULT_REFERRAL_COMMISSION_RATE,
+      )
+      if (estimate.amount <= 0) return []
+
+      return [{
+        id: `estimate-${invoice.invoiceNumber}`,
+        ...estimate,
+        createdAt: invoice.createdAt,
+        referredUser: { username: manager.username },
+        invoice: { invoiceNumber: invoice.invoiceNumber },
+      }]
+    })
+
     const commissions = publisher.referralCommissionsEarned.map((commission) => ({
       ...commission,
       status: commission.paidAt ? 'paid' : 'pending',
     }))
-    const pendingAmount = commissions
+    const pendingRecordedAmount = commissions
       .filter((commission) => !commission.paidAt)
       .reduce((total, commission) => total + commission.amount, 0)
+    const pendingEstimateAmount = pendingEstimates.reduce((total, estimate) => total + estimate.amount, 0)
     const paidAmount = commissions
       .filter((commission) => commission.paidAt)
       .reduce((total, commission) => total + commission.amount, 0)
+    const pendingAmount = pendingRecordedAmount + pendingEstimateAmount
 
     return NextResponse.json({
       referralCode: publisher.referralCode,
       commissionRate: publisher.referralCommissionRate ?? DEFAULT_REFERRAL_COMMISSION_RATE,
       referredPublishers: publisher.referrals,
       commissions,
+      pendingEstimates,
       summary: {
         referrals: publisher.referrals.length,
         pendingAmount,
+        pendingRecordedAmount,
+        pendingEstimateAmount,
         paidAmount,
-        totalAmount: pendingAmount + paidAmount,
+        totalAmount: pendingRecordedAmount + paidAmount,
         managerPaidOutAmount: calculatePaidManagerPayoutAmount(publisher.managerPayouts),
       },
     }, { headers: getCorsHeaders(origin) })

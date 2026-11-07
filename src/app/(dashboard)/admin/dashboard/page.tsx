@@ -62,6 +62,7 @@ export default function DashboardPage() {
   const [, setRefreshing] = useState(false);
   const [logFilter] = useState<string>("all");
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [isDashboardLoading, setIsDashboardLoading] = useState(true);
 
   // ─── ZOOM FIX: ensure viewport meta is correct ───
   useEffect(() => {
@@ -171,6 +172,7 @@ export default function DashboardPage() {
         console.error("Telemetry sync failed:", error);
       } finally {
         if (isManualRefresh) setRefreshing(false);
+        setIsDashboardLoading(false);
       }
     },
     [router]
@@ -223,16 +225,18 @@ export default function DashboardPage() {
             countryBreakdown={countryBreakdown}
             totalPayout={stats.totalPayout}
             showConversions={userRole !== "MANAGER"}
+            isLoading={isDashboardLoading}
           />
         </section>
 
         {/* ─── Traffic Breakdown ─── */}
-        <section className="mb-4 sm:mb-6">
+        <section className="mb-4 sm:mb-6 lg:mb-4">
           <TrafficBreakdown
             referrerBreakdown={referrerBreakdown}
             browserBreakdown={browserBreakdown}
             deviceBreakdown={deviceBreakdown}
             countryBreakdown={countryBreakdown}
+            isLoading={isDashboardLoading}
           />
         </section>
 

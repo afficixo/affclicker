@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs'
 import { getCorsHeaders } from '@/config/cors'
 import { getTokenFromCookie, getUserFromToken, getOwnerUserId, isAdmin, isOwner, verifyGooglePasswordResetToken } from '@/lib/auth'
 import { getLinkAccountVisibilityWhereClause } from '@/lib/utils/link-account-access'
+import { getCountryLabel } from '@/lib/utils/country'
 import { prisma } from '@/lib/db/prisma'
 
 export async function POST(request: Request) {
@@ -153,6 +154,137 @@ export async function POST(request: Request) {
 
       return NextResponse.json(
         { success: true, managerId, clickRate: updatedManager.clickRate ?? 0, message: 'Manager click rate updated successfully.' },
+        { headers: getCorsHeaders(origin) }
+      )
+    }
+
+    if (action === 'update-manager-country-click-rate' || action === 'bulk-update-manager-country-click-rate') {
+      if (!isOwner(user)) {
+        return NextResponse.json(
+          { error: 'Only an owner can update country click rates.' },
+          { status: 403, headers: getCorsHeaders(origin) }
+        )
+      }
+
+      if (action === 'bulk-update-manager-country-click-rate') {
+        const countryCode = typeof body?.countryCode === 'string'
+          ? body.countryCode.trim().toUpperCase()
+          : ''
+        const rate = Number(body?.rate)
+        if (!/^[A-Z]{2}$/.test(countryCode) || !Number.isFinite(rate) || rate < 0) {
+          return NextResponse.json(
+            { error: 'A valid country and non-negative click rate are required.' },
+            { status: 400, headers: getCorsHeaders(origin) }
+          )
+        }
+
+        try {
+          const managers = await prisma.user.findMany({
+            where: { role: 'MANAGER' },
+            select: { id: true },
+          })
+          if (!managers.length) {
+            return NextResponse.json(
+              { error: 'No manager accounts were found.' },
+              { status: 404, headers: getCorsHeaders(origin) }
+            )
+          }
+
+          await prisma.$transaction([
+            prisma.countryClickRate.createMany({
+              data: managers.map((manager) => ({ userId: manager.id, countryCode, rate })),
+              skipDuplicates: true,
+            }),
+            prisma.countryClickRate.updateMany({
+              where: { userId: { in: managers.map((manager) => manager.id) }, countryCode },
+              data: { rate },
+            }),
+            ...(countryCode === 'US'
+              ? [prisma.user.updateMany({
+                  where: { id: { in: managers.map((manager) => manager.id) } },
+                  data: { clickRate: rate, updatedAt: new Date() },
+                })]
+              : []),
+          ])
+
+          return NextResponse.json(
+            {
+              success: true,
+              countryCode,
+              rate,
+              managerCount: managers.length,
+              message: `${getCountryLabel(countryCode)} click rate updated for ${managers.length} managers.`,
+            },
+            { headers: getCorsHeaders(origin) }
+          )
+        } catch (error) {
+          const databaseError = error as { code?: string; meta?: { table?: string } }
+          if (
+            databaseError.code === 'P2021' &&
+            String(databaseError.meta?.table || '').includes('country_click_rates')
+          ) {
+            return NextResponse.json(
+              { error: 'Country click rates are not enabled in the database yet. Apply the pending Prisma migration first.' },
+              { status: 503, headers: getCorsHeaders(origin) },
+            )
+          }
+          throw error
+        }
+      }
+
+      const managerId = typeof body?.managerId === 'string' ? body.managerId.trim() : ''
+      const countryCode = typeof body?.countryCode === 'string'
+        ? body.countryCode.trim().toUpperCase()
+        : ''
+      const rate = Number(body?.rate)
+      if (!managerId || !/^[A-Z]{2}$/.test(countryCode) || !Number.isFinite(rate) || rate < 0) {
+        return NextResponse.json(
+          { error: 'Manager, a valid country code, and a non-negative rate are required.' },
+          { status: 400, headers: getCorsHeaders(origin) }
+        )
+      }
+
+      const manager = await prisma.user.findUnique({
+        where: { id: managerId },
+        select: { id: true, role: true },
+      })
+      if (!manager || manager.role !== 'MANAGER') {
+        return NextResponse.json(
+          { error: 'Manager account not found.' },
+          { status: 404, headers: getCorsHeaders(origin) }
+        )
+      }
+
+      let countryRate
+      try {
+        countryRate = await prisma.countryClickRate.upsert({
+          where: { userId_countryCode: { userId: managerId, countryCode } },
+          create: { userId: managerId, countryCode, rate },
+          update: { rate },
+          select: { countryCode: true, rate: true },
+        })
+      } catch (error) {
+        const databaseError = error as { code?: string; meta?: { table?: string } }
+        if (
+          databaseError.code === 'P2021' &&
+          String(databaseError.meta?.table || '').includes('country_click_rates')
+        ) {
+          return NextResponse.json(
+            { error: 'Country click rates are not enabled in the database yet. Apply the pending Prisma migration first.' },
+            { status: 503, headers: getCorsHeaders(origin) },
+          )
+        }
+        throw error
+      }
+      if (countryCode === 'US') {
+        await prisma.user.update({
+          where: { id: managerId },
+          data: { clickRate: rate, updatedAt: new Date() },
+        })
+      }
+
+      return NextResponse.json(
+        { success: true, managerId, countryRate, message: 'Country click rate updated successfully.' },
         { headers: getCorsHeaders(origin) }
       )
     }

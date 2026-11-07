@@ -21,6 +21,10 @@ interface PaymentLink {
   user?: { role: string };
   selectedInvoiceNumber?: string;
   selectedManagerId?: string;
+  selectedManagerOwnPending?: number;
+  selectedManagerReferralPending?: number;
+  selectedManagerTotalPending?: number;
+  selectedManagerTotalPendingCents?: number;
   invoiceSummary?: {
     pendingAmount: number;
     paidAmount: number;
@@ -245,7 +249,7 @@ export default function PaymentsPage() {
     }
   };
 
-  const recordManagerPayout = async (managerId: string, reference: string) => {
+  const recordManagerPayout = async (managerId: string, reference: string, payout: PaymentLink) => {
     setPayingLinkId(managerId);
     setError("");
     try {
@@ -253,10 +257,18 @@ export default function PaymentsPage() {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ paymentReference: reference }),
+        body: JSON.stringify({
+          paymentReference: reference,
+          expectedTotalCents: payout.selectedManagerTotalPendingCents,
+          expectedPayoutMethod: payout.payoutMethod,
+          expectedPayoutAccount: payout.payoutAccount,
+        }),
       });
       const data = await response.json().catch(() => null);
-      if (!response.ok) throw new Error(data?.error || "Unable to record manager payout");
+      if (!response.ok) {
+        if (response.status === 409) await fetchManagerPayments();
+        throw new Error(data?.error || "Unable to record manager payout");
+      }
       await fetchManagerPayments();
       await fetchPayments();
       return true;
@@ -272,7 +284,7 @@ export default function PaymentsPage() {
     event.preventDefault();
     if (!paymentLink || !paymentReference.trim()) return;
     const success = paymentLink.selectedManagerId
-      ? await recordManagerPayout(paymentLink.selectedManagerId, paymentReference.trim())
+      ? await recordManagerPayout(paymentLink.selectedManagerId, paymentReference.trim(), paymentLink)
       : await markInvoicePaid(paymentLink.id, paymentReference.trim());
     if (success) {
       setPaymentLink(null);
@@ -344,10 +356,11 @@ export default function PaymentsPage() {
     const commissionRate = Number(manager.commissionRate ?? 20) || 0;
     const paid = manager.managerPayouts.filter((payout) => payout.isPaid).reduce((sum, payout) => sum + Number(payout.totalEarning || 0), 0);
     const pendingInvoices = invoices.filter((invoice) => !invoice.isPaid && invoice.managerPayouts.length === 0);
+    const ownPending = calculatePendingAmount(pendingInvoices, commissionRate);
     const referralPending = manager.referralCommissionsEarned
       .filter((commission) => !commission.paidAt)
       .reduce((sum, commission) => sum + Number(commission.amount || 0), 0);
-    const pending = calculatePendingAmount(pendingInvoices, commissionRate) + referralPending;
+    const pending = ownPending + referralPending;
     const revenue = managerRevenueByUserId.get(manager.id) || 0;
     const nextUnpaidInvoice = manager.linkAccounts
       .flatMap((link) => link.invoices.filter((invoice) => !invoice.isPaid && invoice.managerPayouts.length === 0).map((invoice) => ({ invoice, link })))
@@ -355,9 +368,11 @@ export default function PaymentsPage() {
     return {
       manager,
       invoiceCount: invoices.length,
+      pendingInvoiceCount: pendingInvoices.length,
       paid,
       total: revenue,
       pending,
+      ownPending,
       referralPending,
       commissionRate,
       payoutMethod: manager.payoutMethod || (manager.bkashNumber ? "BKASH" : null),
@@ -365,23 +380,25 @@ export default function PaymentsPage() {
       nextUnpaidInvoice,
     };
   });
-  const activeManagerPaymentRows = useMemo(
-    () => managerPaymentRows.filter(({ manager }) => manager.status === "ACTIVE"),
+  const payableManagerRows = useMemo(
+    () => managerPaymentRows.filter(({ manager, pending, paid }) =>
+      manager.status === "ACTIVE" || pending > 0 || paid > 0,
+    ),
     [managerPaymentRows],
   );
   const visibleManagerPaymentRows = useMemo(
     () => managerPaymentFilter === "unpaid"
-      ? activeManagerPaymentRows.filter(({ pending, nextUnpaidInvoice }) => pending > 0 || Boolean(nextUnpaidInvoice))
-      : activeManagerPaymentRows,
-    [activeManagerPaymentRows, managerPaymentFilter],
+      ? payableManagerRows.filter(({ pending, nextUnpaidInvoice }) => pending > 0 || Boolean(nextUnpaidInvoice))
+      : payableManagerRows,
+    [payableManagerRows, managerPaymentFilter],
   );
   const pendingSummary = userRole === "OWNER"
-    ? activeManagerPaymentRows.reduce((sum, row) => sum + row.pending, 0)
+    ? managerPaymentRows.reduce((sum, row) => sum + row.pending, 0)
     : userRole === "MANAGER"
       ? paymentRows.reduce((sum, row) => sum + calculateManagerOwnerPendingAmount(row.invoices, Number(row.link.commissionRate ?? 20)), 0)
     : totals.invoices;
   const paidOutSummary = userRole === "OWNER"
-    ? activeManagerPaymentRows.reduce((sum, row) => sum + row.paid, 0)
+    ? managerPaymentRows.reduce((sum, row) => sum + row.paid, 0)
     : userRole === "MANAGER"
       ? managerPaidOutAmount
     : totals.paid;
@@ -473,7 +490,7 @@ export default function PaymentsPage() {
         <p role="alert" className="rounded-lg bg-rose-50 px-3 py-2 text-xs font-medium text-rose-700 dark:bg-rose-400/[0.08] dark:text-rose-200">{managerPaidOutError}</p>
       )}
       {userRole === "OWNER" ? (
-        <section id="manager-payments" className="scroll-mt-4 overflow-hidden rounded-2xl bg-white/75 shadow-sm shadow-slate-900/[0.04] dark:bg-[#202b2f]/80">
+        <section id="manager-payments" className="scroll-mt-4 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm shadow-slate-900/[0.04] dark:border-white/10 dark:bg-[#202b2f]">
           <div className="flex flex-col gap-2 bg-emerald-50/60 p-3 dark:bg-emerald-400/[0.035] sm:flex-row sm:items-center sm:justify-between sm:px-4 sm:py-3">
             <button
               type="button"
@@ -485,7 +502,7 @@ export default function PaymentsPage() {
                 <span className="flex items-center gap-2 text-sm font-semibold text-slate-950 dark:text-white">
                   <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/80 text-emerald-800 dark:bg-emerald-400/10 dark:text-emerald-300"><WalletCards className="h-4 w-4" /></span>
                   Manager payouts
-                  <span className="rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-emerald-800 dark:bg-emerald-400/10 dark:text-emerald-200">{visibleManagerPaymentRows.length}{managerPaymentFilter === "unpaid" ? `/${activeManagerPaymentRows.length}` : ""}</span>
+                  <span className="rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-emerald-800 dark:bg-emerald-400/10 dark:text-emerald-200">{visibleManagerPaymentRows.length}{managerPaymentFilter === "unpaid" ? `/${payableManagerRows.length}` : ""}</span>
                 </span>
                 <span className="mt-0.5 block text-xs leading-4 text-slate-600 dark:text-slate-300">Manager balances and payout history</span>
               </span>
@@ -514,23 +531,50 @@ export default function PaymentsPage() {
             <p className="p-6 text-sm text-slate-700 dark:text-slate-300">{managerPaymentFilter === "unpaid" ? "No unpaid manager balances found." : "No active manager accounts found."}</p>
           ) : (
             <div className="grid gap-2.5 bg-slate-50/60 p-3 dark:bg-black/10 sm:gap-3">
-              {visibleManagerPaymentRows.map(({ manager, invoiceCount, paid, pending, referralPending, total, commissionRate, payoutMethod, payoutAccount, nextUnpaidInvoice }) => {
+              {visibleManagerPaymentRows.map(({ manager, pendingInvoiceCount, paid, pending, referralPending, total, commissionRate, payoutMethod, payoutAccount, nextUnpaidInvoice }) => {
                 const canRecordManagerPayout = Boolean(payoutMethod && payoutAccount);
                 const hasPendingFunds = pending > 0;
-                const openManagerPayoutDialog = () => {
-                  setPaymentLink({
-                    id: manager.id,
-                    userId: manager.id,
-                    accountName: manager.fullName || manager.username,
-                    slug: "",
-                    isActive: true,
-                    totalEarning: 0,
-                    qualifiedClicks: 0,
-                    payoutMethod,
-                    payoutAccount,
-                    selectedManagerId: manager.id,
-                  });
-                  setPaymentReference("");
+                const openManagerPayoutDialog = async () => {
+                  if (payingLinkId) return;
+                  setPayingLinkId(manager.id);
+                  setError("");
+                  try {
+                    const response = await fetch(`/api/owner/managers/${manager.id}/payout`, {
+                      credentials: "include",
+                      cache: "no-store",
+                    });
+                    const data = await response.json().catch(() => null);
+                    if (!response.ok) throw new Error(data?.error || "Unable to load current manager payout details");
+                    if (!data.totalPendingCents) {
+                      await fetchManagerPayments();
+                      throw new Error("No unpaid manager earnings or referral commissions remain for this account.");
+                    }
+                    if (!data.payoutMethod || !data.payoutAccount) {
+                      await fetchManagerPayments();
+                      throw new Error("Manager payment details are not configured. Update the account before recording this payout.");
+                    }
+                    setPaymentLink({
+                      id: manager.id,
+                      userId: manager.id,
+                      accountName: data.fullName || data.username,
+                      slug: "",
+                      isActive: true,
+                      totalEarning: 0,
+                      qualifiedClicks: 0,
+                      payoutMethod: data.payoutMethod,
+                      payoutAccount: data.payoutAccount,
+                      selectedManagerId: manager.id,
+                      selectedManagerOwnPending: data.ownPending,
+                      selectedManagerReferralPending: data.referralPending,
+                      selectedManagerTotalPending: data.totalPending,
+                      selectedManagerTotalPendingCents: data.totalPendingCents,
+                    });
+                    setPaymentReference("");
+                  } catch (actionError) {
+                    setError(actionError instanceof Error ? actionError.message : "Unable to load current manager payout details");
+                  } finally {
+                    setPayingLinkId(null);
+                  }
                 };
                 return (
                 <div key={manager.id} className="relative grid gap-2.5 overflow-hidden rounded-2xl border border-l-[3px] border-teal-200/80 border-l-teal-600 bg-white p-2.5 shadow-sm shadow-slate-900/[0.04] transition duration-200 hover:-translate-y-px hover:border-teal-300 hover:shadow-md sm:gap-3 sm:p-3 lg:grid-cols-[minmax(190px,1.1fr)_minmax(330px,2fr)_minmax(175px,1.2fr)] lg:items-center dark:border-teal-300/10 dark:border-l-teal-400 dark:bg-[#202b2f] dark:hover:border-teal-300/20 dark:shadow-black/10">
@@ -539,7 +583,8 @@ export default function PaymentsPage() {
                       <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600 dark:bg-white/[0.06] dark:text-slate-300"><UserRound className="h-4 w-4" /></span>
                       <div className="min-w-0">
                         <p className="truncate text-base font-bold text-slate-950 dark:text-white">{manager.fullName || manager.username}</p>
-                        <p className="mt-0.5 truncate text-xs text-slate-700 dark:text-slate-300">@{manager.username} · {invoiceCount} {invoiceCount === 1 ? "invoice" : "invoices"}{referralPending > 0 ? ` · ${money(referralPending)} referral` : ""}</p>
+                        <p className="mt-0.5 truncate text-xs text-slate-700 dark:text-slate-300">@{manager.username} · {pendingInvoiceCount} pending {pendingInvoiceCount === 1 ? "invoice" : "invoices"}{referralPending > 0 ? ` · ${money(referralPending)} referral` : ""}</p>
+                        {manager.status !== "ACTIVE" && <span className="mt-1 inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800 dark:bg-amber-400/10 dark:text-amber-200">{manager.status}</span>}
                       </div>
                     </div>
                     <div className="mt-2 min-w-0 rounded-xl bg-slate-50/80 px-2.5 py-2 dark:bg-white/[0.025] sm:hidden">
@@ -587,8 +632,8 @@ export default function PaymentsPage() {
           ))}
         </section>
       ) : userRole === "MANAGER" ? (
-      <section className="space-y-4 rounded-2xl bg-white/70 p-4 dark:bg-[#202b2f]/70">
-          <div className="flex items-start justify-between gap-4">
+      <section className="space-y-4 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm shadow-slate-900/[0.04] dark:border-white/10 dark:bg-[#202b2f]">
+          <div className="-mx-4 -mt-4 flex items-start justify-between gap-4 border-b border-slate-200/70 bg-gradient-to-r from-indigo-50/80 via-white to-white px-4 py-4 dark:border-white/10 dark:from-indigo-400/[0.07] dark:via-[#202b2f] dark:to-[#202b2f]">
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-sm font-semibold text-slate-900 dark:text-white">Payout details</h2>
@@ -596,7 +641,7 @@ export default function PaymentsPage() {
                   {payoutAccount ? "Payable" : "Action needed"}
                 </span>
               </div>
-              <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-700 dark:text-slate-300">{payoutAccount ? "Your saved payout details are visible here. An access password is required only when you edit them." : "Add a payout method so your account is ready for payouts."}</p>
+              <p className="mt-1 max-w-2xl text-xs leading-5 text-slate-600 dark:text-slate-300">{payoutAccount ? "Your saved payout details are visible here. An access password is required only when you edit them." : "Add a payout method so your account is ready for payouts."}</p>
             </div>
             {!isEditingPaymentMethod && <button type="button" title={payoutAccount ? "Edit payment method" : "Set up payment method"} aria-label={payoutAccount ? "Edit payment method" : "Set up payment method"} onClick={() => setIsEditingPaymentMethod(true)} className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-indigo-50 px-3 py-2 text-xs font-semibold text-indigo-900 transition hover:bg-indigo-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 dark:bg-indigo-300/10 dark:text-indigo-100 dark:hover:bg-indigo-300/20">
               <Pencil className="h-3 w-3" />
@@ -605,14 +650,14 @@ export default function PaymentsPage() {
           </div>
           {!isEditingPaymentMethod ? (
             payoutAccount ? (
-              <dl className="grid gap-4 pt-2 sm:grid-cols-2">
-                <div>
-                  <dt className="text-xs font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-300">Payment method</dt>
-                  <dd className="mt-1 text-sm font-medium text-slate-900 dark:text-white">{payoutMethod === "BINANCE" ? "Binance" : "bKash"}</dd>
+              <dl className="grid gap-3 pt-1 sm:grid-cols-2">
+                <div className="rounded-xl border border-slate-200/80 bg-slate-50/80 p-3.5 dark:border-white/[0.07] dark:bg-white/[0.025]">
+                  <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Payment method</dt>
+                  <dd className="mt-1.5 text-sm font-semibold text-slate-900 dark:text-white">{payoutMethod === "BINANCE" ? "Binance" : "bKash"}</dd>
                 </div>
-                <div>
-                  <dt className="text-xs font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-300">Account</dt>
-                  <dd className="mt-1 break-all text-sm font-medium text-slate-900 dark:text-white">{payoutAccount}</dd>
+                <div className="rounded-xl border border-slate-200/80 bg-slate-50/80 p-3.5 dark:border-white/[0.07] dark:bg-white/[0.025]">
+                  <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Account</dt>
+                  <dd className="mt-1.5 break-all font-mono text-sm font-semibold text-slate-900 dark:text-white">{payoutAccount}</dd>
                 </div>
               </dl>
             ) : (
@@ -622,24 +667,24 @@ export default function PaymentsPage() {
               </div>
             )
           ) : (
-            <form onSubmit={handlePaymentBindingSubmit} className="space-y-4">
+            <form onSubmit={handlePaymentBindingSubmit} className="space-y-4 pt-1">
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className="space-y-1.5 text-sm font-medium text-slate-800 dark:text-slate-200">
                   Payment method
-                  <select value={payoutMethod} onChange={(event) => setPayoutMethod(event.target.value)} className="w-full rounded-md bg-[var(--surface-elevated)] px-3 py-2 text-sm text-slate-900 outline-none transition focus:ring-2 focus:ring-indigo-500/40 dark:text-white">
+                  <select value={payoutMethod} onChange={(event) => setPayoutMethod(event.target.value)} className="mt-1.5 min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm font-normal text-slate-900 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 dark:border-white/15 dark:bg-[#192326] dark:text-white">
                     <option value="BKASH">bKash</option>
                     <option value="BINANCE">Binance</option>
                   </select>
                 </label>
                 <label className="space-y-1.5 text-sm font-medium text-slate-800 dark:text-slate-200">
                   {payoutMethod === "BINANCE" ? "Binance ID" : "bKash number"}
-                  <input value={payoutAccount} onChange={(event) => setPayoutAccount(event.target.value)} placeholder={payoutMethod === "BINANCE" ? "Enter your Binance ID" : "Enter your bKash number"} required className="w-full rounded-md bg-[var(--surface-elevated)] px-3 py-2 text-sm text-slate-900 outline-none transition placeholder:text-slate-600 focus:ring-2 focus:ring-indigo-500/40 dark:text-white dark:placeholder:text-slate-400" />
+                  <input value={payoutAccount} onChange={(event) => setPayoutAccount(event.target.value)} placeholder={payoutMethod === "BINANCE" ? "Enter your Binance ID" : "Enter your bKash number"} required className="mt-1.5 min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm font-normal text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 dark:border-white/15 dark:bg-[#192326] dark:text-white dark:placeholder:text-slate-500" />
                 </label>
               </div>
               <label className="block space-y-1.5 text-sm font-medium text-slate-800 dark:text-slate-200">
                 Access password to confirm changes
                 <span className="relative block">
-                  <input type={showPaymentPassword ? "text" : "password"} minLength={8} value={paymentPassword} onChange={(event) => setPaymentPassword(event.target.value)} placeholder="At least 8 characters" required className="w-full rounded-md bg-[var(--surface-elevated)] px-3 py-2 pr-10 text-sm text-slate-900 outline-none transition placeholder:text-slate-600 focus:ring-2 focus:ring-indigo-500/40 dark:text-white dark:placeholder:text-slate-400" />
+                  <input type={showPaymentPassword ? "text" : "password"} minLength={8} value={paymentPassword} onChange={(event) => setPaymentPassword(event.target.value)} placeholder="At least 8 characters" required className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 pr-10 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 dark:border-white/15 dark:bg-[#192326] dark:text-white dark:placeholder:text-slate-500" />
                   <button type="button" onClick={() => setShowPaymentPassword((previous) => !previous)} className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-slate-700 transition hover:bg-slate-100 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white" aria-label={showPaymentPassword ? "Hide access password" : "Show password"}>
                     {showPaymentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
@@ -686,7 +731,7 @@ export default function PaymentsPage() {
         </div>
       )}
 
-      <section className="overflow-hidden rounded-2xl bg-white/75 shadow-sm shadow-slate-900/[0.04] dark:bg-[#202b2f]/80">
+      <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm shadow-slate-900/[0.04] dark:border-white/10 dark:bg-[#202b2f]">
         <div className="flex flex-col gap-3 bg-slate-50/70 p-3 dark:bg-white/[0.025] sm:p-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0 flex-1">
             <div className="flex min-w-0 items-center gap-2">
@@ -820,14 +865,25 @@ export default function PaymentsPage() {
               )}
             </div>
           </div>
-          <p id="payment-dialog-description" className="mt-3 text-xs leading-5 text-slate-300">{paymentLink.selectedManagerId ? "This payout settles all outstanding team invoices and available referral commissions." : "This records the payment and closes the outstanding invoice."}</p>
+          {paymentLink.selectedManagerId ? (
+            <div id="payment-dialog-description" className="mt-3 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2.5 text-xs text-slate-300">
+              <p className="font-medium text-white">Payout breakdown</p>
+              <div className="mt-2 space-y-1.5">
+                <div className="flex justify-between gap-3"><span>Manager&apos;s pending earnings</span><span className="tabular-nums">{money(paymentLink.selectedManagerOwnPending ?? 0)}</span></div>
+                <div className="flex justify-between gap-3"><span>Referral commission due</span><span className="tabular-nums">{money(paymentLink.selectedManagerReferralPending ?? 0)}</span></div>
+                <div className="flex justify-between gap-3 border-t border-white/10 pt-1.5 font-semibold text-emerald-200"><span>Total to pay</span><span className="tabular-nums">{money(paymentLink.selectedManagerTotalPending ?? 0)}</span></div>
+              </div>
+            </div>
+          ) : (
+            <p id="payment-dialog-description" className="mt-3 text-xs leading-5 text-slate-300">This records the payment and closes the outstanding invoice.</p>
+          )}
           <label className="mt-4 block text-sm font-semibold text-slate-200" htmlFor="payment-reference">
             {paymentLink.payoutMethod === "BKASH" ? "bKash transaction ID" : paymentLink.payoutMethod === "BINANCE" ? "Binance order ID" : "Payment reference"}
             <input id="payment-reference" value={paymentReference} onChange={(event) => setPaymentReference(event.target.value)} autoFocus required placeholder={paymentLink.payoutMethod === "BKASH" ? "Enter bKash transaction ID" : paymentLink.payoutMethod === "BINANCE" ? "Enter Binance order ID" : "Enter payment reference"} className="mt-1.5 h-10 w-full rounded-lg bg-slate-950 px-3 text-sm text-white outline-none placeholder:text-slate-400 transition focus:ring-2 focus:ring-emerald-300/30" />
           </label>
           <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <button type="button" onClick={() => setPaymentLink(null)} className="rounded-lg bg-white/[0.06] px-3 py-2 text-sm font-semibold text-slate-200 transition hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300">Cancel</button>
-            <button type="submit" disabled={!paymentReference.trim() || payingLinkId === paymentLink.id} className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-emerald-400 px-3 py-2 text-xs font-bold text-slate-950 shadow-sm shadow-emerald-950/30 transition hover:bg-emerald-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300/70 disabled:cursor-not-allowed disabled:opacity-60"><CheckCircle className="h-3.5 w-3.5" />{payingLinkId === paymentLink.id ? "Recording..." : "Record payment"}</button>
+            <button type="submit" disabled={!paymentReference.trim() || payingLinkId === paymentLink.id} className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-emerald-400 px-3 py-2 text-xs font-bold text-slate-950 shadow-sm shadow-emerald-950/30 transition hover:bg-emerald-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300/70 disabled:cursor-not-allowed disabled:opacity-60"><CheckCircle className="h-3.5 w-3.5" />{payingLinkId === paymentLink.id ? "Recording..." : paymentLink.selectedManagerId ? `Record ${money(paymentLink.selectedManagerTotalPending ?? 0)} payout` : "Record payment"}</button>
           </div>
         </form>
       </div>}

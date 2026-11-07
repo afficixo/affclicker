@@ -60,14 +60,19 @@ export async function proxy(request: NextRequest) {
     path === '/owner/dashboard' ||
     path === '/owner/managers' ||
     path.startsWith('/owner/managers/') ||
+    path === '/owner/admins' ||
+    path.startsWith('/owner/admins/') ||
     path === '/owner/manager-controls' ||
     path.startsWith('/owner/manager-controls/') ||
     path === '/owner/media' ||
     path.startsWith('/owner/media/') ||
     path === '/owner/payments' ||
     path.startsWith('/owner/payments/') ||
+    path === '/owner/url-shortener' ||
+    path.startsWith('/owner/url-shortener/') ||
     path === '/owner/support' ||
     path === '/publisher/dashboard' ||
+    path === '/publisher/getting-started' ||
     path === '/publisher/help' ||
     path === '/publisher/referrals'
 

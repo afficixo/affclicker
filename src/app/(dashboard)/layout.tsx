@@ -2,11 +2,13 @@
 
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import type { MouseEvent } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronLeft, ChevronRight, Menu, MessageCircle, Moon, Settings, Sun, X } from 'lucide-react'
 import Sidebar from '@/components/layout/Sidebar'
 import { getDashboardBasePath } from '@/lib/auth/dashboard-path'
+import { applyDashboardTheme } from '@/lib/dashboard-theme'
 
 export default function DashboardLayout({
   children,
@@ -14,11 +16,13 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const router = useRouter()
+  const pathname = usePathname()
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isDark, setIsDark] = useState(false)
   const [userRole, setUserRole] = useState<string | null>(null)
   const [now, setNow] = useState<Date | null>(null)
+  const [hasUnreadSupportMessages, setHasUnreadSupportMessages] = useState(false)
 
   useEffect(() => {
     const updateTime = () => setNow(new Date())
@@ -74,39 +78,70 @@ export default function DashboardLayout({
     }
   }, [router])
 
-  const toggleTheme = () => {
-    const nextIsDark = !document.documentElement.classList.contains('dark')
-    const applyTheme = () => {
-      document.documentElement.classList.toggle('dark', nextIsDark)
-      window.localStorage.setItem('theme', nextIsDark ? 'dark' : 'light')
-      window.dispatchEvent(new Event('themechange'))
-      setIsDark(nextIsDark)
-    }
-    const transitionDocument = document as Document & {
-      startViewTransition?: (callback: () => void) => unknown
+  useEffect(() => {
+    if (userRole !== 'OWNER') {
+      setHasUnreadSupportMessages(false)
+      return
     }
 
-    if (
-      !window.matchMedia('(prefers-reduced-motion: reduce)').matches &&
-      transitionDocument.startViewTransition
-    ) {
-      transitionDocument.startViewTransition(applyTheme)
-    } else {
-      applyTheme()
+    let active = true
+    const refreshSupportUnread = async () => {
+      try {
+        const response = await fetch('/api/support?unread=1', { credentials: 'include', cache: 'no-store' })
+        if (!response.ok) throw new Error(`Unable to check support inbox (${response.status}).`)
+        const data = await response.json()
+        if (!active) return
+
+        const conversations = Array.isArray(data.conversations) ? data.conversations : []
+        let hasUnread = false
+        for (const conversation of conversations) {
+          const latestManagerMessage = conversation.messages?.[0]
+          if (!latestManagerMessage) continue
+
+          const storageKey = `owner-support-last-seen-message:${conversation.id}`
+          if (pathname === '/owner/support') {
+            window.localStorage.setItem(storageKey, latestManagerMessage.id)
+          } else if (window.localStorage.getItem(storageKey) !== latestManagerMessage.id) {
+            hasUnread = true
+          }
+        }
+        setHasUnreadSupportMessages(hasUnread)
+      } catch (error) {
+        if (active) console.error('Support inbox unread check failed:', error)
+      }
     }
+
+    void refreshSupportUnread()
+    const interval = window.setInterval(refreshSupportUnread, 5000)
+    return () => {
+      active = false
+      window.clearInterval(interval)
+    }
+  }, [pathname, userRole])
+
+  const toggleTheme = (event: MouseEvent<HTMLButtonElement>) => {
+    const nextIsDark = !document.documentElement.classList.contains('dark')
+    applyDashboardTheme(nextIsDark, event.currentTarget)
+    setIsDark(nextIsDark)
   }
 
   return (
-    <div className="dashboard-shell flex h-dvh flex-col overflow-hidden bg-[var(--page-bg)]">
+    <div className="dashboard-shell flex h-dvh flex-col overflow-hidden bg-[var(--page-bg)] transition-colors duration-200 motion-reduce:transition-none">
+      <a
+        href="#main-content"
+        className="absolute left-3 top-2 z-[100] -translate-y-[150%] rounded-lg bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-lg outline-none ring-2 ring-emerald-600 transition-transform focus:translate-y-0 focus-visible:ring-2 dark:bg-slate-900 dark:text-white"
+      >
+        Skip to content
+      </a>
       <header className="relative z-[60] flex h-14 w-full shrink-0 border-b border-[#263238]/10 bg-white shadow-[0_2px_8px_rgba(38,50,56,0.05)] dark:border-white/10 dark:bg-[#202b2f] dark:shadow-[0_2px_10px_rgba(0,0,0,0.2)]">
-        <div className={`hidden h-full shrink-0 items-center border-r border-[#263238]/10 bg-[#f3f6f5] px-3 transition-[width] duration-300 dark:border-white/10 dark:bg-[#192326] lg:flex ${sidebarCollapsed ? 'w-16 justify-center' : 'w-52 justify-between'}`}>
+        <div className={`hidden h-full shrink-0 items-center border-r border-[#263238]/10 bg-[#f3f6f5] px-3 transition-[width] duration-300 dark:border-white/10 dark:bg-[#192326] lg:flex ${sidebarCollapsed ? 'w-[var(--dashboard-sidebar-collapsed-width)] justify-center' : 'w-[var(--dashboard-sidebar-width)] justify-between'}`}>
           {!sidebarCollapsed && (
             <Image
               src="/affclickerlogo.png"
               alt="AffClicker logo"
               width={1275}
               height={482}
-              className="h-10 w-[170px] shrink-0 object-contain"
+              className="h-12 w-36 shrink-0 object-contain"
               priority
             />
           )}
@@ -128,7 +163,7 @@ export default function DashboardLayout({
               alt="AffClicker logo"
               width={1275}
               height={482}
-              className="h-8 w-[104px] shrink-0 object-contain min-[360px]:w-[120px] sm:h-9 sm:w-[140px] lg:hidden"
+              className="h-7 w-[76px] shrink-0 object-contain min-[360px]:w-[92px] sm:h-9 sm:w-[124px] lg:hidden"
               priority
             />
             {now && (
@@ -173,11 +208,21 @@ export default function DashboardLayout({
               {userRole === 'OWNER' && (
                 <Link
                   href="/owner/support"
-                  className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-slate-600 transition-colors hover:bg-white hover:text-[#24651d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#359f25] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-[#a2fa8e] min-[360px]:h-8 min-[360px]:w-8 sm:h-9 sm:w-9"
-                  aria-label="Support Inbox"
-                  title="Support Inbox"
+                  className={`relative inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-[color,background-color,border-color,box-shadow,transform] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#359f25] motion-reduce:transition-none min-[360px]:h-8 min-[360px]:w-8 sm:h-9 sm:w-9 ${
+                    hasUnreadSupportMessages
+                      ? 'support-inbox-unread'
+                      : 'text-slate-600 hover:bg-white hover:text-[#24651d] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-[#a2fa8e]'
+                  }`}
+                  aria-label={hasUnreadSupportMessages ? 'Support Inbox, unread messages' : 'Support Inbox'}
+                  title={hasUnreadSupportMessages ? 'Support Inbox — unread messages' : 'Support Inbox'}
                 >
-                  <MessageCircle className="h-4 w-4 sm:h-[17px] sm:w-[17px]" aria-hidden="true" />
+                  <MessageCircle className="relative z-10 h-4 w-4 sm:h-[17px] sm:w-[17px]" aria-hidden="true" />
+                  {hasUnreadSupportMessages && (
+                    <>
+                      <span className="support-inbox-unread-pulse" aria-hidden="true" />
+                      <span className="support-inbox-unread-dot" aria-hidden="true" />
+                    </>
+                  )}
                 </Link>
               )}
             </nav>
@@ -185,7 +230,8 @@ export default function DashboardLayout({
             <button
               type="button"
               onClick={toggleTheme}
-              className="flex h-7 w-7 items-center justify-center rounded-lg text-[#455964] transition-colors hover:bg-white hover:text-[#24651d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#359f25] dark:text-[#a2fa8e] dark:hover:bg-white/[0.08] dark:hover:text-[#c4ffb4] min-[360px]:h-8 min-[360px]:w-8 sm:h-9 sm:w-9"
+              data-theme-toggle="header"
+              className="relative flex h-7 w-7 items-center justify-center rounded-lg text-[#455964] transition-colors hover:bg-white hover:text-[#24651d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#359f25] dark:text-[#a2fa8e] dark:hover:bg-white/[0.08] dark:hover:text-[#c4ffb4] min-[360px]:h-8 min-[360px]:w-8 sm:h-9 sm:w-9"
               aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
               title={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
             >
@@ -212,8 +258,8 @@ export default function DashboardLayout({
           mobileOpen={mobileMenuOpen}
         />
         <div className="flex min-w-0 flex-1 flex-col">
-          <main data-page-loader-region className="relative flex min-h-0 w-full flex-1 overflow-x-hidden overflow-y-auto px-2 py-3 sm:px-3 sm:py-5 lg:px-3 lg:py-6">
-            <div className="w-full">{children}</div>
+          <main id="main-content" tabIndex={-1} data-page-loader-region className="relative flex min-h-0 w-full flex-1 overflow-x-hidden overflow-y-auto px-3 py-3 transition-colors duration-200 motion-reduce:transition-none sm:px-4 sm:py-5 lg:px-6 lg:py-6 2xl:px-8">
+            <div className="mx-auto w-full max-w-[1920px] min-w-0">{children}</div>
           </main>
         </div>
       </div>

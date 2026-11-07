@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, ChevronDown, Copy, Database, MessageCircle, RefreshCw, Search, Webhook, XCircle } from "lucide-react";
+import { CheckCircle2, ChevronDown, Copy, Database, MessageCircle, RefreshCw, Search, Trash2, Webhook, XCircle } from "lucide-react";
 
 interface PostbackConfig {
   id: string;
@@ -195,14 +195,49 @@ export default function PostbackTools() {
         </div>
       )}
 
-      <section className="postback-section">
-        <div className="postback-section-heading">
-          <div>
-            <h2 className="postback-section-title">Postback endpoints</h2>
-            <p className="postback-muted mt-1 text-sm">Connect your affiliate networks to receive conversion events.</p>
+      <section className="postback-section postback-telegram">
+        <button
+          type="button"
+          aria-expanded={showTelegramSettings}
+          onClick={() => setShowTelegramSettings((current) => !current)}
+          className="postback-accordion-trigger"
+        >
+          <span className="flex min-w-0 items-center gap-3">
+            <span className="postback-heading-icon is-small"><MessageCircle className="h-4 w-4" /></span>
+            <span className="min-w-0 text-left">
+              <span className="postback-section-title block">Telegram notifications</span>
+              <span className="postback-muted mt-0.5 block text-sm">Configure alerts for pending manager signups and incoming conversions.</span>
+            </span>
+          </span>
+          <ChevronDown className={`postback-chevron h-4 w-4 transition-transform ${showTelegramSettings ? "rotate-180" : ""}`} />
+        </button>
+        {showTelegramSettings && (
+          <div className="postback-telegram-body">
+            <div className="grid gap-4 md:grid-cols-[1fr_1.4fr]">
+              <label className="postback-label">
+                Channel ID
+                <input value={telegramChannelId} onChange={(event) => setTelegramChannelId(event.target.value)} className="postback-input mt-1.5 w-full" />
+              </label>
+              <label className="postback-label">
+                Bot API token
+                <input type="password" value={telegramBotToken} onChange={(event) => setTelegramBotToken(event.target.value)} className="postback-input mt-1.5 w-full" />
+              </label>
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button type="button" onClick={saveTelegram} disabled={telegramSubmitting || !telegramChannelId || !telegramBotToken} className="postback-primary-button">
+                Save Telegram
+              </button>
+              {telegramConfigured && (
+                <button type="button" onClick={testTelegram} disabled={telegramSubmitting} className="postback-secondary-button">
+                  Send test message
+                </button>
+              )}
+            </div>
           </div>
-          <span className="postback-count">{configs.length} configured</span>
-        </div>
+        )}
+      </section>
+
+      <section className="postback-section">
         <div className="postback-endpoint-grid">
           {(["AFFMINE", "ADBLUMEDIA"] as const).map((provider) => {
             const config = configs.find((item) => item.provider === provider);
@@ -213,13 +248,7 @@ export default function PostbackTools() {
             return (
               <article key={provider} className="postback-endpoint-card">
                 <div className="postback-endpoint-top">
-                  <div>
-                    <p className="postback-muted text-xs font-medium uppercase tracking-wider">Network</p>
-                    <h3 className="postback-endpoint-name">{providerName}</h3>
-                  </div>
-                  <span className={`postback-status ${config ? "is-ready" : "is-pending"}`}>
-                    {config ? "Connected" : "Not configured"}
-                  </span>
+                  <h3 className="postback-endpoint-name">{providerName}</h3>
                 </div>
                 {config && previewUrl ? (
                   <div className="postback-url-row">
@@ -254,48 +283,6 @@ export default function PostbackTools() {
         </div>
       </section>
 
-      <section className="postback-section postback-telegram">
-        <button
-          type="button"
-          aria-expanded={showTelegramSettings}
-          onClick={() => setShowTelegramSettings((current) => !current)}
-          className="postback-accordion-trigger"
-        >
-          <span className="flex min-w-0 items-center gap-3">
-            <span className="postback-heading-icon is-small"><MessageCircle className="h-4 w-4" /></span>
-            <span className="min-w-0 text-left">
-              <span className="postback-section-title block">Telegram notifications</span>
-              <span className="postback-muted mt-0.5 block text-sm">Configure alerts for incoming conversions.</span>
-            </span>
-          </span>
-          <ChevronDown className={`postback-chevron h-4 w-4 transition-transform ${showTelegramSettings ? "rotate-180" : ""}`} />
-        </button>
-        {showTelegramSettings && (
-          <div className="postback-telegram-body">
-            <div className="grid gap-4 md:grid-cols-[1fr_1.4fr]">
-              <label className="postback-label">
-                Channel ID
-                <input value={telegramChannelId} onChange={(event) => setTelegramChannelId(event.target.value)} className="postback-input mt-1.5 w-full" />
-              </label>
-              <label className="postback-label">
-                Bot API token
-                <input type="password" value={telegramBotToken} onChange={(event) => setTelegramBotToken(event.target.value)} className="postback-input mt-1.5 w-full" />
-              </label>
-            </div>
-            <div className="mt-4 flex flex-wrap gap-2">
-              <button type="button" onClick={saveTelegram} disabled={telegramSubmitting || !telegramChannelId || !telegramBotToken} className="postback-primary-button">
-                Save Telegram
-              </button>
-              {telegramConfigured && (
-                <button type="button" onClick={testTelegram} disabled={telegramSubmitting} className="postback-secondary-button">
-                  Send test message
-                </button>
-              )}
-            </div>
-          </div>
-        )}
-      </section>
-
       <section className="postback-report">
         <div className="postback-report-heading">
           <div className="flex min-w-0 items-center gap-3">
@@ -317,9 +304,14 @@ export default function PostbackTools() {
                 <button type="button" onClick={resetLeadData} className="postback-reset-confirm-action">Reset</button>
               </div>
             )}
-            <button type="button" title="Reset conversion data" onClick={() => setShowResetConfirm(true)} className="postback-danger-button">
+            <button
+              type="button"
+              title="Reset conversion data"
+              aria-label="Reset conversion data"
+              onClick={() => setShowResetConfirm(true)}
+              className="postback-secondary-button"
+            >
               <RefreshCw className="h-3.5 w-3.5" />
-              Reset data
             </button>
           </div>
         </div>
@@ -366,7 +358,15 @@ export default function PostbackTools() {
                     <td className={lead.sub4 ? "postback-subid" : "postback-subid is-empty"}>{lead.sub4 || "—"}</td>
                     <td className="postback-date">{new Date(lead.createdAt).toLocaleDateString()}</td>
                     <td className="postback-action-column">
-                      <button type="button" onClick={() => deleteLead(lead.id)} className="postback-row-delete">Delete</button>
+                      <button
+                        type="button"
+                        onClick={() => deleteLead(lead.id)}
+                        className="postback-row-delete"
+                        aria-label={`Delete ${lead.postback.provider === "AFFMINE" ? "Affmine" : "AdBluMedia"} conversion`}
+                        title="Delete conversion"
+                      >
+                        <Trash2 className="h-4 w-4" aria-hidden="true" />
+                      </button>
                     </td>
                   </tr>
                 ))}
